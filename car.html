@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>电车 vs 油车 成本对比计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            padding: 15px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #34495e;
+            font-size: 14px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #2c3e50;
+            background-color: white;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        select {
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+        }
+
+        input.error {
+            border-color: #e74c3c;
+        }
+
+        .error-tip {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .price-adjust {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+        }
+
+        .price-adjust h4 {
+            color: #2c3e50;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .price-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .price-grid, .calculator-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+
+        .btn-calculate {
+            width: 100%;
+            padding: 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 20px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-calculate:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .btn-calculate:active:not(:disabled) {
+            background-color: #2980b9;
+        }
+
+        .results {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            border-top: 2px solid #eee;
+        }
+
+        .result-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+        }
+
+        .electric-result {
+            background-color: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid #3498db;
+        }
+
+        .gas-result {
+            background-color: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid #e74c3c;
+        }
+
+        .suggestion {
+            padding: 15px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 6px;
+            border-left: 4px solid #2ecc71;
+            margin-top: 10px;
+        }
+
+        .rule-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #eee;
+        }
+
+        .rule-box h4 {
+            color: #2c3e50;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .rule-list {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #555;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        h3 {
+            color: #2c3e50;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .cost-value {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 8px 0;
+        }
+
+        .electric-color {
+            color: #3498db;
+        }
+
+        .gas-color {
+            color: #e74c3c;
+        }
+
+        .suggestion-title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #27ae60;
+        }
+
+        .cost-details {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .detail-item {
+            margin-bottom: 4px;
+        }
+
+        .calculation-guide {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: rgba(245, 247, 250, 0.8);
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .calculation-guide h3 {
+            color: #2c3e50;
+            font-size: 16px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .guide-item {
+            margin-bottom: 12px;
+            line-height: 1.7;
+            font-size: 13px;
+        }
+
+        .guide-item strong {
+            color: #3498db;
+            font-size: 14px;
+        }
+
+        .guide-subtitle {
+            color: #e74c3c;
+            font-weight: 600;
+            margin: 8px 0 4px 0;
+            font-size: 13px;
+        }
+
+        .guide-list {
+            padding-left: 20px;
+            font-size: 12px;
+            color: #555;
+        }
+
+        .guide-list li {
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>电车 vs 油车 成本对比计算器</h1>
+
+    <!-- 油价/电价自定义调整模块（带验证） -->
+    <div class="price-adjust">
+        <h4>能源价格自定义（默认值：92#7.5/95#8.0/98#8.8 | 家充0.55/外充1.2）</h4>
+        <div class="price-grid">
+            <div class="form-group">
+                <label>92号汽油单价（元/L）</label>
+                <input type="number" id="gas92-price" step="0.1" value="7.5" min="6.0" max="9.0">
+                <div class="error-tip" id="tip-gas92">请输入6.0-9.0之间的有效数字</div>
+            </div>
+            <div class="form-group">
+                <label>95号汽油单价（元/L）</label>
+                <input type="number" id="gas95-price" step="0.1" value="8.0" min="6.5" max="9.5">
+                <div class="error-tip" id="tip-gas95">请输入6.5-9.5之间且≥92号汽油的数值</div>
+            </div>
+            <div class="form-group">
+                <label>98号汽油单价（元/L）</label>
+                <input type="number" id="gas98-price" step="0.1" value="8.8" min="7.0" max="10.0">
+                <div class="error-tip" id="tip-gas98">请输入7.0-10.0之间且≥95号汽油的数值</div>
+            </div>
+            <div class="form-group">
+                <label>家用充电单价（元/度）</label>
+                <input type="number" id="elec-home-price" step="0.05" value="0.55" min="0.4" max="0.8">
+                <div class="error-tip" id="tip-elec-home">请输入0.4-0.8之间的有效数字</div>
+            </div>
+            <div class="form-group">
+                <label>公共充电单价（元/度）</label>
+                <input type="number" id="elec-public-price" step="0.05" value="1.2" min="1.0" max="1.5">
+                <div class="error-tip" id="tip-elec-public">请输入1.0-1.5之间且≥家用充电的数值</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="calculator-grid">
+        <div class="form-group">
+            <label>购车预算（万元）</label>
+            <select id="budget">
+                <option value="5">5万</option>
+                <option value="10">10万</option>
+                <option value="15">15万</option>
+                <option value="20">20万</option>
+                <option value="25">25万</option>
+                <option value="30" selected>30万</option>
+                <option value="35">35万</option>
+                <option value="40">40万</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>每年里程（公里）</label>
+            <select id="annual-mileage">
+                <option value="5000">5000</option>
+                <option value="8000">8000</option>
+                <option value="10000" selected>10000</option>
+                <option value="15000">15000</option>
+                <option value="20000">20000</option>
+                <option value="30000">30000</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>计划用车年限</label>
+            <select id="use-years">
+                <option value="3">3年</option>
+                <option value="5">5年</option>
+                <option value="8">8年</option>
+                <option value="10" selected>10年</option>
+                <option value="15">15年</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>主要用车场景</label>
+            <select id="drive-type">
+                <option value="city" selected>市区为主</option>
+                <option value="highway">高速为主</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>主要充电方式</label>
+            <select id="charge-type">
+                <option value="home" selected>家充为主</option>
+                <option value="public">外面充电为主</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>汽油标号</label>
+            <select id="gas-type">
+                <option value="92">92号</option>
+                <option value="95" selected>95号</option>
+                <option value="98">98号</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>车型</label>
+            <select id="car-type">
+                <option value="compact">紧凑型</option>
+                <option value="mid" selected>中型车</option>
+                <option value="suv">SUV</option>
+            </select>
+        </div>
+    </div>
+
+    <button id="calcBtn" class="btn-calculate">计算用车成本</button>
+
+    <div class="results" id="results">
+        <h2>成本计算结果 (每年)</h2>
+
+        <div class="result-item electric-result">
+            <h3>纯电动车</h3>
+            <div class="cost-value electric-color" id="electric-cost">¥0</div>
+            <div class="cost-details" id="electric-details"></div>
+        </div>
+
+        <div class="result-item gas-result">
+            <h3>燃油车</h3>
+            <div class="cost-value gas-color" id="gas-cost">¥0</div>
+            <div class="cost-details" id="gas-details"></div>
+        </div>
+
+        <div class="suggestion">
+            <div class="suggestion-title">购车建议</div>
+            <p id="suggestion-text"></p>
+        </div>
+
+        <div class="rule-box">
+            <h4>通用选择规则（按真实成本）</h4>
+            <div class="rule-list">
+                1. 年里程 ≥ 2 万公里 + 家充为主 + 用车 ≥ 5 年 → 电车更划算<br>
+                2. 年里程 ＜ 1.5 万公里 或 车价 ≥ 25 万 → 油车更划算<br>
+                3. 高速为主 + 外面充电 → 优先油车<br>
+                4. 油价每上涨0.5元/L，油车年均成本增加约400-500元（1万公里）<br>
+                5. 无论什么条件，最终以本工具实际计算成本为准，谁低选谁
+            </div>
+        </div>
+    </div>
+
+    <div class="calculation-guide">
+        <h3>参数计算说明</h3>
+
+        <div class="guide-item">
+            <strong>一、折旧费用（核心成本）</strong>
+            <div class="guide-subtitle">计算逻辑</div>
+            <div class="guide-list">
+                <li>年折旧费用 = (购车总价 - 车辆残值) ÷ 用车年限</li>
+                <li>车辆残值 = 购车总价 × 对应年限残值率</li>
+            </div>
+            <div class="guide-subtitle">残值率标准（市场平均水平）</div>
+            <div class="guide-list">
+                <li>燃油车：3年70%、5年60%、8年45%、10年30%、15年15%</li>
+                <li>纯电车：3年55%、5年45%、8年30%、10年20%、15年8%</li>
+            </div>
+        </div>
+
+        <div class="guide-item">
+            <strong>二、能源成本（油费/电费）</strong>
+            <div class="guide-subtitle">燃油车油费</div>
+            <div class="guide-list">
+                <li>年油费 = (年里程 ÷ 100) × 车型油耗 × 自定义汽油单价</li>
+                <li>油耗标准（市区/高速）：
+                    <br>- 紧凑型：8.5L/100km / 7.0L/100km
+                    <br>- 中型车：9.5L/100km / 7.8L/100km
+                    <br>- SUV：11L/100km / 9.0L/100km
+                </li>
+            </div>
+            <div class="guide-subtitle">纯电车电费</div>
+            <div class="guide-list">
+                <li>年电费 = (年里程 ÷ 100) × 车型电耗 × 自定义电价</li>
+                <li>电耗标准（市区/高速）：
+                    <br>- 紧凑型：11度/100km / 14度/100km
+                    <br>- 中型车：14度/100km / 17度/100km
+                    <br>- SUV：16度/100km / 20度/100km
+                </li>
+            </div>
+        </div>
+
+        <div class="guide-item">
+            <strong>三、保养费用</strong>
+            <div class="guide-list">
+                <li>年保养费 = 基础保养费 + (年里程 ÷ 10000) × 每万公里额外费用</li>
+                <li>燃油车：基础1500元/年 + 300元/1万公里</li>
+                <li>纯电车：基础500元/年 + 100元/1万公里（无发动机/变速箱，成本更低）</li>
+            </div>
+        </div>
+
+        <div class="guide-item">
+            <strong>四、保险费用</strong>
+            <div class="guide-list">
+                <li>年保险费 = 购车总价 × 保险费率</li>
+                <li>燃油车：1.8%/年（行业平均水平）</li>
+                <li>纯电车：2.2%/年（电车保费略高）</li>
+            </div>
+        </div>
+
+        <div class="guide-item">
+            <strong>五、税费成本</strong>
+            <div class="guide-subtitle">购置税（仅燃油车）</div>
+            <div class="guide-list">
+                <li>总购置税 = 购车总价 ÷ 1.13 × 10%，分摊到用车年限</li>
+                <li>纯电车目前免征购置税</li>
+            </div>
+            <div class="guide-subtitle">车船税</div>
+            <div class="guide-list">
+                <li>燃油车：360元/年（1.6-2.0L排量标准）</li>
+                <li>纯电车：免征车船税</li>
+            </div>
+        </div>
+
+        <div class="guide-item">
+            <strong>六、电池更换成本（仅纯电车）</strong>
+            <div class="guide-list">
+                <li>仅用车年限≥8年时计算，总更换成本=购车总价×30%</li>
+                <li>年电池成本 = 总更换成本 ÷ 用车年限</li>
+                <li>电池成本标准：约占车价30%（市场平均更换价）</li>
+            </div>
+        </div>
+
+        <div class="guide-item">
+            <strong>七、总成本构成</strong>
+            <div class="guide-list">
+                <li>燃油车总成本 = 折旧 + 油费 + 保养 + 保险 + 购置税分摊 + 车船税</li>
+                <li>纯电车总成本 = 折旧 + 电费 + 保养 + 保险 + 电池更换成本（8年以上） + 车船税（0）</li>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 获取所有价格输入框和提示
+    const gas92Input = document.getElementById('gas92-price');
+    const gas95Input = document.getElementById('gas95-price');
+    const gas98Input = document.getElementById('gas98-price');
+    const elecHomeInput = document.getElementById('elec-home-price');
+    const elecPublicInput = document.getElementById('elec-public-price');
+
+    const tipGas92 = document.getElementById('tip-gas92');
+    const tipGas95 = document.getElementById('tip-gas95');
+    const tipGas98 = document.getElementById('tip-gas98');
+    const tipElecHome = document.getElementById('tip-elec-home');
+    const tipElecPublic = document.getElementById('tip-elec-public');
+
+    const calcBtn = document.getElementById('calcBtn');
+
+    // 价格验证核心函数
+    function validatePrices() {
+        let isValid = true;
+        const gas92 = parseFloat(gas92Input.value);
+        const gas95 = parseFloat(gas95Input.value);
+        const gas98 = parseFloat(gas98Input.value);
+        const elecHome = parseFloat(elecHomeInput.value);
+        const elecPublic = parseFloat(elecPublicInput.value);
+
+        // 重置样式和提示
+        [gas92Input, gas95Input, gas98Input, elecHomeInput, elecPublicInput].forEach(input => {
+            input.classList.remove('error');
+        });
+        [tipGas92, tipGas95, tipGas98, tipElecHome, tipElecPublic].forEach(tip => {
+            tip.style.display = 'none';
+        });
+
+        // 验证92号汽油
+        if (isNaN(gas92) || gas92 < 6.0 || gas92 > 9.0) {
+            gas92Input.classList.add('error');
+            tipGas92.style.display = 'block';
+            isValid = false;
+        }
+
+        // 验证95号汽油（≥92号）
+        if (isNaN(gas95) || gas95 < 6.5 || gas95 > 9.5 || gas95 < gas92) {
+            gas95Input.classList.add('error');
+            tipGas95.style.display = 'block';
+            isValid = false;
+        }
+
+        // 验证98号汽油（≥95号）
+        if (isNaN(gas98) || gas98 < 7.0 || gas98 > 10.0 || gas98 < gas95) {
+            gas98Input.classList.add('error');
+            tipGas98.style.display = 'block';
+            isValid = false;
+        }
+
+        // 验证家用充电
+        if (isNaN(elecHome) || elecHome < 0.4 || elecHome > 0.8) {
+            elecHomeInput.classList.add('error');
+            tipElecHome.style.display = 'block';
+            isValid = false;
+        }
+
+        // 验证公共充电（≥家用充电）
+        if (isNaN(elecPublic) || elecPublic < 1.0 || elecPublic > 1.5 || elecPublic < elecHome) {
+            elecPublicInput.classList.add('error');
+            tipElecPublic.style.display = 'block';
+            isValid = false;
+        }
+
+        // 启用/禁用计算按钮
+        calcBtn.disabled = !isValid;
+        return isValid;
+    }
+
+    // 输入框实时验证
+    [gas92Input, gas95Input, gas98Input, elecHomeInput, elecPublicInput].forEach(input => {
+        input.addEventListener('input', validatePrices);
+    });
+
+    // 初始化验证
+    validatePrices();
+
+    // 计算按钮点击事件
+    calcBtn.addEventListener('click', calc);
+    calcBtn.addEventListener('touchstart', e => {
+        if (!calcBtn.disabled) {
+            e.preventDefault();
+            calc();
+        }
+    });
+
+    // 核心计算函数
+    function calc() {
+        try {
+            // 获取验证后的油价/电价
+            const gasPriceCustom = {
+                92: parseFloat(gas92Input.value),
+                95: parseFloat(gas95Input.value),
+                98: parseFloat(gas98Input.value)
+            };
+            const elecPriceCustom = {
+                home: parseFloat(elecHomeInput.value),
+                public: parseFloat(elecPublicInput.value)
+            };
+
+            // 获取所有选择条件
+            const budget = +document.getElementById('budget').value * 10000;
+            const budgetWan = +document.getElementById('budget').value;
+            const mile = +document.getElementById('annual-mileage').value;
+            const years = +document.getElementById('use-years').value;
+            const drive = document.getElementById('drive-type').value;
+            const driveText = drive === 'city' ? '市区为主' : '高速为主';
+            const charge = document.getElementById('charge-type').value;
+            const chargeText = charge === 'home' ? '家充为主' : '外面充电为主';
+            const gasType = document.getElementById('gas-type').value;
+            const gasTypeText = gasType + '号汽油';
+            const car = document.getElementById('car-type').value;
+            let carText = '';
+            if (car === 'compact') carText = '紧凑型车';
+            else if (car === 'mid') carText = '中型车';
+            else carText = 'SUV';
+
+            // 油耗电耗（正确逻辑：油车市区费油，电车市区省电）
+            const config = {
+                compact: { gasCity: 8.5, gasHigh: 7.0, elecCity: 11, elecHigh: 14 },
+                mid:     { gasCity: 9.5, gasHigh: 7.8, elecCity: 14, elecHigh: 17 },
+                suv:     { gasCity: 11, gasHigh: 9.0, elecCity: 16, elecHigh: 20 }
+            };
+            const gasConsume = drive === 'city' ? config[car].gasCity : config[car].gasHigh;
+            const elecConsume = drive === 'city' ? config[car].elecCity : config[car].elecHigh;
+
+            // 替换为验证后的油价/电价
+            const gasPrice = gasPriceCustom[gasType];
+            const elecPrice = elecPriceCustom[charge];
+
+            // 能源费用
+            const gasFee = (mile / 100) * gasConsume * gasPrice;
+            const elecFee = (mile / 100) * elecConsume * elecPrice;
+
+            // 折旧
+            const dep = {
+                gas:  { 3: 0.7, 5: 0.6, 8: 0.45, 10: 0.3, 15: 0.15 },
+                elec: { 3: 0.55,5:0.45,8:0.3,10:0.2,15:0.08 }
+            };
+            const gasDep = (budget - budget * dep.gas[years]) / years;
+            const elecDep = (budget - budget * dep.elec[years]) / years;
+
+            // 保养
+            const gasMaintain = 1500 + (mile / 10000) * 300;
+            const elecMaintain = 500 + (mile / 10000) * 100;
+
+            // 保险
+            const gasIns = budget * 0.018;
+            const elecIns = budget * 0.022;
+
+            // 购置税分摊
+            const purchaseTax = (budget / 1.13 * 0.1) / years;
+
+            // 车船税
+            const gasTax = 360;
+            const elecTax = 0;
+
+            // 电池成本
+            const battery = years >= 8 ? (budget * 0.3) / years : 0;
+
+            // 年度总成本
+            const totalGas = gasDep + gasFee + gasMaintain + gasIns + purchaseTax + gasTax;
+            const totalEle = elecDep + elecFee + elecMaintain + elecIns + battery + elecTax;
+            const diff = Math.abs(totalGas - totalEle);
+
+            // 显示结果
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('electric-cost').innerText = '¥' + totalEle.toFixed(2);
+            document.getElementById('gas-cost').innerText = '¥' + totalGas.toFixed(2);
+
+            // 电车明细
+            document.getElementById('electric-details').innerHTML = `
+                <div class="detail-item">折旧费用：¥${elecDep.toFixed(2)}</div>
+                <div class="detail-item">电费：¥${elecFee.toFixed(2)}</div>
+                <div class="detail-item">保养费用：¥${elecMaintain.toFixed(2)}</div>
+                <div class="detail-item">保险费用：¥${elecIns.toFixed(2)}</div>
+                <div class="detail-item">电池更换成本：¥${battery.toFixed(2)}</div>
+                <div class="detail-item">车船税：¥${elecTax.toFixed(2)}</div>
+            `;
+
+            // 油车明细
+            document.getElementById('gas-details').innerHTML = `
+                <div class="detail-item">折旧费用：¥${gasDep.toFixed(2)}</div>
+                <div class="detail-item">油费：¥${gasFee.toFixed(2)}</div>
+                <div class="detail-item">保养费用：¥${gasMaintain.toFixed(2)}</div>
+                <div class="detail-item">保险费用：¥${gasIns.toFixed(2)}</div>
+                <div class="detail-item">购置税分摊：¥${purchaseTax.toFixed(2)}</div>
+                <div class="detail-item">车船税：¥${gasTax.toFixed(2)}</div>
+            `;
+
+            // 详细购车建议（含油价/电价影响）
+            let suggest = '';
+            if (totalEle < totalGas) {
+                suggest = `根据你的选择条件：购车预算${budgetWan}万元、年行驶里程${mile}公里、用车年限${years}年、${driveText}、${chargeText}、${gasTypeText}（单价${gasPrice}元/L）、${carText}（家充${elecPriceCustom.home}元/度 | 外充${elecPriceCustom.public}元/度）。
+                纯电动车年均成本为¥${totalEle.toFixed(2)}，燃油车年均成本为¥${totalGas.toFixed(2)}，电车比油车每年节省¥${diff.toFixed(2)}，建议选择纯电动车。`;
+            } else {
+                suggest = `根据你的选择条件：购车预算${budgetWan}万元、年行驶里程${mile}公里、用车年限${years}年、${driveText}、${chargeText}、${gasTypeText}（单价${gasPrice}元/L）、${carText}（家充${elecPriceCustom.home}元/度 | 外充${elecPriceCustom.public}元/度）。
+                燃油车年均成本为¥${totalGas.toFixed(2)}，纯电动车年均成本为¥${totalEle.toFixed(2)}，油车比电车每年节省¥${diff.toFixed(2)}，建议选择燃油车。`;
+            }
+            // 替换换行符，保证显示美观
+            suggest = suggest.replace(/\n/g, ' ');
+            document.getElementById('suggestion-text').innerText = suggest;
+
+        } catch (e) {
+            alert('计算出错，请检查选项（油价/电价请输入合理数值）');
+            console.error(e);
+        }
+    }
+});
+</script>
+</body>
+</html>
