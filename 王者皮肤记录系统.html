@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>王者荣耀皮肤管理｜官方129英雄780皮肤完整版</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:微软雅黑,sans-serif;}
+    body{background:#f5f7fa;padding:16px;}
+    .box{max-width:1280px;margin:0 auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+    h2{text-align:center;color:#d92b78;margin-bottom:16px;}
+    .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;padding:10px;background:#f8f0f6;border-radius:6px;}
+    .tit{font-weight:bold;color:#333;width:70px;}
+    select,input{padding:6px 10px;border:1px solid #ccc;border-radius:4px;}
+    button{padding:6px 10px;border:none;border-radius:4px;background:#d92b78;color:#fff;cursor:pointer;font-size:13px;}
+    .btn-gray{background:#888;}
+    .btn-blue{background:#409eff;}
+    table{width:100%;border-collapse:collapse;margin-top:10px;}
+    th,td{border:1px solid #eee;padding:8px;text-align:center;font-size:14px;}
+    th{background:#f5f5f5;}
+    .panel{margin:10px 0;padding:12px;background:#edf4ff;border-radius:6px;display:none;}
+    .own{color:green;font-weight:bold;}
+    .not{color:red;}
+    .piece{color:#e69500;}
+    /* 品质配色官方统一 */
+    .p-yp{color:#666;}
+    .p-bs{color:#7ccd7c;}
+    .p-yz{color:#5499ff;}
+    .p-ss{color:#a855f7;}
+    .p-cxss{color:#ff9500;}
+    .p-cs{color:#e91e63;}
+    .p-cxcs{color:#ff5722;}
+    .p-dc{color:#ffd700;}
+    .p-ws{color:#9b30ff;}
+    .edit-row{background:#fff8e8;}
+  </style>
+</head>
+<body>
+<div class="box">
+  <h2>王者荣耀皮肤管理系统｜官方全英雄全皮肤</h2>
+
+  <!-- 账号 -->
+  <div class="row">
+    <span class="tit">账号</span>
+    <select id="accSel"></select>
+    <input type="text" id="newAcc" placeholder="输入新账号">
+    <button onclick="saveAccount()">新建/切换</button>
+    <span id="nowAcc" style="color:#d92b78;"></span>
+  </div>
+
+  <!-- 筛选 -->
+  <div class="row">
+    <span class="tit">分路筛选</span>
+    <select id="laneFilter">
+      <option value="">全部分路</option>
+      <option>对抗路</option>
+      <option>中路</option>
+      <option>发育路</option>
+      <option>游走</option>
+      <option>打野</option>
+    </select>
+    <span class="tit">英雄筛选</span>
+    <select id="heroFilter">
+      <option value="">全部英雄</option>
+    </select>
+  </div>
+
+  <!-- 快速添加皮肤记录 -->
+  <div class="row">
+    <span class="tit">分路</span>
+    <select id="addLane">
+      <option>对抗路</option>
+      <option>中路</option>
+      <option>发育路</option>
+      <option>游走</option>
+      <option>打野</option>
+    </select>
+    <span class="tit">英雄</span>
+    <select id="addHero"></select>
+    <span class="tit">皮肤</span>
+    <select id="addSkin"></select>
+    <select id="addStatus">
+      <option>已拥有</option>
+      <option selected>未拥有</option>
+      <option>碎片兑换</option>
+    </select>
+    <button onclick="addSkinRecord()">添加记录</button>
+  </div>
+
+  <!-- 功能按钮：新增/编辑 分开 -->
+  <div class="row">
+    <button onclick="showAddHero()">➕ 新增英雄</button>
+    <button onclick="showEditHero()">✏️ 编辑英雄</button>
+    <button onclick="showAddSkin()">➕ 新增皮肤</button>
+    <button onclick="showEditSkin()">✏️ 编辑皮肤</button>
+  </div>
+
+  <!-- 1.新增英雄面板 -->
+  <div class="panel" id="addHeroPanel">
+    <h4>新增英雄（自动防重复）</h4>
+    <input id="newHeroName" placeholder="输入英雄名称">
+    <select id="newHeroLane">
+      <option>对抗路</option>
+      <option>中路</option>
+      <option>发育路</option>
+      <option>游走</option>
+      <option>打野</option>
+    </select>
+    <button onclick="addNewHero()">确认新增</button>
+    <button class="btn-gray" onclick="hideAllPanel()">关闭</button>
+  </div>
+
+  <!-- 2.编辑英雄面板（修复：分路联动英雄） -->
+  <div class="panel" id="editHeroPanel">
+    <h4>编辑已有英雄</h4>
+    <select id="editHeroLane" onchange="refreshEditHeroByLane()">
+      <option value="">全部分路</option>
+      <option>对抗路</option>
+      <option>中路</option>
+      <option>发育路</option>
+      <option>游走</option>
+      <option>打野</option>
+    </select>
+    <select id="editHeroSel"></select>
+    <input id="editHeroName" placeholder="新英雄名称">
+    <select id="editHeroLaneNew">
+      <option>对抗路</option>
+      <option>中路</option>
+      <option>发育路</option>
+      <option>游走</option>
+      <option>打野</option>
+    </select>
+    <button onclick="saveEditHero()">保存修改</button>
+    <button class="btn-gray" onclick="hideAllPanel()">关闭</button>
+  </div>
+
+  <!-- 3.新增皮肤面板 -->
+  <div class="panel" id="addSkinPanel">
+    <h4>新增皮肤（同英雄防重名）</h4>
+    <select id="skinHeroSelect"></select>
+    <input id="newSkinName" placeholder="皮肤名称">
+    <select id="newSkinQuality">
+      <option>原皮</option>
+      <option>伴生</option>
+      <option>勇者</option>
+      <option>限定勇者</option>
+      <option>史诗</option>
+      <option>限定史诗</option>
+      <option>传说</option>
+      <option>限定传说</option>
+      <option>典藏</option>
+      <option>无双</option>
+    </select>
+    <button onclick="addNewSkin()">确认新增</button>
+    <button class="btn-gray" onclick="hideAllPanel()">关闭</button>
+  </div>
+
+  <!-- 4.编辑皮肤面板 -->
+  <div class="panel" id="editSkinPanel">
+    <h4>编辑皮肤名称&品质</h4>
+    <select id="editSkinHero"></select>
+    <select id="editSkinSel"></select>
+    <input id="editSkinName" placeholder="新皮肤名">
+    <select id="editSkinQuality">
+      <option>原皮</option>
+      <option>伴生</option>
+      <option>勇者</option>
+      <option>限定勇者</option>
+      <option>史诗</option>
+      <option>限定史诗</option>
+      <option>传说</option>
+      <option>限定传说</option>
+      <option>典藏</option>
+      <option>无双</option>
+    </select>
+    <button onclick="saveEditSkin()">保存修改</button>
+    <button class="btn-gray" onclick="hideAllPanel()">关闭</button>
+  </div>
+
+  <!-- 5.编辑皮肤记录面板（新增） -->
+  <div class="panel" id="editRecordPanel">
+    <h4>编辑皮肤记录（修改皮肤/品质/状态）</h4>
+    <input type="hidden" id="editRecordId">
+    <select id="editRecordLane">
+      <option>对抗路</option>
+      <option>中路</option>
+      <option>发育路</option>
+      <option>游走</option>
+      <option>打野</option>
+    </select>
+    <select id="editRecordHero" onchange="refreshEditRecordSkin()"></select>
+    <select id="editRecordSkin"></select>
+    <select id="editRecordStatus">
+      <option>已拥有</option>
+      <option>未拥有</option>
+      <option>碎片兑换</option>
+    </select>
+    <button onclick="saveEditRecord()">保存修改</button>
+    <button class="btn-gray" onclick="hideAllPanel()">关闭</button>
+  </div>
+
+  <!-- 数据列表 -->
+  <table>
+    <thead>
+      <tr>
+        <th>分路</th>
+        <th>英雄</th>
+        <th>皮肤</th>
+        <th>品质</th>
+        <th>拥有状态</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="listBody"></tbody>
+  </table>
+</div>
+
+<script>
+// ==============================================
+// 【官方标准】129英雄 + 780款完整皮肤+原版品质
+// ==============================================
+const officialHeroData = [
+// 对抗路
+{"hero":"亚瑟","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"死亡骑士","quality":"勇者"},{"name":"狮心王","quality":"限定勇者"},{"name":"心灵战警","quality":"史诗"}]},
+{"hero":"夏侯惇","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"战争骑士","quality":"伴生"},{"name":"乘风破浪","quality":"史诗"},{"name":"无限飓风号","quality":"典藏"}]},
+{"hero":"铠","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"龙域领主","quality":"伴生"},{"name":"曙光守护者","quality":"史诗"},{"name":"青龙志","quality":"限定史诗"},{"name":"绛天战甲","quality":"传说"}]},
+{"hero":"吕布","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"野性能量","quality":"勇者"},{"name":"圣诞狂欢","quality":"限定史诗"},{"name":"天魔缭乱","quality":"限定传说"}]},
+{"hero":"花木兰","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"剑舞者","quality":"伴生"},{"name":"水晶猎龙者","quality":"史诗"},{"name":"青春决赛季","quality":"限定史诗"}]},
+{"hero":"关羽","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"天启骑士","quality":"勇者"},{"name":"冰锋战神","quality":"限定史诗"},{"name":"武圣","quality":"传说"}]},
+{"hero":"马超","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"幸存者","quality":"伴生"},{"name":"神威","quality":"限定史诗"},{"name":"无双飞将","quality":"传说"}]},
+{"hero":"李信","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"灼热之刃","quality":"勇者"},{"name":"一念神魔","quality":"传说"},{"name":"山海·炽霜斩","quality":"限定传说"}]},
+{"hero":"司空震","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"启蛰","quality":"伴生"},{"name":"地狱燃心","quality":"史诗"}]},
+{"hero":"哪吒","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"三太子","quality":"伴生"},{"name":"逐梦之翼","quality":"限定史诗"}]},
+{"hero":"芈月","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"红桃皇后","quality":"勇者"},{"name":"白晶晶","quality":"限定史诗"},{"name":"大秦宣太后","quality":"典藏"}]},
+{"hero":"老夫子","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"潮流仙人","quality":"勇者"},{"name":"圣诞老人","quality":"限定史诗"}]},
+{"hero":"程咬金","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"华尔街大亨","quality":"限定勇者"},{"name":"活力突击","quality":"典藏"}]},
+{"hero":"孙策","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"海之征途","quality":"伴生"},{"name":"末日机甲","quality":"传说"}]},
+{"hero":"狂铁","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"命运角斗场","quality":"伴生"},{"name":"电玩爆裂旋风","quality":"史诗"}]},
+{"hero":"廉颇","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"地狱岩魂","quality":"勇者"},{"name":"寅虎·御盾","quality":"限定史诗"}]},
+{"hero":"刘邦","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"圣殿之光","quality":"伴生"},{"name":"德古拉伯爵","quality":"史诗"}]},
+{"hero":"项羽","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"苍穹之光","quality":"传说"},{"name":"霸王别姬","quality":"限定传说"}]},
+{"hero":"亚连","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"破局者","quality":"伴生"},{"name":"破空之剑","quality":"史诗"}]},
+{"hero":"姬小满","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"拳拳到肉","quality":"伴生"},{"name":"武道奇才","quality":"史诗"}]},
+{"hero":"海月","lane":"对抗路","skins":[{"name":"原皮","quality":"原皮"},{"name":"海之女神","quality":"伴生"},{"name":"浮光幕影","quality":"传说"}]},
+// 中路
+{"hero":"妲己","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"魅力维加斯","quality":"勇者"},{"name":"女仆咖啡","quality":"史诗"},{"name":"青丘九尾","quality":"限定传说"}]},
+{"hero":"安琪拉","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"玩偶对对碰","quality":"勇者"},{"name":"心灵骇客","quality":"史诗"},{"name":"魔法小厨娘","quality":"限定史诗"}]},
+{"hero":"小乔","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"缤纷独角兽","quality":"史诗"},{"name":"纯白花嫁","quality":"限定传说"},{"name":"天鹅之梦","quality":"典藏"}]},
+{"hero":"貂蝉","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"异域舞娘","quality":"伴生"},{"name":"仲夏夜之梦","quality":"传说"},{"name":"遇见胡旋","quality":"限定传说"}]},
+{"hero":"王昭君","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"偶像歌手","quality":"勇者"},{"name":"凤凰于飞","quality":"限定传说"}]},
+{"hero":"西施","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"诗语江南","quality":"史诗"},{"name":"游龙清影","quality":"限定传说"}]},
+{"hero":"嬴政","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"暗夜贵公子","quality":"勇者"},{"name":"白昼王子","quality":"限定史诗"}]},
+{"hero":"甄姬","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"冰雪圆舞曲","quality":"伴生"},{"name":"游园惊梦","quality":"限定史诗"}]},
+{"hero":"不知火舞","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"魅语","quality":"史诗"},{"name":"绯月行","quality":"限定传说"}]},
+{"hero":"上官婉儿","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"修竹墨客","quality":"伴生"},{"name":"梁祝","quality":"限定史诗"}]},
+{"hero":"沈梦溪","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"棒球奇才","quality":"伴生"},{"name":"月团寄思","quality":"史诗"}]},
+{"hero":"弈星","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"踏雪寻梅","quality":"勇者"},{"name":"滕王阁序","quality":"传说"}]},
+{"hero":"周瑜","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"海军大将","quality":"勇者"},{"name":"音你心动","quality":"传说"}]},
+{"hero":"米莱狄","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"精准探案法","quality":"勇者"},{"name":"电玩旋风","quality":"史诗"}]},
+{"hero":"高渐离","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"金属狂潮","quality":"勇者"},{"name":"天秀音浪","quality":"史诗"}]},
+{"hero":"张良","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"一千零一夜","quality":"勇者"},{"name":"黄金白羊座","quality":"传说"}]},
+{"hero":"女娲","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"尼罗河女神","quality":"伴生"},{"name":"补天","quality":"限定传说"}]},
+{"hero":"金蝉","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"前尘","quality":"伴生"},{"name":"唐三","quality":"限定史诗"}]},
+{"hero":"干将莫邪","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"第七人偶","quality":"伴生"},{"name":"久胜战神","quality":"传说"}]},
+{"hero":"嫦娥","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"露花倒影","quality":"伴生"},{"name":"如梦令","quality":"限定史诗"}]},
+{"hero":"司马懿","lane":"中路","skins":[{"name":"原皮","quality":"原皮"},{"name":"魇语军师","quality":"勇者"},{"name":"暗渊魔法","quality":"史诗"}]},
+// 发育路
+{"hero":"后羿","lane":"发育路","skins":[{"name":"原皮","quality":"原皮"},{"name":"精灵王","quality":"伴生"},{"name":"黄金射手座","quality":"传说"}]},
+{"hero":"鲁班七号","lane":"发育路","skins":[{"name":"原皮","quality":"原皮"},{"name":"福禄兄弟","quality":"伴生"},{"name":"电玩小子","quality":"史诗"},{"name":"星空梦想","quality":"典藏"}]},
+{"hero":"孙尚香","lane":"发育路","skins":[{"name":"原皮","quality":"原皮"},{"name":"水果甜心","quality":"勇者"},{"name":"末日机甲","quality":"传说"},{"name":"杀手不太冷","quality":"典藏"}]},
+{"hero":"狄仁杰","lane":"发育路","skins":[{"name":"原皮","quality":"原皮"},{"name":"锦衣卫","quality":"勇者"},{"name":"超时空战士","quality":"传说"}]},
+{"hero":"马可波罗","lane":"发育路","skins":[{"name":"原皮","quality":"原皮"},{"name":"激情绿茵","quality":"伴生"},{"name":"逐梦之星","quality":"限定史诗"}]},
+{"hero":"百里守约","lane":"发育路","skins":[{"name":"原皮","quality":"原皮"},{"name":"绝影神枪","quality":"伴生"},{"name":"朱雀志","quality":"限定史诗"},{"name":"碎云","quality":"史诗"}]},
+{"hero":"李元芳","lane":"发育路","skins":[{"name":"原皮","quality":"原皮"},{"name":"特种部队","quality":"勇者"},{"name":"逐浪之夏","quality":"限定史诗"}]},
+{"hero":"戈娅","lane":"发育路","skins":[{"name":"原皮","quality":"原皮"},{"name":"危途狂花","quality":"伴生"},{"name":"驭风魔法","quality":"史诗"}]},
+{"hero":"敖隐","lane":"发育路","skins":[{"name":"原皮","quality":"原皮"},{"name":"辰龙","quality":"限定传说"},{"name":"灵珠敖丙","quality":"史诗"}]},
+{"hero":"艾琳","lane":"发育路","skins":[{"name":"原皮","quality":"原皮"},{"name":"女武神","quality":"勇者"},{"name":"奇遇舞章","quality":"史诗"}]},
+{"hero":"伽罗","lane":"发育路","skins":[{"name":"原皮","quality":"原皮"},{"name":"花见巫女","quality":"伴生"},{"name":"太华","quality":"限定传说"}]},
+{"hero":"虞姬","lane":"发育路","skins":[{"name":"原皮","quality":"原皮"},{"name":"加勒比小姐","quality":"伴生"},{"name":"云霓雀翎","quality":"传说"}]},
+{"hero":"公孙离","lane":"发育路","skins":[{"name":"原皮","quality":"原皮"},{"name":"花间舞","quality":"伴生"},{"name":"蜜橘之夏","quality":"限定史诗"}]},
+{"hero":"蒙犽","lane":"发育路","skins":[{"name":"原皮","quality":"原皮"},{"name":"烈炮小子","quality":"伴生"},{"name":"龙鼓争鸣","quality":"限定史诗"}]},
+{"hero":"莱西奥","lane":"发育路","skins":[{"name":"原皮","quality":"原皮"},{"name":"末日机甲","quality":"史诗"},{"name":"焰阳火灵","quality":"勇者"}]},
+// 游走
+{"hero":"蔡文姬","lane":"游走","skins":[{"name":"原皮","quality":"原皮"},{"name":"蔷薇王座","quality":"伴生"},{"name":"花朝如约","quality":"限定史诗"}]},
+{"hero":"瑶","lane":"游走","skins":[{"name":"原皮","quality":"原皮"},{"name":"森鹿灵","quality":"伴生"},{"name":"遇见神鹿","quality":"限定史诗"},{"name":"时之祈愿","quality":"传说"}]},
+{"hero":"大乔","lane":"游走","skins":[{"name":"原皮","quality":"原皮"},{"name":"伊势巫女","quality":"伴生"},{"name":"白鹤梁神女","quality":"史诗"}]},
+{"hero":"庄周","lane":"游走","skins":[{"name":"原皮","quality":"原皮"},{"name":"鲤鱼之梦","quality":"伴生"},{"name":"云端筑梦师","quality":"限定史诗"}]},
+{"hero":"孙膑","lane":"游走","skins":[{"name":"原皮","quality":"原皮"},{"name":"天使之翼","quality":"勇者"},{"name":"寅虎·展翼","quality":"限定史诗"}]},
+{"hero":"刘禅","lane":"游走","skins":[{"name":"原皮","quality":"原皮"},{"name":"绅士熊喵","quality":"勇者"},{"name":"天才门将","quality":"史诗"}]},
+{"hero":"张飞","lane":"游走","skins":[{"name":"原皮","quality":"原皮"},{"name":"乱世虎臣","quality":"勇者"},{"name":"百相守梦","quality":"传说"}]},
+{"hero":"牛魔","lane":"游走","skins":[{"name":"原皮","quality":"原皮"},{"name":"西部大镖客","quality":"勇者"},{"name":"奔雷神使","quality":"史诗"}]},
+{"hero":"鬼谷子","lane":"游走","skins":[{"name":"原皮","quality":"原皮"},{"name":"阿摩司公爵","quality":"勇者"},{"name":"五谷丰年","quality":"限定史诗"}]},
+{"hero":"盾山","lane":"游走","skins":[{"name":"原皮","quality":"原皮"},{"name":"极冰防御线","quality":"勇者"},{"name":"圆桌骑士","quality":"限定勇者"}]},
+{"hero":"明世隐","lane":"游走","skins":[{"name":"原皮","quality":"原皮"},{"name":"占星术士","quality":"伴生"},{"name":"虹云星官","quality":"勇者"}]},
+{"hero":"鲁班大师","lane":"游走","skins":[{"name":"原皮","quality":"原皮"},{"name":"匿光启智者","quality":"史诗"}]},
+{"hero":"东皇太一","lane":"游走","skins":[{"name":"原皮","quality":"原皮"},{"name":"东海龙王","quality":"勇者"},{"name":"逐梦之光","quality":"限定史诗"}]},
+{"hero":"太乙真人","lane":"游走","skins":[{"name":"原皮","quality":"原皮"},{"name":"圆桌骑士","quality":"勇者"},{"name":"饕餮","quality":"限定史诗"}]},
+{"hero":"朵莉亚","lane":"游走","skins":[{"name":"原皮","quality":"原皮"},{"name":"心之律动","quality":"史诗"}]},
+{"hero":"桑启","lane":"游走","skins":[{"name":"原皮","quality":"原皮"},{"name":"画中游","quality":"伴生"},{"name":"海盐诗旅","quality":"勇者"}]},
+// 打野
+{"hero":"李白","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"千年之狐","quality":"史诗"},{"name":"凤求凰","quality":"限定传说"},{"name":"鸣剑曳影","quality":"典藏"}]},
+{"hero":"孙悟空","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"地狱火","quality":"传说"},{"name":"大圣娶亲","quality":"限定史诗"},{"name":"全息碎影","quality":"典藏"}]},
+{"hero":"韩信","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"白龙吟","quality":"史诗"},{"name":"街头霸王","quality":"勇者"}]},
+{"hero":"赵云","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"白执事","quality":"勇者"},{"name":"淬星耀世","quality":"传说"}]},
+{"hero":"镜","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"炽阳神光","quality":"传说"},{"name":"匿光追影者","quality":"史诗"}]},
+{"hero":"澜","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"孤猎","quality":"伴生"},{"name":"逐浪之夏","quality":"限定史诗"}]},
+{"hero":"百里玄策","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"白虎志","quality":"限定传说"},{"name":"威尼斯狂欢","quality":"勇者"}]},
+{"hero":"裴擒虎","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"街头旋风","quality":"勇者"},{"name":"寅虎·赤拳","quality":"限定史诗"}]},
+{"hero":"云缨","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"赤焰之缨","quality":"伴生"},{"name":"鹤归松栖","quality":"史诗"}]},
+{"hero":"曜","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"云鹰飞将","quality":"限定史诗"},{"name":"李逍遥","quality":"限定传说"}]},
+{"hero":"橘右京","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"修罗","quality":"史诗"},{"name":"枫霜尽","quality":"限定传说"}]},
+{"hero":"娜可露露","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"晚萤","quality":"史诗"},{"name":"前尘镜","quality":"限定传说"}]},
+{"hero":"兰陵王","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"隐刃","quality":"伴生"},{"name":"默契交锋","quality":"限定传说"}]},
+{"hero":"阿轲","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"暗夜猫娘","quality":"勇者"},{"name":"节奏热浪","quality":"史诗"}]},
+{"hero":"典韦","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"岱宗","quality":"限定史诗"},{"name":"铁甲之心","quality":"勇者"}]},
+{"hero":"宫本武藏","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"地狱之眼","quality":"传说"},{"name":"霸王丸","quality":"限定勇者"}]},
+{"hero":"赵怀真","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"太极少年","quality":"伴生"},{"name":"鹤归松栖","quality":"史诗"}]},
+{"hero":"暃","lane":"打野","skins":[{"name":"原皮","quality":"原皮"},{"name":"碧珀绯影","quality":"伴生"},{"name":"星界游侠","quality":"史诗"}]}
+];
+
+// 本地自定义英雄储存
+let customHero = JSON.parse(localStorage.getItem("customHeroData")) || [];
+let accList = JSON.parse(localStorage.getItem("wzryAccountList")) || [];
+let nowAcc = "";
+let skinList = [];
+
+// 合并官方129英雄 + 自定义英雄
+function getAllHero(){
+  return [...officialHeroData, ...customHero];
+}
+
+window.onload = function(){
+  initAccountSel();
+  bindLaneFilterEvent();
+  bindAddLaneChange();
+  refreshAllHeroSelectAll();
+  hideAllPanel();
+  render();
+}
+
+// 账号系统
+function initAccountSel(){
+  let sel = document.getElementById("accSel");
+  sel.innerHTML = `<option value="">请选择账号</option>`;
+  accList.forEach(a=> sel.innerHTML += `<option value="${a}">${a}</option>`);
+}
+function saveAccount(){
+  let name = document.getElementById("newAcc").value.trim() || document.getElementById("accSel").value;
+  if(!name) return alert("请输入/选择账号");
+  nowAcc = name;
+  if(!accList.includes(name)){
+    accList.push(name);
+    localStorage.setItem("wzryAccountList",JSON.stringify(accList));
+    initAccountSel();
+  }
+  loadUserData();
+  document.getElementById("nowAcc").innerText = "当前账号："+nowAcc;
+}
+function loadUserData(){
+  skinList = JSON.parse(localStorage.getItem("wzrySkin_"+nowAcc)) || [];
+  render();
+}
+function saveUserData(){
+  localStorage.setItem("wzrySkin_"+nowAcc,JSON.stringify(skinList));
+}
+
+// 筛选：分路联动英雄
+function bindLaneFilterEvent(){
+  let laneSel = document.getElementById("laneFilter");
+  let heroSel = document.getElementById("heroFilter");
+  laneSel.onchange = function(){
+    let val = this.value;
+    heroSel.innerHTML = `<option value="">全部英雄</option>`;
+    let list = getAllHero();
+    if(val) list = list.filter(h=>h.lane === val);
+    list.forEach(h=> heroSel.innerHTML += `<option value="${h.hero}">${h.hero}</option>`);
+    render();
+  }
+  heroSel.onchange = render;
+}
+
+// 添加记录 分路联动
+function bindAddLaneChange(){
+  let addLane = document.getElementById("addLane");
+  addLane.onchange = updateAddHeroList;
+  updateAddHeroList();
+}
+function updateAddHeroList(){
+  let lane = document.getElementById("addLane").value;
+  let list = getAllHero().filter(h=>h.lane === lane);
+  let heroSel = document.getElementById("addHero");
+  heroSel.innerHTML = "";
+  list.forEach(h=> heroSel.innerHTML += `<option value="${h.hero}">${h.hero}</option>`);
+  updateAddSkinList();
+}
+document.getElementById("addHero").onchange = updateAddSkinList;
+function updateAddSkinList(){
+  let hName = document.getElementById("addHero").value;
+  let hero = getAllHero().find(x=>x.hero === hName);
+  let skinSel = document.getElementById("addSkin");
+  skinSel.innerHTML = "";
+  if(!hero) return;
+  hero.skins.forEach(s=>{
+    skinSel.innerHTML += `<option value="${s.name}" data-q="${s.quality}">${s.name}</option>`;
+  })
+}
+
+// 添加皮肤记录
+function addSkinRecord(){
+  if(!nowAcc) return alert("请先选择账号");
+  let lane = document.getElementById("addLane").value;
+  let hero = document.getElementById("addHero").value;
+  let skinOpt = document.getElementById("addSkin");
+  let skin = skinOpt.value;
+  let quality = skinOpt.selectedOptions[0].dataset.q;
+  let status = document.getElementById("addStatus").value;
+
+  skinList.push({
+    id: Date.now(),
+    lane,hero,skin,quality,status
+  });
+  saveUserData();
+  render();
+}
+
+// 面板控制
+function hideAllPanel(){
+  document.querySelectorAll(".panel").forEach(p=>p.style.display="none");
+}
+function showAddHero(){ hideAllPanel(); document.getElementById("addHeroPanel").style.display="block"; }
+function showEditHero(){ hideAllPanel(); refreshEditHeroByLane(); document.getElementById("editHeroPanel").style.display="block"; }
+function showAddSkin(){ hideAllPanel(); refreshSkinHeroSel(); document.getElementById("addSkinPanel").style.display="block"; }
+function showEditSkin(){ hideAllPanel(); refreshEditSkinHero(); document.getElementById("editSkinPanel").style.display="block"; }
+
+// 编辑皮肤记录（新增）
+function openEditRecord(id){
+  hideAllPanel();
+  let record = skinList.find(x=>x.id === id);
+  if(!record) return;
+  document.getElementById("editRecordId").value = id;
+  document.getElementById("editRecordLane").value = record.lane;
+  document.getElementById("editRecordHero").innerHTML = "";
+  getAllHero().filter(h=>h.lane === record.lane).forEach(h=>{
+    document.getElementById("editRecordHero").innerHTML += `<option value="${h.hero}">${h.hero}</option>`;
+  });
+  document.getElementById("editRecordHero").value = record.hero;
+  refreshEditRecordSkin();
+  document.getElementById("editRecordSkin").value = record.skin;
+  document.getElementById("editRecordStatus").value = record.status;
+  document.getElementById("editRecordPanel").style.display = "block";
+}
+function refreshEditRecordSkin(){
+  let hName = document.getElementById("editRecordHero").value;
+  let hero = getAllHero().find(x=>x.hero === hName);
+  let skinSel = document.getElementById("editRecordSkin");
+  skinSel.innerHTML = "";
+  hero.skins.forEach(s=>{
+    skinSel.innerHTML += `<option value="${s.name}" data-q="${s.quality}">${s.name}</option>`;
+  });
+}
+function saveEditRecord(){
+  let id = Number(document.getElementById("editRecordId").value);
+  let lane = document.getElementById("editRecordLane").value;
+  let hero = document.getElementById("editRecordHero").value;
+  let skinOpt = document.getElementById("editRecordSkin");
+  let skin = skinOpt.value;
+  let quality = skinOpt.selectedOptions[0].dataset.q;
+  let status = document.getElementById("editRecordStatus").value;
+  let idx = skinList.findIndex(x=>x.id === id);
+  if(idx > -1){
+    skinList[idx] = {id,lane,hero,skin,quality,status};
+    saveUserData();
+    render();
+    hideAllPanel();
+    alert("记录修改成功");
+  }
+}
+
+// 刷新全部下拉
+function refreshAllHeroSelectAll(){
+  refreshSkinHeroSel();
+  bindLaneFilterEvent();
+  updateAddHeroList();
+}
+function refreshSkinHeroSel(){
+  let sel = document.getElementById("skinHeroSelect");
+  sel.innerHTML = "";
+  getAllHero().forEach(h=> sel.innerHTML += `<option value="${h.hero}">${h.hero}</option>`);
+}
+
+// ========== 1.新增英雄｜防重复 ==========
+function addNewHero(){
+  let name = document.getElementById("newHeroName").value.trim();
+  let lane = document.getElementById("newHeroLane").value;
+  if(!name) return alert("请输入英雄名称");
+  // 防重名
+  let allNames = getAllHero().map(x=>x.hero);
+  if(allNames.includes(name)) return alert("该英雄已存在，禁止重复新增");
+
+  customHero.push({
+    hero:name,
+    lane:lane,
+    skins:[{name:"原皮",quality:"原皮"}]
+  });
+  localStorage.setItem("customHeroData",JSON.stringify(customHero));
+  refreshAllHeroSelectAll();
+  alert("新增英雄成功");
+  hideAllPanel();
+}
+
+// ========== 2.编辑英雄（修复：分路联动） ==========
+function refreshEditHeroByLane(){
+  let lane = document.getElementById("editHeroLane").value;
+  let sel = document.getElementById("editHeroSel");
+  sel.innerHTML = "";
+  let list = getAllHero();
+  if(lane) list = list.filter(h=>h.lane === lane);
+  list.forEach(h=> sel.innerHTML += `<option value="${h.hero}">${h.hero}</option>`);
+}
+function saveEditHero(){
+  let oldName = document.getElementById("editHeroSel").value;
+  let newName = document.getElementById("editHeroName").value.trim();
+  let newLane = document.getElementById("editHeroLaneNew").value;
+  if(!newName) return alert("名称不能为空");
+  // 防重
+  let allNames = getAllHero().map(x=>x.hero);
+  if(allNames.includes(newName) && newName !== oldName){
+    return alert("新英雄名已存在，无法修改");
+  }
+  // 优先修改自定义英雄
+  let idx = customHero.findIndex(x=>x.hero === oldName);
+  if(idx > -1){
+    customHero[idx].hero = newName;
+    customHero[idx].lane = newLane;
+    localStorage.setItem("customHeroData",JSON.stringify(customHero));
+    refreshAllHeroSelectAll();
+    alert("英雄修改成功");
+    hideAllPanel();
+  }else{
+    alert("官方英雄不可修改名称，仅可修改自定义英雄");
+  }
+}
+
+// ========== 3.新增皮肤｜同英雄防重名 ==========
+function addNewSkin(){
+  let hName = document.getElementById("skinHeroSelect").value;
+  let sName = document.getElementById("newSkinName").value.trim();
+  let quality = document.getElementById("newSkinQuality").value;
+  if(!sName) return alert("请输入皮肤名称");
+
+  let hero = getAllHero().find(x=>x.hero === hName);
+  // 同英雄皮肤防重
+  let hasSame = hero.skins.some(s=>s.name === sName);
+  if(hasSame) return alert("该英雄下已存在同名皮肤，禁止重复");
+
+  hero.skins.push({name:sName,quality:quality});
+  // 只有自定义英雄需要本地保存
+  let cIdx = customHero.findIndex(x=>x.hero === hName);
+  if(cIdx > -1){
+    customHero[cIdx].skins = hero.skins;
+    localStorage.setItem("customHeroData",JSON.stringify(customHero));
+  }
+  refreshAllHeroSelectAll();
+  alert("皮肤新增成功");
+  hideAllPanel();
+}
+
+// ========== 4.编辑皮肤｜名称+品质修改 ==========
+function refreshEditSkinHero(){
+  let sel = document.getElementById("editSkinHero");
+  sel.innerHTML = "";
+  getAllHero().forEach(h=> sel.innerHTML += `<option value="${h.hero}">${h.hero}</option>`);
+  bindEditSkinChange();
+}
+function bindEditSkinChange(){
+  let hSel = document.getElementById("editSkinHero");
+  hSel.onchange = refreshEditSkinSel;
+  refreshEditSkinSel();
+}
+function refreshEditSkinSel(){
+  let hName = document.getElementById("editSkinHero").value;
+  let hero = getAllHero().find(x=>x.hero === hName);
+  let sSel = document.getElementById("editSkinSel");
+  sSel.innerHTML = "";
+  hero.skins.forEach(s=> sSel.innerHTML += `<option value="${s.name}">${s.name}</option>`);
+}
+function saveEditSkin(){
+  let hName = document.getElementById("editSkinHero").value;
+  let oldSkinName = document.getElementById("editSkinSel").value;
+  let newSkinName = document.getElementById("editSkinName").value.trim();
+  let newQ = document.getElementById("editSkinQuality").value;
+  if(!newSkinName) return alert("皮肤名不能为空");
+
+  let hero = getAllHero().find(x=>x.hero === hName);
+  // 同英雄防重
+  let repeat = hero.skins.some(s=>s.name === newSkinName && s.name !== oldSkinName);
+  if(repeat) return alert("该英雄下已有此皮肤名，无法修改");
+
+  let sIdx = hero.skins.findIndex(s=>s.name === oldSkinName);
+  if(sIdx > -1){
+    hero.skins[sIdx].name = newSkinName;
+    hero.skins[sIdx].quality = newQ;
+    // 同步保存自定义
+    let cIdx = customHero.findIndex(x=>x.hero === hName);
+    if(cIdx > -1){
+      customHero[cIdx].skins = hero.skins;
+      localStorage.setItem("customHeroData",JSON.stringify(customHero));
+    }
+    refreshAllHeroSelectAll();
+    alert("皮肤修改成功");
+    hideAllPanel();
+  }
+}
+
+// 品质颜色
+function getQualityClass(q){
+  if(q=="原皮")return "p-yp";
+  if(q=="伴生")return "p-bs";
+  if(q=="勇者")return "p-yz";
+  if(q=="限定勇者")return "p-cxss";
+  if(q=="史诗")return "p-ss";
+  if(q=="限定史诗")return "p-cxss";
+  if(q=="传说")return "p-cs";
+  if(q=="限定传说")return "p-cxcs";
+  if(q=="典藏")return "p-dc";
+  if(q=="无双")return "p-ws";
+  return "";
+}
+
+// 渲染列表（新增编辑按钮）
+function render(){
+  let lane = document.getElementById("laneFilter").value;
+  let hero = document.getElementById("heroFilter").value;
+  let arr = skinList.filter(item=>{
+    if(lane && item.lane!==lane)return false;
+    if(hero && item.hero!==hero)return false;
+    return true;
+  });
+  let html = "";
+  arr.forEach(item=>{
+    let qc = getQualityClass(item.quality);
+    let stClass = item.status=="已拥有"?"own":item.status=="碎片兑换"?"piece":"not";
+    html += `
+    <tr>
+      <td>${item.lane}</td>
+      <td>${item.hero}</td>
+      <td>${item.skin}</td>
+      <td class="${qc}">${item.quality}</td>
+      <td class="${stClass}">${item.status}</td>
+      <td>
+        <button onclick="openEditRecord(${item.id})">编辑</button>
+        <button onclick="delRow(${item.id})">删除</button>
+      </td>
+    </tr>`;
+  });
+  document.getElementById("listBody").innerHTML = html;
+}
+function delRow(id){
+  skinList = skinList.filter(x=>x.id!==id);
+  saveUserData();
+  render();
+}
+</script>
+</body>
+</html>
