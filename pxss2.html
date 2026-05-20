@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>脾虚湿盛食疗养生手册</title>
+  <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    body {
+      background-color: #f6fbf4;
+      color: #333;
+      padding: 12px;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin: 20px 0;
+      color: #2a5837;
+    }
+    .header h1 {
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+    .header p {
+      font-size: 14px;
+      color: #5a7a64;
+    }
+    .search-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .search-box input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #d6e4d9;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+    }
+    .search-box button {
+      padding: 10px 14px;
+      background: #5cb16f;
+      color: white;
+      border: none;
+      border-radius: 10px;
+    }
+    .size-select {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+    .size-select select {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .add-btn {
+      width: 100%;
+      padding: 11px;
+      background: #3a7d44;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      margin-bottom: 16px;
+    }
+    .recipe-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .recipe-card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .recipe-card h3 {
+      font-size: 17px;
+      color: #2a5837;
+      margin-bottom: 8px;
+    }
+    .recipe-card .tag {
+      display: inline-block;
+      background: #e6f4e9;
+      color: #3a7d44;
+      font-size: 12px;
+      padding: 3px 6px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .recipe-card p {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+    .card-btns {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .card-btns button {
+      flex: 1;
+      padding: 7px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .edit { background: #f9b949; color:#333; }
+    .delete { background: #f76c6c; color:white; }
+    .copy { background: #5cb16f; color:white; }
+    .save-btn {
+      background: #3a7d44 !important;
+      color:white !important;
+      display: none;
+    }
+    .edit-mode input, .edit-mode textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 4px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .edit-mode textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .edit-mode .edit { display: none; }
+    .edit-mode .save-btn { display: block; }
+    .empty {
+      text-align: center;
+      padding: 50px 0;
+      color: #999;
+    }
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+    .page-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .page-bar button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 10px;
+      background: #5cb16f;
+      color: #fff;
+      font-size: 14px;
+    }
+    .page-bar button:disabled {
+      background: #b2d8b9;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1><i class="fa-solid fa-leaf"></i> 脾虚湿盛食疗养生手册</h1>
+    <p>健脾祛湿 | 温和调理 | 日常食疗</p>
+  </div>
+
+  <div class="search-box">
+    <input id="searchInput" placeholder="搜索食谱、食材、功效">
+    <button id="searchBtn"><i class="fa-solid fa-search"></i></button>
+  </div>
+
+  <div class="size-select">
+    <span>每页显示：</span>
+    <select id="pageSizeSel">
+      <option value="2" selected>2条</option>
+      <option value="4" >4条</option>
+      <option value="6">6条</option>
+    </select>
+  </div>
+
+  <button class="add-btn" id="addBtn">➕ 新增食谱</button>
+  <div class="recipe-list" id="recipeList"></div>
+
+  <div class="page-bar">
+    <button id="prevBtn">上一页</button>
+    <span id="pageInfo">第1页 / 共3页</span>
+    <button id="nextBtn">下一页</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">复制成功</div>
+
+<script>
+let recipeData = JSON.parse(localStorage.getItem('piXuRecipes')) || [
+{
+id:1,
+name:"红豆薏米水",
+material:"红豆50克、炒薏米50克、清水适量",
+method:"1.薏米洗净沥干，放入无油铁锅小火慢炒至表面微黄，去除寒性；2.红豆提前清水浸泡60分钟充分泡软；3.锅中放入红豆与炒好的薏米，加入足量清水大火烧开；4.转最小火慢熬三十分钟，关火焖十分钟析出营养；5.滤出汤汁温热饮用，剩余食材可反复加水煮至无味。",
+effect:"健脾祛湿、利水消肿，改善身体沉重乏力、舌苔厚腻、大便黏腻不成形。"
+},
+{
+id:2,
+name:"铁棍山药小米粥",
+material:"铁棍山药120克、小米60克、清水足量",
+method:"1.小米淘洗两遍，清水浸泡十五分钟更容易煮稠；2.山药去皮切滚刀块，立刻放入清水浸泡防止氧化发黑；3.锅中清水烧开，下入小米搅拌防止粘底；4.小火熬煮二十分钟后放入山药块；5.继续慢熬二十五分钟，熬至粥体浓稠软糯即可，不放糖更养脾胃。",
+effect:"健脾养胃、补气固本，改善脾胃虚弱、食欲不振、体虚四肢无力。"
+},
+{
+id:3,
+name:"茯苓芡实排骨汤",
+material:"排骨300克、茯苓20克、芡实20克、生姜三片",
+method:"1.排骨冷水下锅，加两片姜片大火焯水，煮出浮沫捞出温水洗净；2.茯苓、芡实清水浸泡十五分钟洗净杂质；3.所有食材一同放入砂锅，加满清水；4.大火煮沸后转小火慢炖一小时；5.出锅前五分钟加少量食盐调味，清淡滋补不油腻。",
+effect:"健脾固肠、祛湿止泻，适合脾虚湿气重、经常腹胀、大便溏稀人群。"
+},
+{
+id:4,
+name:"南瓜养胃祛湿粥",
+material:"老南瓜200克、小米60克",
+method:"1.小米淘洗干净浸泡十五分钟；2.南瓜去皮去籽切成小块；3.清水大火烧开下入小米；4.小火煮十五分钟后放入南瓜块；5.继续熬煮二十分钟，煮至南瓜完全融化融入粥中即可食用。",
+effect:"温中健脾、和胃化湿，脾胃虚寒、胃口差、畏寒怕冷最适合。"
+},
+{
+id:5,
+name:"白扁豆健脾祛湿粥",
+material:"白扁豆30克、山药80克、大米50克",
+method:"1.白扁豆质地偏硬，提前浸泡四小时；2.大米淘洗浸泡十分钟；3.山药去皮切成薄片；4.先下锅煮白扁豆二十分钟；5.再放入大米与山药，一同熬煮三十分钟至全部软烂。",
+effect:"健脾化湿、缓解积食腹胀，体内湿气重、脾胃运化差首选食疗。"
+},
+{
+id:6,
+name:"陈皮驱湿养生茶",
+material:"三年老陈皮3克、新鲜生姜2片",
+method:"1.陈皮用清水快速冲洗灰尘，温水润软；2.生姜洗净切薄片；3.烧沸水倒入杯中，放入陈皮与姜片；4.盖上杯盖焖泡十分钟充分出味；5.每天早晚温热饮用一杯，祛湿散寒效果更佳。",
+effect:"理气健脾、散寒化湿，改善脾胃气滞、胃部发凉、饭后胀气。"
+},
+{
+id:7,
+name:"芡实莲子养脾安神粥",
+material:"芡实25克、去芯莲子25克、大米50克",
+method:"1.芡实、莲子提前清水浸泡三十分钟，莲子去掉苦心避免寒凉；2.大米洗净泡软备用；3.所有食材一同下入汤锅；4.大火煮开转小火慢熬四十分钟；5.熬至食材软烂、粥香浓郁即可温热食用。",
+effect:"健脾祛湿、养心安神，脾虚湿气重同时伴随失眠多梦、心神不宁十分适用。"
+},
+{
+id:8,
+name:"冬瓜海带祛湿清汤",
+material:"冬瓜200克、干海带50克、姜片少许",
+method:"1.干海带提前泡发，反复洗净盐分切成细条；2.冬瓜去皮去瓤切成薄片状；3.清水加姜片烧开，先放入海带煮十分钟；4.下入冬瓜继续煮十五分钟至冬瓜透亮变软；5.仅放少许食盐调味，全程少油清淡食用。",
+effect:"清热祛湿、消水肿，身体浮肿、体内湿热重日常饮用。"
+},
+{
+id:9,
+name:"小米红枣补气健脾粥",
+material:"小米60克、红枣4颗、大米20克",
+method:"1.小米大米混合淘洗干净浸泡二十分钟；2.红枣洗净去核避免燥热；3.清水烧开下入米类食材；4.小火熬煮二十五分钟后放入红枣；5.再熬煮十五分钟至粥稠枣香浓郁即可。",
+effect:"健脾益气、养血和胃，脾虚气血不足、面色差、精神萎靡适用。"
+},
+{
+id:10,
+name:"经典四神汤",
+material:"茯苓15g、山药15g、莲子15g、芡实15g、瘦肉200g",
+method:"1.四种药材全部清水浸泡十五分钟洗净；2.瘦肉切块冷水焯水去除血沫；3.所有食材放入炖锅加足量清水；4.大火烧开转小火慢炖五十分钟；5.最后加少量食盐调味即可喝汤吃肉。",
+effect:"中医健脾祛湿第一名方，平和调理脾虚湿盛体质，全家老少均可常喝。"
+}
+];
+
+  let currentPage = 1;
+  let filteredList = [...recipeData];
+  let PAGE_SIZE = 2;
+
+  const recipeList = document.getElementById('recipeList');
+  const searchInput = document.getElementById('searchInput');
+  const toast = document.getElementById('toast');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const pageInfo = document.getElementById('pageInfo');
+  const pageSizeSel = document.getElementById('pageSizeSel');
+
+  pageSizeSel.addEventListener('change',function(){
+    PAGE_SIZE = parseInt(this.value);
+    currentPage = 1;
+    render();
+  })
+
+  function render() {
+    const totalPage = Math.ceil(filteredList.length / PAGE_SIZE);
+    if (currentPage < 1) currentPage = 1;
+    if (currentPage > totalPage) currentPage = totalPage;
+
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    const pageData = filteredList.slice(start, end);
+
+    if (pageData.length === 0) {
+      recipeList.innerHTML = '<div class="empty">暂无食谱，可点击新增</div>';
+    } else {
+      recipeList.innerHTML = pageData.map(item => `
+        <div class="recipe-card" data-id="${item.id}">
+          <h3><span class="name">${item.name}</span></h3>
+          <span class="tag">脾虚调理</span>
+          <p><strong>食材：</strong><span class="material">${item.material}</span></p>
+          <p><strong>做法：</strong><span class="method">${item.method}</span></p>
+          <p><strong>功效：</strong><span class="effect">${item.effect}</span></p>
+          <div class="card-btns">
+            <button class="edit" onclick="edit(${item.id})">编辑</button>
+            <button class="save-btn" onclick="save(${item.id})">保存</button>
+            <button class="delete" onclick="del(${item.id})">删除</button>
+            <button class="copy" onclick="copy(${item.id})">复制</button>
+          </div>
+        </div>
+      `).join('');
+    }
+    pageInfo.innerText = `第${currentPage}页 / 共${totalPage||1}页`;
+    prevBtn.disabled = currentPage <= 1;
+    nextBtn.disabled = currentPage >= totalPage;
+  }
+
+  function search() {
+    const kw = searchInput.value.trim().toLowerCase();
+    if (!kw) {
+      filteredList = [...recipeData];
+    } else {
+      filteredList = recipeData.filter(i =>
+        i.name.toLowerCase().includes(kw) ||
+        i.material.toLowerCase().includes(kw) ||
+        i.effect.toLowerCase().includes(kw)
+      );
+    }
+    currentPage = 1;
+    render();
+  }
+
+  window.edit = function(id) {
+    const card = document.querySelector(`[data-id="${id}"]`);
+    card.classList.add('edit-mode');
+    const item = recipeData.find(i => i.id === id);
+    card.querySelector('.name').innerHTML = `<input value="${item.name}" data-f="name">`;
+    card.querySelector('.material').innerHTML = `<input value="${item.material}" data-f="material">`;
+    card.querySelector('.method').innerHTML = `<textarea data-f="method">${item.method}</textarea>`;
+    card.querySelector('.effect').innerHTML = `<textarea data-f="effect">${item.effect}</textarea>`;
+  };
+
+  window.save = function(id) {
+    const card = document.querySelector(`[data-id="${id}"]`);
+    const name = card.querySelector('[data-f="name"]').value;
+    const material = card.querySelector('[data-f="material"]').value;
+    const method = card.querySelector('[data-f="method"]').value;
+    const effect = card.querySelector('[data-f="effect"]').value;
+    const idx = recipeData.findIndex(i => i.id === id);
+    recipeData[idx] = { ...recipeData[idx], name, material, method, effect };
+    localStorage.setItem('piXuRecipes', JSON.stringify(recipeData));
+    const fidx = filteredList.findIndex(i => i.id === id);
+    if (fidx !== -1) filteredList[fidx] = recipeData[idx];
+    card.classList.remove('edit-mode');
+    render();
+  };
+
+  window.del = function(id) {
+    if (!confirm('确定删除该食疗食谱吗？')) return;
+    recipeData = recipeData.filter(i => i.id !== id);
+    filteredList = filteredList.filter(i => i.id !== id);
+    localStorage.setItem('piXuRecipes', JSON.stringify(recipeData));
+    render();
+  };
+
+  window.copy = function(id) {
+    const i = recipeData.find(i => i.id === id);
+    const text = `【${i.name}】\n食材：${i.material}\n做法：${i.method}\n功效：${i.effect}`;
+    navigator.clipboard.writeText(text);
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 1500);
+  };
+
+  document.getElementById('addBtn').onclick = () => {
+    const newId = recipeData.length ? Math.max(...recipeData.map(i=>i.id)) + 1 : 1;
+    const newItem = { 
+      id:newId, 
+      name:"新食疗食谱", 
+      material:"填写所需食材", 
+      method:"详细分步制作流程", 
+      effect:"健脾祛湿调理脾胃" 
+    };
+    recipeData.unshift(newItem);
+    filteredList.unshift(newItem);
+    localStorage.setItem('piXuRecipes', JSON.stringify(recipeData));
+    currentPage = 1;
+    render();
+    setTimeout(() => edit(newId), 100);
+  };
+
+  document.getElementById('searchBtn').onclick = search;
+  searchInput.onkeyup = e => e.key === 'Enter' && search();
+
+  prevBtn.onclick = () => {
+    currentPage--;
+    render();
+  };
+  nextBtn.onclick = () => {
+    currentPage++;
+    render();
+  };
+
+  render();
+</script>
+</body>
+</html>
