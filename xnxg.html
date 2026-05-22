@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>心脑血管调理食疗手册</title>
+  <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    body {
+      background-color: #f6fbf4;
+      color: #333;
+      padding: 12px;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin: 20px 0;
+      color: #2a3d58;
+    }
+    .header h1 {
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+    .header p {
+      font-size: 14px;
+      color: #5a6a7a;
+    }
+    .search-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .search-box input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #d6dfe4;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+    }
+    .search-box button {
+      padding: 10px 14px;
+      background: #4a7cb1;
+      color: white;
+      border: none;
+      border-radius: 10px;
+    }
+    .size-select {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+    .size-select select {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .add-btn {
+      width: 100%;
+      padding: 11px;
+      background: #3a5a7d;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      margin-bottom: 16px;
+    }
+    .recipe-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .recipe-card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .recipe-card h3 {
+      font-size: 17px;
+      color: #2a3d58;
+      margin-bottom: 8px;
+    }
+    .recipe-card .tag {
+      display: inline-block;
+      background: #e6eff4;
+      color: #3a5a7d;
+      font-size: 12px;
+      padding: 3px 6px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .recipe-card p {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+    .card-btns {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .card-btns button {
+      flex: 1;
+      padding: 7px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .edit { background: #f9b949; color:#333; }
+    .delete { background: #f76c6c; color:white; }
+    .copy { background: #4a7cb1; color:white; }
+    .save-btn {
+      background: #3a5a7d !important;
+      color:white !important;
+      display: none;
+    }
+    .edit-mode input, .edit-mode textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 4px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .edit-mode textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .edit-mode .edit { display: none; }
+    .edit-mode .save-btn { display: block; }
+    .empty {
+      text-align: center;
+      padding: 50px 0;
+      color: #999;
+    }
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+    .page-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .page-bar button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 10px;
+      background: #4a7cb1;
+      color: #fff;
+      font-size: 14px;
+    }
+    .page-bar button:disabled {
+      background: #b2c8d8;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1><i class="fa-solid fa-heart-pulse"></i> 心脑血管调理食疗手册</h1>
+    <p>稳压降脂 | 软化血管 | 护心健脑 | 日常调理</p>
+  </div>
+
+  <div class="search-box">
+    <input id="searchInput" placeholder="搜索食谱、食材、功效">
+    <button id="searchBtn"><i class="fa-solid fa-search"></i></button>
+  </div>
+
+  <div class="size-select">
+    <span>每页显示：</span>
+    <select id="pageSizeSel">
+      <option value="2" selected>2条</option>
+      <option value="4">4条</option>
+      <option value="6">6条</option>
+    </select>
+  </div>
+
+  <button class="add-btn" id="addBtn">➕ 新增食谱</button>
+  <div class="recipe-list" id="recipeList"></div>
+
+  <div class="page-bar">
+    <button id="prevBtn">上一页</button>
+    <span id="pageInfo">第1页 / 共3页</span>
+    <button id="nextBtn">下一页</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">复制成功</div>
+
+<script>
+let recipeData = JSON.parse(localStorage.getItem('heartVascularRecipes')) || [
+{
+id:1,
+name:"芹菜降压汁",
+material:"芹菜150克、苹果半个、温水200ml",
+method:"1.芹菜洗净去根，切成小段；苹果去皮去核切块；2.全部放入破壁机，加入温水；3.低速搅打2分钟至细腻无渣；4.过滤后直接饮用，早晚空腹喝效果更佳。",
+effect:"清热平肝、辅助降压，适合高血压、头晕头痛、面红目赤人群。"
+},
+{
+id:2,
+name:"黑木耳洋葱拌菜",
+material:"干木耳10克、洋葱半个、香油少许、盐少许",
+method:"1.木耳提前泡发，去根洗净，开水焯3分钟捞出放凉；2.洋葱去皮切成细丝；3.两者混合，加少许盐和香油拌匀；4.冷藏10分钟口感更好，每天午餐食用。",
+effect:"清理血管、降血脂、抗凝血，适合高血脂、动脉硬化人群。"
+},
+{
+id:3,
+name:"山楂降脂茶",
+material:"干山楂10克、决明子8克、菊花3朵",
+method:"1.所有食材用清水快速冲洗；2.放入杯中，倒入沸水冲泡；3.加盖焖10分钟出味；4.代茶饮用，可反复冲泡3次，饭后喝最佳。",
+effect:"消食化积、降脂降压、软化血管，适合血脂高、血压偏高人群。"
+},
+{
+id:4,
+name:"燕麦南瓜粥",
+material:"即食燕麦40克、老南瓜150克、清水适量",
+method:"1.南瓜去皮去籽切小块；2.清水烧开，放入南瓜煮10分钟至软烂；3.加入燕麦搅拌均匀，再煮3分钟；4.煮至黏稠即可，无糖食用更健康。",
+effect:"降低胆固醇、平稳血糖、保护心脑血管，适合三高人群早餐。"
+},
+{
+id:5,
+name:"玉米须降压茶",
+material:"干玉米须10克、清水500ml",
+method:"1.玉米须洗净灰尘，放入养生壶；2.加清水煮沸，转小火煮15分钟；3.滤出汤汁温热饮用；4.每天1-2杯，辅助稳压效果明显。",
+effect:"利水消肿、辅助降压、保护心血管，适合高血压、水肿人群。"
+},
+{
+id:6,
+name:"深海鱼清蒸",
+material:"三文鱼/鳕鱼150克、姜丝、葱段、盐少许",
+method:"1.鱼洗净处理干净，表面划刀；2.铺姜丝葱段，撒极少量盐；3.水烧开上锅蒸8-10分钟；4.关火焖2分钟，直接食用，每周2-3次。",
+effect:"补充Omega3、保护血管、降低血脂、预防血栓。"
+},
+{
+id:7,
+name:"山药莲子护心粥",
+material:"山药80克、莲子20克、大米50克",
+method:"1.莲子去芯浸泡20分钟；2.山药去皮切块；3.大米淘洗干净；4.全部下锅加水煮40分钟至黏稠；5.清淡食用，养心安神。",
+effect:"健脾护心、稳血压、改善心慌心悸、失眠多梦。"
+},
+{
+id:8,
+name:"海带豆腐汤",
+material:"海带50克、嫩豆腐100克、姜片2片",
+method:"1.海带泡发洗净切条；2.豆腐切块；3.清水加姜片烧开，放海带煮10分钟；4.加入豆腐再煮5分钟，少许盐调味；5.清淡少油，日常佐餐。",
+effect:"降压降脂、软化血管、补充矿物质，适合心脑血管保养。"
+},
+{
+id:9,
+name:"黑芝麻核桃糊",
+material:"黑芝麻15克、核桃2个、温水适量",
+method:"1.黑芝麻洗净炒熟，核桃去壳；2.放入破壁机打成细粉；3.加温水冲调均匀；4.每天早晚一杯，保护血管。",
+effect:"补脑护心、软化血管、降胆固醇、滋养血管壁。"
+},
+{
+id:10,
+name:"苦瓜清脂汤",
+material:"苦瓜100克、瘦肉50克、姜片",
+method:"1.苦瓜去瓤切块，瘦肉焯水；2.清水烧开，放入所有食材；3.小火煮25分钟；4.少量盐调味，清淡饮用。",
+effect:"辅助降糖、降脂、降压，适合三高、代谢紊乱人群。"
+}
+];
+
+  let currentPage = 1;
+  let filteredList = [...recipeData];
+  let PAGE_SIZE = 2;
+
+  const recipeList = document.getElementById('recipeList');
+  const searchInput = document.getElementById('searchInput');
+  const toast = document.getElementById('toast');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const pageInfo = document.getElementById('pageInfo');
+  const pageSizeSel = document.getElementById('pageSizeSel');
+
+  pageSizeSel.addEventListener('change',function(){
+    PAGE_SIZE = parseInt(this.value);
+    currentPage = 1;
+    render();
+  })
+
+  function render() {
+    const totalPage = Math.ceil(filteredList.length / PAGE_SIZE);
+    if (currentPage < 1) currentPage = 1;
+    if (currentPage > totalPage) currentPage = totalPage;
+
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    const pageData = filteredList.slice(start, end);
+
+    if (pageData.length === 0) {
+      recipeList.innerHTML = '<div class="empty">暂无食谱，可点击新增</div>';
+    } else {
+      recipeList.innerHTML = pageData.map(item => `
+        <div class="recipe-card" data-id="${item.id}">
+          <h3><span class="name">${item.name}</span></h3>
+          <span class="tag">心脑血管调理</span>
+          <p><strong>食材：</strong><span class="material">${item.material}</span></p>
+          <p><strong>做法：</strong><span class="method">${item.method}</span></p>
+          <p><strong>功效：</strong><span class="effect">${item.effect}</span></p>
+          <div class="card-btns">
+            <button class="edit" onclick="edit(${item.id})">编辑</button>
+            <button class="save-btn" onclick="save(${item.id})">保存</button>
+            <button class="delete" onclick="del(${item.id})">删除</button>
+            <button class="copy" onclick="copy(${item.id})">复制</button>
+          </div>
+        </div>
+      `).join('');
+    }
+    pageInfo.innerText = `第${currentPage}页 / 共${totalPage||1}页`;
+    prevBtn.disabled = currentPage <= 1;
+    nextBtn.disabled = currentPage >= totalPage;
+  }
+
+  function search() {
+    const kw = searchInput.value.trim().toLowerCase();
+    if (!kw) {
+      filteredList = [...recipeData];
+    } else {
+      filteredList = recipeData.filter(i =>
+        i.name.toLowerCase().includes(kw) ||
+        i.material.toLowerCase().includes(kw) ||
+        i.effect.toLowerCase().includes(kw)
+      );
+    }
+    currentPage = 1;
+    render();
+  }
+
+  window.edit = function(id) {
+    const card = document.querySelector(`[data-id="${id}"]`);
+    card.classList.add('edit-mode');
+    const item = recipeData.find(i => i.id === id);
+    card.querySelector('.name').innerHTML = `<input value="${item.name}" data-f="name">`;
+    card.querySelector('.material').innerHTML = `<input value="${item.material}" data-f="material">`;
+    card.querySelector('.method').innerHTML = `<textarea data-f="method">${item.method}</textarea>`;
+    card.querySelector('.effect').innerHTML = `<textarea data-f="effect">${item.effect}</textarea>`;
+  };
+
+  window.save = function(id) {
+    const card = document.querySelector(`[data-id="${id}"]`);
+    const name = card.querySelector('[data-f="name"]').value;
+    const material = card.querySelector('[data-f="material"]').value;
+    const method = card.querySelector('[data-f="method"]').value;
+    const effect = card.querySelector('[data-f="effect"]').value;
+    const idx = recipeData.findIndex(i => i.id === id);
+    recipeData[idx] = { ...recipeData[idx], name, material, method, effect };
+    localStorage.setItem('heartVascularRecipes', JSON.stringify(recipeData));
+    const fidx = filteredList.findIndex(i => i.id === id);
+    if (fidx !== -1) filteredList[fidx] = recipeData[idx];
+    card.classList.remove('edit-mode');
+    render();
+  };
+
+  window.del = function(id) {
+    if (!confirm('确定删除该食疗食谱吗？')) return;
+    recipeData = recipeData.filter(i => i.id !== id);
+    filteredList = filteredList.filter(i => i.id !== id);
+    localStorage.setItem('heartVascularRecipes', JSON.stringify(recipeData));
+    render();
+  };
+
+  window.copy = function(id) {
+    const i = recipeData.find(i => i.id === id);
+    const text = `【${i.name}】\n食材：${i.material}\n做法：${i.method}\n功效：${i.effect}`;
+    navigator.clipboard.writeText(text);
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 1500);
+  };
+
+  document.getElementById('addBtn').onclick = () => {
+    const newId = recipeData.length ? Math.max(...recipeData.map(i=>i.id)) + 1 : 1;
+    const newItem = { 
+      id:newId, 
+      name:"新调理食谱", 
+      material:"填写所需食材", 
+      method:"详细分步制作流程", 
+      effect:"稳压降脂、保护心脑血管" 
+    };
+    recipeData.unshift(newItem);
+    filteredList.unshift(newItem);
+    localStorage.setItem('heartVascularRecipes', JSON.stringify(recipeData));
+    currentPage = 1;
+    render();
+    setTimeout(() => edit(newId), 100);
+  };
+
+  document.getElementById('searchBtn').onclick = search;
+  searchInput.onkeyup = e => e.key === 'Enter' && search();
+
+  prevBtn.onclick = () => {
+    currentPage--;
+    render();
+  };
+  nextBtn.onclick = () => {
+    currentPage++;
+    render();
+  };
+
+  render();
+</script>
+</body>
+</html>

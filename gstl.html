@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>肝肾调理食疗手册</title>
+  <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    body {
+      background-color: #f5f2fc;
+      color: #333;
+      padding: 12px;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin: 20px 0;
+      color: #4a3d7a;
+    }
+    .header h1 {
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+    .header p {
+      font-size: 14px;
+      color: #6a5d9a;
+    }
+    .search-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .search-box input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #e2dcf5;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+    }
+    .search-box button {
+      padding: 10px 14px;
+      background: #7a6aad;
+      color: white;
+      border: none;
+      border-radius: 10px;
+    }
+    .size-select {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      display: none;
+    }
+    .size-select select {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .add-btn {
+      width: 100%;
+      padding: 11px;
+      background: #5a4a8a;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      margin-bottom: 16px;
+    }
+    .recipe-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .recipe-card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .recipe-card h3 {
+      font-size: 17px;
+      color: #4a3d7a;
+      margin-bottom: 8px;
+    }
+    .recipe-card .tag {
+      display: inline-block;
+      background: #ebe5fc;
+      color: #5a4a8a;
+      font-size: 12px;
+      padding: 3px 6px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .recipe-card p {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+    .card-btns {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .card-btns button {
+      flex: 1;
+      padding: 7px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .edit { background: #f9b949; color:#333; }
+    .delete { background: #f76c6c; color:white; }
+    .copy { background: #7a6aad; color:white; }
+    .save-btn {
+      background: #5a4a8a !important;
+      color:white !important;
+      display: none;
+    }
+    .edit-mode input, .edit-mode textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 4px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .edit-mode textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .edit-mode .edit { display: none; }
+    .edit-mode .save-btn { display: block; }
+    .empty {
+      text-align: center;
+      padding: 50px 0;
+      color: #999;
+    }
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+    .page-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .page-bar button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 10px;
+      background: #7a6aad;
+      color: #fff;
+      font-size: 14px;
+    }
+    .page-bar button:disabled {
+      background: #c5bddd;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1><i class="fa-solid fa-shield-heart"></i> 肝肾调理食疗手册</h1>
+    <p>补肝益肾 | 强腰明目 | 滋养精血 | 固本培元</p>
+  </div>
+
+  <div class="search-box">
+    <input id="searchInput" placeholder="搜索食谱、食材、功效">
+    <button id="searchBtn"><i class="fa-solid fa-search"></i></button>
+  </div>
+
+  <div class="size-select">
+    <span>每页显示：</span>
+    <select id="pageSizeSel">
+      <option value="2" selected>2条</option>
+    </select>
+  </div>
+
+  <button class="add-btn" id="addBtn">➕ 新增食谱</button>
+  <div class="recipe-list" id="recipeList"></div>
+
+  <div class="page-bar">
+    <button id="prevBtn">上一页</button>
+    <span id="pageInfo">第1页 / 共5页</span>
+    <button id="nextBtn">下一页</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">复制成功</div>
+
+<script>
+let recipeData = JSON.parse(localStorage.getItem('liverKidneyRecipes')) || [
+{
+id:1,
+name:"黑芝麻核桃粥",
+material:"黑芝麻15克、核桃2个、大米50克",
+method:"1.黑芝麻小火炒香；2.核桃去壳掰碎；3.大米煮30分钟；4.最后放入黑芝麻和核桃煮5分钟；5.每天早餐食用，补肝肾效果极强。",
+effect:"补肝肾、润五脏、强腰膝、乌发明目。"
+},
+{
+id:2,
+name:"枸杞菊花茶",
+material:"枸杞8粒、菊花3朵、沸水",
+method:"1.枸杞菊花洗净；2.沸水冲泡焖10分钟；3.代茶饮用，可反复冲泡。",
+effect:"清肝明目、滋补肝肾，适合眼干、视力模糊、熬夜伤肝。"
+},
+{
+id:3,
+name:"山药枸杞养生粥",
+material:"山药100克、枸杞10克、大米50克",
+method:"1.山药去皮切块；2.大米煮20分钟；3.加入山药煮15分钟；4.最后放枸杞煮3分钟；5.清淡食用，健脾益肾。",
+effect:"健脾补肝、益肾固精，适合腰膝酸软、体虚乏力。"
+},
+{
+id:4,
+name:"黑豆补肾粥",
+material:"黑豆30克、大米50克、红枣2颗",
+method:"1.黑豆提前浸泡4小时；2.与大米一同下锅煮40分钟；3.加红枣煮10分钟；4.软糯食用，补肾强身。",
+effect:"补肾益阴、健脾利湿，适合肾虚腰酸、手脚冰凉。"
+},
+{
+id:5,
+name:"桑葚枸杞茶",
+material:"干桑葚6克、枸杞6克、温水",
+method:"1.食材洗净；2.温水冲泡10分钟；3.酸甜可口，补肝益肾。",
+effect:"滋补肝肾、养血明目，适合肝肾阴虚、头晕耳鸣。"
+},
+{
+id:6,
+name:"板栗炖鸡汤",
+material:"板栗5颗、鸡腿1个、姜片",
+method:"1.鸡腿焯水；2.板栗去皮；3.全部下锅炖50分钟；4.少量盐调味，滋补肝肾。",
+effect:"养胃健脾、补肾强腰，适合肾虚腰痛、体质虚弱。"
+},
+{
+id:7,
+name:"银耳枸杞羹",
+material:"银耳1朵、枸杞10克、冰糖少量",
+method:"1.银耳煮40分钟出胶；2.加枸杞煮5分钟；3.冰糖调味，养肝滋肾。",
+effect:"滋阴润燥、补肝肾，适合熬夜、阴虚火旺。"
+},
+{
+id:8,
+name:"韭菜鸡蛋饼",
+material:"韭菜50克、鸡蛋1个、面粉少量",
+method:"1.韭菜切碎；2.与鸡蛋面粉混合；3.平底锅小火煎熟；4.早餐食用，温肾补阳。",
+effect:"温中补肾、益阳散寒，适合肾阳不足、畏寒怕冷。"
+},
+{
+id:9,
+name:"桂圆枸杞粥",
+material:"桂圆3颗、枸杞8克、大米50克",
+method:"1.大米煮25分钟；2.加入桂圆枸杞煮10分钟；3.温热食用，养血补肝。",
+effect:"补益肝肾、养血安神，适合气血不足、睡眠差。"
+},
+{
+id:10,
+name:"海带排骨汤",
+material:"海带50克、排骨150克、姜片",
+method:"1.排骨焯水；2.海带泡发切条；3.一同下锅炖50分钟；4.少量盐调味，补碘强肾。",
+effect:"软坚散结、滋补肝肾，适合肝肾不足、筋骨无力。"
+}
+];
+
+  let currentPage = 1;
+  let filteredList = [...recipeData];
+  let PAGE_SIZE = 2;
+
+  const recipeList = document.getElementById('recipeList');
+  const searchInput = document.getElementById('searchInput');
+  const toast = document.getElementById('toast');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const pageInfo = document.getElementById('pageInfo');
+  const pageSizeSel = document.getElementById('pageSizeSel');
+
+  pageSizeSel.addEventListener('change',function(){
+    PAGE_SIZE = parseInt(this.value);
+    currentPage = 1;
+    render();
+  })
+
+  function render() {
+    const totalPage = Math.ceil(filteredList.length / PAGE_SIZE);
+    if (currentPage < 1) currentPage = 1;
+    if (currentPage > totalPage) currentPage = totalPage;
+
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    const pageData = filteredList.slice(start, end);
+
+    if (pageData.length === 0) {
+      recipeList.innerHTML = '<div class="empty">暂无食谱，可点击新增</div>';
+    } else {
+      recipeList.innerHTML = pageData.map(item => `
+        <div class="recipe-card" data-id="${item.id}">
+          <h3><span class="name">${item.name}</span></h3>
+          <span class="tag">补肝益肾</span>
+          <p><strong>食材：</strong><span class="material">${item.material}</span></p>
+          <p><strong>做法：</strong><span class="method">${item.method}</span></p>
+          <p><strong>功效：</strong><span class="effect">${item.effect}</span></p>
+          <div class="card-btns">
+            <button class="edit" onclick="edit(${item.id})">编辑</button>
+            <button class="save-btn" onclick="save(${item.id})">保存</button>
+            <button class="delete" onclick="del(${item.id})">删除</button>
+            <button class="copy" onclick="copy(${item.id})">复制</button>
+          </div>
+        </div>
+      `).join('');
+    }
+    pageInfo.innerText = `第${currentPage}页 / 共${totalPage||1}页`;
+    prevBtn.disabled = currentPage <= 1;
+    nextBtn.disabled = currentPage >= totalPage;
+  }
+
+  function search() {
+    const kw = searchInput.value.trim().toLowerCase();
+    if (!kw) {
+      filteredList = [...recipeData];
+    } else {
+      filteredList = recipeData.filter(i =>
+        i.name.toLowerCase().includes(kw) ||
+        i.material.toLowerCase().includes(kw) ||
+        i.effect.toLowerCase().includes(kw)
+      );
+    }
+    currentPage = 1;
+    render();
+  }
+
+  window.edit = function(id) {
+    const card = document.querySelector(`[data-id="${id}"]`);
+    card.classList.add('edit-mode');
+    const item = recipeData.find(i => i.id === id);
+    card.querySelector('.name').innerHTML = `<input value="${item.name}" data-f="name">`;
+    card.querySelector('.material').innerHTML = `<input value="${item.material}" data-f="material">`;
+    card.querySelector('.method').innerHTML = `<textarea data-f="method">${item.method}</textarea>`;
+    card.querySelector('.effect').innerHTML = `<textarea data-f="effect">${item.effect}</textarea>`;
+  };
+
+  window.save = function(id) {
+    const card = document.querySelector(`[data-id="${id}"]`);
+    const name = card.querySelector('[data-f="name"]').value;
+    const material = card.querySelector('[data-f="material"]').value;
+    const method = card.querySelector('[data-f="method"]').value;
+    const effect = card.querySelector('[data-f="effect"]').value;
+    const idx = recipeData.findIndex(i => i.id === id);
+    recipeData[idx] = { ...recipeData[idx], name, material, method, effect };
+    localStorage.setItem('liverKidneyRecipes', JSON.stringify(recipeData));
+    const fidx = filteredList.findIndex(i => i.id === id);
+    if (fidx !== -1) filteredList[fidx] = recipeData[idx];
+    card.classList.remove('edit-mode');
+    render();
+  };
+
+  window.del = function(id) {
+    if (!confirm('确定删除该食疗食谱吗？')) return;
+    recipeData = recipeData.filter(i => i.id !== id);
+    filteredList = filteredList.filter(i => i.id !== id);
+    localStorage.setItem('liverKidneyRecipes', JSON.stringify(recipeData));
+    render();
+  };
+
+  window.copy = function(id) {
+    const i = recipeData.find(i => i.id === id);
+    const text = `【${i.name}】\n食材：${i.material}\n做法：${i.method}\n功效：${i.effect}`;
+    navigator.clipboard.writeText(text);
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 1500);
+  };
+
+  document.getElementById('addBtn').onclick = () => {
+    const newId = recipeData.length ? Math.max(...recipeData.map(i=>i.id)) + 1 : 1;
+    const newItem = { 
+      id:newId, 
+      name:"新肝肾食谱", 
+      material:"填写所需食材", 
+      method:"详细分步制作流程", 
+      effect:"补肝益肾、强腰明目" 
+    };
+    recipeData.unshift(newItem);
+    filteredList.unshift(newItem);
+    localStorage.setItem('liverKidneyRecipes', JSON.stringify(recipeData));
+    currentPage = 1;
+    render();
+    setTimeout(() => edit(newId), 100);
+  };
+
+  document.getElementById('searchBtn').onclick = search;
+  searchInput.onkeyup = e => e.key === 'Enter' && search();
+
+  prevBtn.onclick = () => {
+    currentPage--;
+    render();
+  };
+  nextBtn.onclick = () => {
+    currentPage++;
+    render();
+  };
+
+  render();
+</script>
+</body>
+</html>
