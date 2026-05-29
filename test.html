@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+const s = window.speechSynthesis || window.webkitSpeechSynthesis;
+document.addEventListener('click',()=>{
+  const u = new SpeechSynthesisUtterance("测试语音，听到声音就正常");
+  u.lang = "zh-CN";
+  s.speak(u);
+})
+</script>
+点击页面测试语音
+</body>
+</html>
