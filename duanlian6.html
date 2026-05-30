@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>专业健身教练陪练系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        body {
+            background: #f5f7fa;
+            color: #333;
+            font-size: 15px;
+            padding-bottom: 70px;
+        }
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: #fff;
+            display: flex;
+            border-top: 1px solid #eee;
+            z-index: 99;
+        }
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #666;
+        }
+        .nav-item.active {
+            color: #4285F4;
+        }
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+        .page {
+            display: none;
+            padding: 12px;
+        }
+        .page.active {
+            display: block;
+        }
+        .card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+        h2 {
+            font-size: 17px;
+            margin-bottom: 12px;
+            color: #202124;
+        }
+        .form-row {
+            margin-bottom: 12px;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #5f6368;
+        }
+        input, select {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            font-size: 15px;
+            background: #fff;
+            outline: none;
+        }
+        .btn {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 8px;
+        }
+        .btn:active {opacity:0.9;}
+        .btn-primary {background:#4285F4;color:#fff;}
+        .btn-success {background:#34A853;color:#fff;}
+        .btn-warning {background:#FBBC05;color:#fff;}
+        .btn-purple {background:#9C27B0;color:#fff;}
+        .btn-orange {background:#FF9800;color:#fff;}
+        .btn-red {background:#EA4335;color:#fff;}
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .tag {
+            background: #E8F0FE;
+            color: #1967D2;
+            padding: 8px 6px;
+            border-radius: 8px;
+            font-size: 13px;
+            text-align: center;
+        }
+        .plan-item {
+            background: #F8F9FA;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            line-height: 1.7;
+        }
+        .plan-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #202124;
+        }
+        .tips {
+            font-size: 13px;
+            color: #666;
+            margin-top: 6px;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7,1fr);
+            gap:4px;
+        }
+        .calendar-day {
+            text-align:center;
+            padding:8px 2px;
+            font-size:13px;
+            border-radius:4px;
+            background:#f1f3f4;
+        }
+        .calendar-day.checked {background:#34A853;color:#fff;}
+        .calendar-day.other {opacity:0.4;}
+        .weight-item {
+            display: flex;
+            justify-content: space-between;
+            padding:6px 0;
+            border-bottom:1px solid #eee;
+            font-size:14px;
+        }
+        .time-panel {
+            text-align:center;
+            font-size:38px;
+            font-weight:bold;
+            color:#9C27B0;
+            margin:10px 0;
+        }
+        .status-text {
+            text-align:center;
+            font-size:16px;
+            margin:6px 0;
+            color:#222;
+        }
+        .group-info {
+            text-align:center;
+            font-size:15px;
+            color:#1967D2;
+            margin:8px 0;
+            font-weight:500;
+        }
+        .train-btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .train-btn-grid .btn {
+            padding:10px;
+            font-size:14px;
+            margin: 0;
+        }
+        .switch-row {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:8px 0;
+        }
+        .volume-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+        }
+        .volume-row span {
+            flex-shrink: 0;
+            font-size: 14px;
+            color: #5f6368;
+            width: 80px;
+        }
+        .volume-row input[type="range"] {
+            flex: 1;
+            padding: 0;
+        }
+        #fileInput {display:none;}
+        .report-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(7,1fr);
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .week-cell {
+            text-align: center;
+            padding: 10px 2px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        .week-cell.train {background: #e3f2fd; color: #1967D2;}
+        .week-cell.rest {background: #f5f5f5; color: #666;}
+        .week-cell.today {background: #ff6b6b; color: #fff; font-weight: bold;}
+        .food-desc {
+            font-size: 14px;
+            margin-top: 4px;
+            color: #444;
+        }
+
+        .narrate-box {
+            position: relative;
+            background: #f0f8ff;
+            border: 1px solid #cce4ff;
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 80vh;
+        }
+        .control-bar {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 500px;
+            padding: 12px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 998;
+            transition: all 0.3s ease;
+        }
+        .control-bar.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .narrate-fullscreen .control-bar {
+            display: none !important;
+        }
+        .narrate-fullscreen {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background: #ffffff !important;
+            z-index: 9999 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 30px !important;
+            box-sizing: border-box !important;
+        }
+        .narrate-fullscreen #mainNarrate {
+            font-size: 18px !important;  /* 改小字体 */
+            line-height: 1.6 !important;
+            text-align: center !important;
+            color: #000 !important;
+        }
+        #mainNarrate {
+            font-size: 20px;
+            line-height: 2.2;
+            color: #0d47a1;
+            text-align: left;
+            white-space: pre-wrap;
+            tabindex="-1";
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="page active" id="pageInfo">
+    <div class="card">
+        <h2>👤 个人信息设置</h2>
+        <div class="form-row">
+            <label>性别</label>
+            <select id="gender"><option>男</option><option>女</option></select>
+        </div>
+        <div class="form-row">
+            <label>年龄</label><input type="number" id="age">
+        </div>
+        <div class="form-row">
+            <label>身高(cm)</label><input type="number" id="height">
+        </div>
+        <div class="form-row">
+            <label>体重(kg)</label><input type="number" id="weight">
+        </div>
+        <div class="form-row">
+            <label>职业</label>
+            <select id="job"><option>久坐办公</option><option>轻体力</option><option>重体力</option></select>
+        </div>
+        <div class="form-row">
+            <label>体型</label>
+            <select id="bodyType"><option>苹果型</option><option>梨型</option><option>H型</option><option>沙漏型</option></select>
+        </div>
+        <button class="btn btn-primary" onclick="saveAndCalc()">保存并计算数据</button>
+    </div>
+    <div class="card" id="dataCard" style="display:none">
+        <h2>📊 身体数据</h2>
+        <div class="info-grid">
+            <div class="tag">BMI：<span id="bmi"></span></div>
+            <div class="tag">体型：<span id="typeName"></span></div>
+            <div class="tag">基础代谢：<span id="bmr"></span> kcal</div>
+            <div class="tag">每日消耗：<span id="tee"></span> kcal</div>
+        </div>
+    </div>
+</div>
+
+<div class="page" id="pageTrain">
+    <div class="card">
+        <h2>💪 专业分组训练</h2>
+        <div class="switch-row">
+            <span>开启背景音乐</span>
+            <input type="checkbox" id="bgmSwitch">
+        </div>
+        <div class="volume-row">
+            <span>音量大小</span>
+            <input type="range" id="bgmVolume" min="0" max="100" value="40">
+        </div>
+        <div class="form-row">
+            <label>选择起始训练阶段</label>
+            <select id="stageSelect"><option value="0">请先填写个人信息</option></select>
+        </div>
+        <div class="form-row">
+            <label>自定义背景音乐</label>
+            <label class="btn btn-orange">选择本地音频文件<input type="file" id="bgmFile" accept="audio/*" style="display:none;"></label>
+        </div>
+        <div class="group-info" id="groupInfo">等待启动训练</div>
+        <div class="status-text" id="stepName">准备就绪</div>
+        <div class="time-panel" id="timePanel">00:00</div>
+        <div style="text-align:center;margin-top:10px;">
+            今日：<span id="checkStatus">未打卡</span> 连续：<span id="contDays">0</span> 天
+        </div>
+        <button class="btn btn-success" id="btnCheckin">完成打卡</button>
+        <button class="btn btn-warning" id="btnCancel" style="display:none;">撤销打卡</button>
+    </div>
+    <div class="card"><h2>🎯 今日训练明细</h2><div id="dailyPlan"></div></div>
+    <div class="card"><h2>📅 本周训练计划</h2><div id="weekPlan"></div></div>
+    <div class="card"><h2>🗓 本月训练计划</h2><div id="monthPlan"></div></div>
+</div>
+
+<div class="page" id="pageNarrate">
+    <div class="narrate-box" id="narrateContainer">
+        <div id="mainNarrate" tabindex="-1">等待启动训练</div>
+        <div class="control-bar" id="controlBar">
+            <div class="train-btn-grid">
+                <button class="btn btn-primary" id="btnStart">开始全套训练</button>
+                <button class="btn btn-purple" id="btnPause" disabled>暂停</button>
+                <button class="btn btn-warning" id="btnReset" disabled>重置本节</button>
+                <button class="btn btn-orange" id="btnSkip" disabled>跳过本组</button>
+                <button class="btn btn-red" id="btnRestart" disabled>从头开始</button>
+                <button class="btn btn-primary" id="fullScreenBtn">旁白全屏</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page" id="pageCalendar">
+    <div class="card"><h2>📅 本月打卡日历</h2><div id="calendarBox"></div></div>
+    <div class="card"><h2>📈 训练报告</h2><div id="reportBox"></div></div>
+</div>
+
+<div class="page" id="pageData">
+    <div class="card">
+        <h2>⚖️ 体重记录</h2>
+        <div class="form-row">
+            <input type="number" step="0.1" id="wInput" placeholder="输入当前体重">
+            <button class="btn btn-primary" onclick="saveWeight()">保存记录</button>
+        </div>
+        <div id="weightList"></div>
+    </div>
+    <div class="card">
+        <h2>💾 全量数据备份/恢复</h2>
+        <button class="btn btn-success" onclick="exportAll()">导出全部数据</button>
+        <label class="btn btn-orange">导入备份数据<input type="file" id="fileInput"></label>
+        <div class="tips">备份包含：信息、打卡、体重、训练记录</div>
+    </div>
+</div>
+
+<div class="page" id="pageDiet">
+    <div class="card"><h2>🥗 完整减脂饮食方案</h2><div id="dietPlan"></div></div>
+</div>
+
+<div class="nav-bar" id="mainNav">
+    <div class="nav-item active" onclick="go('pageInfo',this)"><div class="nav-icon">👤</div><span>信息</span></div>
+    <div class="nav-item" onclick="go('pageTrain',this)"><div class="nav-icon">💪</div><span>训练</span></div>
+    <div class="nav-item" onclick="go('pageNarrate',this)"><div class="nav-icon">📢</div><span>旁白</span></div>
+    <div class="nav-item" onclick="go('pageCalendar',this)"><div class="nav-icon">📊</div><span>报告</span></div>
+    <div class="nav-item" onclick="go('pageData',this)"><div class="nav-icon">⚖️</div><span>体重</span></div>
+    <div class="nav-item" onclick="go('pageDiet',this)"><div class="nav-icon">🥗</div><span>饮食</span></div>
+</div>
+
+<audio id="bgmAudio" loop>
+
+<script>
+const KEY_PROFILE = "fit_profile";
+const KEY_CHECKIN = "fit_checkin";
+const KEY_WEIGHT = "fit_weight";
+const KEY_TRAIN = "fit_train_state";
+
+let profile = {};
+let checkin = {last:"",cont:0,total:0,maxCont:0};
+let weights = [];
+let trainParts = [];
+let currentPart = 0;
+let currentGroup = 0;
+let groupType = "train";
+let totalSec = 0;
+let nowSec = 0;
+let timer = null;
+let isPause = false;
+let voiceMark = {};
+let isOperating = false;
+const bgmAudio = document.getElementById("bgmAudio");
+const mainNarrate = document.getElementById("mainNarrate");
+
+const narrateContainer = document.getElementById("narrateContainer");
+const fullScreenBtn = document.getElementById("fullScreenBtn");
+const controlBar = document.getElementById("controlBar");
+const mainNav = document.getElementById("mainNav");
+
+const WORDS_PER_SEC = 3.5;
+let isFullScreenMode = false;
+
+function getNeedWords(sec) {
+    return Math.ceil(sec * WORDS_PER_SEC);
+}
+
+function buildTrainBlock(part, gIdx, trainSec) {
+    const need = getNeedWords(trainSec);
+    let main = `第${gIdx + 1}组，动作要点：${part.groupVoice[gIdx % part.groupVoice.length]}。收紧核心，自然呼吸，动作标准优先。`;
+    let halfTip = `训练过半，${part.detailVoice[gIdx % part.detailVoice.length]}，坚持住。`;
+    let loopTxt = "保持姿势，呼吸均匀，感受肌肉发力，动作不要变形。";
+    let endTip = "5，4，3，2，1。本组训练结束。";
+
+    let block = main + " " + halfTip;
+    while (block.length < need) {
+        block += " " + loopTxt;
+    }
+    return block + " " + endTip;
+}
+
+function buildRestBlock(restSec) {
+    const need = getNeedWords(restSec);
+    let main = "本组结束，进入组间休息，调整呼吸，放松四肢肌肉。";
+    let halfTip = "休息过半，保持放松状态，准备迎接下一组训练。";
+    let loopTxt = "慢慢深呼吸，舒展身体，缓解肌肉紧绷感。";
+    let endTip = "5，4，3，2，1。休息结束，准备开始下一组。";
+
+    let block = main + " " + halfTip;
+    while (block.length < need) {
+        block += " " + loopTxt;
+    }
+    return block + " " + endTip;
+}
+
+function buildWholeTrainingScript() {
+    let fullScript = "训练即将开始，请调整姿态，放松全身，做好准备。";
+    for (let pIdx = 0; pIdx < trainParts.length; pIdx++) {
+        const part = trainParts[pIdx];
+        fullScript += ` 进入第${pIdx + 1}阶段：${part.name}。${part.intro}。`;
+        for (let gIdx = 0; gIdx < part.totalGroup; gIdx++) {
+            fullScript += " " + buildTrainBlock(part, gIdx, part.trainTime);
+            const isLastGroup = gIdx === part.totalGroup - 1;
+            const isLastPart = pIdx === trainParts.length - 1;
+            if (!isLastGroup) {
+                fullScript += " " + buildRestBlock(part.restTime);
+            } else if (isLastPart) {
+                fullScript += " 全部训练完成，辛苦啦！请充分拉伸放松，及时补充水分。";
+            }
+        }
+    }
+    return fullScript;
+}
+
+function updateNarrateText(text) {
+    mainNarrate.innerText = text;
+}
+
+// ========== 双击：隐藏/恢复按钮（非全屏）；退出全屏（全屏） ==========
+narrateContainer.addEventListener('dblclick', function(){
+    if (narrateContainer.classList.contains("narrate-fullscreen")) {
+        // 全屏下双击 → 退出全屏
+        exitFullscreen();
+    } else {
+        // 非全屏双击 → 隐藏/显示控制栏
+        controlBar.classList.toggle("hide");
+    }
+});
+
+// 点击「旁白全屏」按钮 → 进入全屏
+fullScreenBtn.onclick = function () {
+    if (!narrateContainer.classList.contains("narrate-fullscreen")) {
+        enterFullscreen();
+    }
+};
+
+document.addEventListener('keydown', function(e) {
+    if(e.key === 'Escape' && narrateContainer.classList.contains("narrate-fullscreen")) e.preventDefault();
+});
+
+function enterFullscreen(){
+    narrateContainer.classList.add("narrate-fullscreen");
+    fullScreenBtn.textContent = "退出全屏";
+    isFullScreenMode = true;
+
+    // 进入全屏生成整套长文本
+    const fullText = buildWholeTrainingScript();
+    updateNarrateText(fullText);
+
+    mainNav.setAttribute('aria-hidden','true');
+    document.querySelectorAll('.page').forEach(p=>{
+        if(p.id !== 'pageNarrate') p.setAttribute('aria-hidden','true');
+    });
+    setTimeout(()=>mainNarrate.focus(),100);
+}
+
+function exitFullscreen(){
+    narrateContainer.classList.remove("narrate-fullscreen");
+    fullScreenBtn.textContent = "旁白全屏";
+    isFullScreenMode = false;
+
+    mainNav.removeAttribute('aria-hidden');
+    document.querySelectorAll('.page').forEach(p=> p.removeAttribute('aria-hidden'));
+    updateNarrateText("已退出全屏模式，等待启动训练");
+}
+
+function go(pageId, el){
+    document.querySelectorAll(".page").forEach(p => {
+        p.classList.remove("active");
+        p.id !== pageId ? p.setAttribute('aria-hidden','true') : p.removeAttribute('aria-hidden');
+    });
+    document.getElementById(pageId).classList.add("active");
+    document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+    el.classList.add("active");
+    if(pageId === "pageCalendar") renderReport();
+}
+
+function getWeekDayIndex(){
+    let d = new Date();
+    let day = d.getDay();
+    return day === 0 ? 6 : day - 1;
+}
+
+document.addEventListener('visibilitychange', () => {
+    if(!document.hidden && bgmAudio && !bgmAudio.paused) bgmAudio.play().catch(()=>{});
+});
+
+function clearTimer() { if (timer) { clearInterval(timer); timer = null; } }
+function resetVoiceMark(){ voiceMark = {}; }
+function getToday(){
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function getYesterday(){
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+document.getElementById("bgmSwitch").addEventListener("change", toggleBGM);
+document.getElementById("bgmVolume").addEventListener("input", setBgmVolume);
+document.getElementById("bgmFile").addEventListener("change", loadCustomBGM);
+document.getElementById("fileInput").addEventListener("change", importAll);
+
+function toggleBGM(){
+    const sw = document.getElementById("bgmSwitch");
+    const vol = document.getElementById("bgmVolume").value / 100 || 0.4;
+    bgmAudio.volume = vol;
+    sw.checked ? bgmAudio.play().catch(()=>{}) : bgmAudio.pause();
+}
+function setBgmVolume(){ bgmAudio.volume = document.getElementById("bgmVolume").value / 100 || 0.4; }
+function loadCustomBGM(e){ const file = e.target.files[0]; if(file) bgmAudio.src = URL.createObjectURL(file); }
+
+function setBtnStatus(isRunning){
+    const start = document.getElementById("btnStart");
+    const pause = document.getElementById("btnPause");
+    const reset = document.getElementById("btnReset");
+    const skip = document.getElementById("btnSkip");
+    const restart = document.getElementById("btnRestart");
+    start.disabled = isRunning;
+    pause.disabled = !isRunning;
+    reset.disabled = !isRunning;
+    skip.disabled = !isRunning;
+    restart.disabled = !isRunning;
+    pause.innerText = isPause ? "继续" : "暂停";
+}
+
+function renderTime(){
+    let m = Math.floor(nowSec / 60);
+    let s = nowSec % 60;
+    document.getElementById("timePanel").innerText = `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+}
+
+function startTrain(){
+    if(isOperating) return;
+    isOperating = true;
+    if(trainParts.length === 0){ alert("请先完善个人信息并保存"); isOperating = false; return; }
+    clearTimer();
+    isPause = false;
+    resetVoiceMark();
+    currentPart = parseInt(document.getElementById("stageSelect").value);
+    currentGroup = 0;
+    setBtnStatus(true);
+
+    updateNarrateText("训练即将开始，调整姿态，放松身体，准备训练。");
+
+    setTimeout(()=>{runCurrentPart(); isOperating = false;}, 5000);
+}
+
+function runCurrentPart(){
+    if(currentPart >= trainParts.length){
+        updateNarrateText("所有训练完成，记得拉伸放松，及时补水。");
+        document.getElementById("groupInfo").innerText = "🎉 全部训练完成！";
+        document.getElementById("stepName").innerText = "训练结束";
+        renderTime(); setBtnStatus(false); return;
+    }
+    const part = trainParts[currentPart];
+    if(!isFullScreenMode) updateNarrateText(`进入第${currentPart+1}阶段：${part.name}，共${part.totalGroup}组。${part.intro}`);
+    currentGroup = 0;
+    setTimeout(runCurrentGroup, 6000);
+}
+
+function runCurrentGroup(){
+    const part = trainParts[currentPart];
+    if(currentGroup >= part.totalGroup){
+        if(!isFullScreenMode) updateNarrateText(`本阶段全部完成，稍作休息，准备下一阶段。`);
+        currentPart ++;
+        setTimeout(runCurrentGroup, 2500);
+        return;
+    }
+
+    groupType = "train";
+    totalSec = part.trainTime;
+    nowSec = totalSec;
+    resetVoiceMark();
+
+    document.getElementById("groupInfo").innerText = `第${currentPart+1}阶段 ${part.name} | 第${currentGroup+1}/${part.totalGroup}组 训练中`;
+    document.getElementById("stepName").innerText = "🔥 正式训练";
+    renderTime();
+
+    if(!isFullScreenMode){
+        const v = currentGroup % part.groupVoice.length;
+        updateNarrateText(`第${currentGroup+1}组，动作要点：${part.groupVoice[v]}。收紧核心，自然呼吸，动作标准优先。`);
+    }
+
+    setTimeout(()=>{ timer = setInterval(trainTick,1000); setBtnStatus(true); },3000);
+}
+
+function trainTick(){
+    nowSec --;
+    const part = trainParts[currentPart];
+
+    if(!isFullScreenMode){
+        const half = Math.floor(totalSec/2);
+        if(groupType === "train"){
+            if(!voiceMark.half && nowSec === half) {
+                updateNarrateText(`训练过半，${part.detailVoice[currentGroup%part.detailVoice.length]}，坚持住。`);
+                voiceMark.half = true;
+            }
+            if(nowSec <=10 && nowSec>0) updateNarrateText(`${nowSec}`);
+        }
+        if(groupType === "rest"){
+            if(!voiceMark.restHalf && nowSec === half) {
+                updateNarrateText("休息过半，调整呼吸放松肌肉。");
+                voiceMark.restHalf = true;
+            }
+            if(nowSec <=5 && nowSec>0) updateNarrateText(`${nowSec}`);
+        }
+    }
+
+    if(nowSec <= 0){
+        clearTimer();
+        if(groupType === "train"){
+            groupType = "rest";
+            totalSec = part.restTime;
+            nowSec = totalSec;
+            resetVoiceMark();
+            document.getElementById("groupInfo").innerText = `第${currentPart+1}阶段 ${part.name} | 第${currentGroup+1}组 组间休息`;
+            document.getElementById("stepName").innerText = "💤 组间休息";
+            if(!isFullScreenMode) updateNarrateText("本组结束，休息片刻，活动放松四肢。");
+            renderTime();
+            timer = setInterval(trainTick,1000);
+        }else{
+            currentGroup ++;
+            setTimeout(runCurrentGroup,300);
+        }
+    }
+    renderTime();
+    saveTrainState();
+}
+
+function pauseTrain(){
+    if(isOperating) return; isOperating = true;
+    isPause = !isPause;
+    if(isPause){ clearTimer(); document.getElementById("stepName").innerText = "⏸ 训练已暂停"; if(!isFullScreenMode) updateNarrateText("训练暂停，原地休息调整状态。"); }
+    else { document.getElementById("stepName").innerText = groupType==="train"?"🔥 正式训练":"💤 组间休息"; timer = setInterval(trainTick,1000); if(!isFullScreenMode) updateNarrateText("训练继续，保持动作节奏。"); }
+    setBtnStatus(true); isOperating = false;
+}
+
+function resetStep(){
+    if(isOperating) return; isOperating = true;
+    clearTimer(); isPause = false; resetVoiceMark();
+    const part = trainParts[currentPart];
+    groupType = "train"; totalSec = part.trainTime; nowSec = part.trainTime;
+    document.getElementById("groupInfo").innerText = `第${currentPart+1}阶段 ${part.name} | 第${currentGroup+1}/${part.totalGroup}组 训练中`;
+    document.getElementById("stepName").innerText = "🔥 正式训练";
+    if(!isFullScreenMode) updateNarrateText("本组已重置，重新开始，调整姿态。");
+    renderTime();
+    setTimeout(()=>{ timer = setInterval(trainTick,1000); isOperating = false; },1500);
+    setBtnStatus(true);
+}
+
+function skipGroup(){
+    if(isOperating) return; isOperating = true;
+    clearTimer(); isPause = false; nowSec = 0;
+    if(!isFullScreenMode) updateNarrateText("已跳过本组，进入下一组。");
+    trainTick(); isOperating = false;
+}
+
+function restartAll(){
+    if(isOperating) return; isOperating = true;
+    clearTimer(); isPause = false;
+    document.getElementById("stageSelect").value = 0;
+    if(!isFullScreenMode) updateNarrateText("训练重置，即将从头开始，请准备。");
+    setTimeout(()=>{startTrain(); isOperating = false;},2000);
+}
+
+function saveTrainState(){
+    const state = {part:currentPart, group:currentGroup, sec:nowSec, type:groupType};
+    localStorage.setItem(KEY_TRAIN, JSON.stringify(state));
+}
+function loadTrainState(){
+    const s = localStorage.getItem(KEY_TRAIN);
+    if(!s) return; const o=JSON.parse(s); currentPart=o.part||0; currentGroup=o.group||0; nowSec=o.sec||0; groupType=o.type||"train"; renderTime();
+}
+
+window.onload = function(){
+    loadAllData(); renderCheckin(); renderCalendar(); renderWeights(); loadTrainState(); renderWeekPlan(); renderMonthPlan();
+    document.getElementById("btnStart").onclick=startTrain; document.getElementById("btnPause").onclick=pauseTrain;
+    document.getElementById("btnReset").onclick=resetStep; document.getElementById("btnSkip").onclick=skipGroup;
+    document.getElementById("btnRestart").onclick=restartAll; document.getElementById("btnCheckin").onclick=doCheckin;
+    document.getElementById("btnCancel").onclick=cancelCheckin;
+};
+
+function loadAllData(){
+    let p=localStorage.getItem(KEY_PROFILE); let c=localStorage.getItem(KEY_CHECKIN); let w=localStorage.getItem(KEY_WEIGHT);
+    if(p)profile=JSON.parse(p); if(c)checkin=JSON.parse(c); if(w)weights=JSON.parse(w);
+    if(profile.gender){fillProfileUI(); calcBodyData();}
+}
+
+function saveAndCalc(){
+    profile = {gender:document.getElementById("gender").value, age:Number(document.getElementById("age").value), height:Number(document.getElementById("height").value), weight:Number(document.getElementById("weight").value), job:document.getElementById("job").value, bodyType:document.getElementById("bodyType").value};
+    if(!profile.age||!profile.height||!profile.weight){alert("请完整填写年龄、身高、体重"); return;}
+    localStorage.setItem(KEY_PROFILE, JSON.stringify(profile)); calcBodyData();
+    go("pageTrain", document.querySelectorAll(".nav-item")[1]);
+}
+
+function fillProfileUI(){
+    document.getElementById("gender").value=profile.gender; document.getElementById("age").value=profile.age;
+    document.getElementById("height").value=profile.height; document.getElementById("weight").value=profile.weight;
+    document.getElementById("job").value=profile.job; document.getElementById("bodyType").value=profile.bodyType;
+}
+
+function fillStageOption(){
+    const sel=document.getElementById("stageSelect"); sel.innerHTML="";
+    trainParts.forEach((item,idx)=>{let o=document.createElement("option");o.value=idx;o.innerText=`${idx+1}阶段：${item.name}`;sel.appendChild(o);});
+}
+
+function calcBodyData(){
+    let bmi=(profile.weight/Math.pow(profile.height/100,2)).toFixed(1);
+    let bmr=profile.gender==="男"?(10*profile.weight+6.25*profile.height-5*profile.age+5):(10*profile.weight+6.25*profile.height-5*profile.age-161);
+    bmr=Math.round(bmr);
+    let act=profile.job.includes("久坐")?1.2:profile.job.includes("轻")?1.375:1.55;
+    let tee=Math.round(bmr*act);
+    document.getElementById("bmi").innerText=bmi; document.getElementById("typeName").innerText=profile.bodyType;
+    document.getElementById("bmr").innerText=bmr; document.getElementById("tee").innerText=tee;
+    document.getElementById("dataCard").style.display="block";
+    generateTrainPlan(); fillStageOption(); renderDailyPlanFull(); renderDietFull(); renderWeekPlan(); renderMonthPlan();
+}
+
+function generateTrainPlan(){
+    const b=profile.bodyType;
+    if(b.includes("苹果")){
+        trainParts=[
+            {name:"全身动态热身",totalGroup:3,trainTime:60,restTime:25,intro:"活动关节，提升体温",groupVoice:["原地踏步活动四肢","扩胸转体放松肩背","弓步压腿活动下肢"],detailVoice:["幅度适中，自然呼吸","保持匀速，全身发热即可","动作舒缓，不要憋气"]},
+            {name:"低冲击有氧燃脂",totalGroup:8,trainTime:90,restTime:25,intro:"低强度有氧，针对腰腹",groupVoice:["左右踏步交替进行","侧向移步收紧侧腰","摆臂踏步提升心率"],detailVoice:["腰背挺直，不要塌腰","循序渐进发力","专注呼吸提升燃脂效率"]},
+            {name:"核心腹部塑形",totalGroup:6,trainTime:80,restTime:25,intro:"强化腰腹，收紧线条",groupVoice:["标准卷腹开始","仰卧举腿强化下腹","平板支撑稳定核心"],detailVoice:["发力集中腹部，颈部放松","切勿用脖子借力","肌肉酸胀属于正常现象"]},
+            {name:"全身深度拉伸",totalGroup:4,trainTime:75,restTime:25,intro:"放松肌肉，缓解酸痛",groupVoice:["站姿拉伸肩颈","坐姿拉伸腰背","侧卧拉伸侧腰"],detailVoice:["缓慢拉伸，不要猛拉","配合深呼吸放松","充分舒展每一处肌肉"]}
+        ];
+    }else if(b.includes("梨")){
+        trainParts=[
+            {name:"下肢专项热身",totalGroup:3,trainTime:60,restTime:25,intro:"激活下肢，保护关节",groupVoice:["脚踝环绕活动关节","侧弓步拉伸大腿","髋关节左右环绕"],detailVoice:["动作缓慢轻柔","充分激活下肢肌群","为正式训练做好准备"]},
+            {name:"稳态有氧训练",totalGroup:7,trainTime:85,restTime:25,intro:"平稳有氧，消耗下肢脂肪",groupVoice:["平稳原地踏步","左右侧步移动","小幅提膝踏步"],detailVoice:["膝盖微屈不锁死","重心稳定左右均衡","保持节奏平稳"]},
+            {name:"臀腿塑形训练",totalGroup:6,trainTime:80,restTime:25,intro:"雕刻臀腿线条",groupVoice:["臀桥收紧臀部","侧卧侧抬腿","静态深蹲保持"],detailVoice:["发力点放在臀部","腰部贴地不借力","感受臀部肌肉收缩"]},
+            {name:"下肢全面拉伸",totalGroup:4,trainTime:80,restTime:25,intro:"放松下肢，避免肌肉结块",groupVoice:["单腿前侧拉伸","大腿后侧拉伸","小腿肌肉拉伸"],detailVoice:["静态保持不晃动","拉伸至轻微酸胀即可","舒缓下肢紧绷感"]}
+        ];
+    }else if(b.includes("H")){
+        trainParts=[
+            {name:"综合全身热身",totalGroup:3,trainTime:60,restTime:25,intro:"全身激活，适配力量训练",groupVoice:["全身原地活动","扩胸展肩打开胸腔","转体扭腰活动躯干"],detailVoice:["全身放松动作舒展","充分活动各大关节","快速调动身体状态"]},
+            {name:"综合力量训练",totalGroup:8,trainTime:95,restTime:30,intro:"均衡训练全身肌群",groupVoice:["标准徒手深蹲","跪姿俯卧撑","俯身原地划船"],detailVoice:["发力缓慢注重标准","控制轨迹不借力","每组做到力竭前两次"]},
+            {name:"心肺有氧强化",totalGroup:5,trainTime:75,restTime:25,intro:"提升心肺耐力",groupVoice:["轻快原地踏步","小幅开合动作","交替提膝运动"],detailVoice:["上半身保持稳定","呼吸配合动作节奏","稳步提升体能"]},
+            {name:"全身综合拉伸",totalGroup:4,trainTime:70,restTime:25,intro:"放松力量训练后的肌肉",groupVoice:["肩背整体拉伸","胸部舒展拉伸","躯干四肢全面拉伸"],detailVoice:["充分延展身体线条","深呼吸平复心率","放松全身肌肉"]}
+        ];
+    }else{
+        trainParts=[
+            {name:"体态激活热身",totalGroup:3,trainTime:60,restTime:25,intro:"调整体态，激活表层肌肉",groupVoice:["站姿体态调整","轻柔左右转体","四肢舒展活动"],detailVoice:["全程保持端正体态","动作舒缓流畅","身体微微发热即可"]},
+            {name:"全身线条紧致",totalGroup:7,trainTime:85,restTime:25,intro:"收紧松弛部位，塑造线条",groupVoice:["收腹提臀站姿训练","侧腰扭转塑形","手臂线条训练"],detailVoice:["体态放在第一位","动作流畅不僵硬","感受肌肉收紧状态"]},
+            {name:"轻松有氧调节",totalGroup:5,trainTime:70,restTime:25,intro:"低强度有氧，舒适燃脂",groupVoice:["轻松匀速踏步","小幅肢体运动","放缓节奏呼吸"],detailVoice:["以身体舒适为主","自然均匀呼吸","保持轻松状态"]},
+            {name:"体态舒缓拉伸",totalGroup:4,trainTime:70,restTime:25,intro:"拉伸塑形，放松身心",groupVoice:["俯身腰背拉伸","单侧肢体拉伸","全身放松舒展"],detailVoice:["端正体态完成拉伸","循序渐进不用蛮力","今日训练完成得很棒"]}
+        ];
+    }
+}
+
+function renderDailyPlanFull(){
+    const wrap=document.getElementById("dailyPlan");let html="";
+    trainParts.forEach((item,idx)=>{html+=`<div class="plan-item"><div class="plan-title">${idx+1}. ${item.name}（共${item.totalGroup}组 | 训练${item.trainTime}秒/组 | 休息${item.restTime}秒/组）</div><div class="tips">训练说明：${item.intro}</div><div class="tips">动作指引：${item.groupVoice.join("、")}</div><div class="tips">细节要点：${item.detailVoice.join("、")}</div></div>`;});
+    wrap.innerHTML=html;
+}
+
+function renderDietFull(){
+    const wrap=document.getElementById("dietPlan");
+    wrap.innerHTML=`<div class="plan-item"><div class="plan-title">一、整体饮食原则</div><div class="food-desc">1. 每日饮水2000-2500ml，少量多次饮用，拒绝含糖饮料、奶茶、果汁</div><div class="food-desc">2. 烹饪方式优先选择：蒸、煮、炖、凉拌，少油少盐少糖，拒绝油炸、红烧、卤味重口食物</div><div class="food-desc">3. 三餐定时，不吃宵夜，晚餐尽量在睡前3小时吃完</div><div class="food-desc">4. 主食粗细搭配，蛋白质足量摄入，蔬菜不限量，水果选择低GI品类</div></div><div class="plan-item"><div class="plan-title">二、早餐（7:00-9:00，唤醒代谢，营养均衡）</div><div class="food-desc">推荐搭配1：水煮鸡蛋2个 + 全麦面包2片 + 无糖豆浆/牛奶一杯 + 小份凉拌青菜</div><div class="food-desc">推荐搭配2：燕麦粥一碗 + 鸡胸肉少量 + 圣女果/黄瓜一份</div><div class="food-desc">推荐搭配3：玉米/红薯一根 + 鸡蛋1个 + 无糖酸奶一杯</div><div class="tips">禁忌：油条、煎饼、甜面包、甜粥、油炸早点</div></div><div class="plan-item"><div class="plan-title">三、午餐（11:30-13:30，能量主力，荤素搭配）</div><div class="food-desc">标准配比：一拳主食 + 一拳优质蛋白 + 两拳绿叶蔬菜</div><div class="food-desc">主食：糙米、杂粮饭、荞麦面、藜麦、玉米、山药（每餐生重约80-100g）</div><div class="food-desc">蛋白：鸡胸肉、鱼肉、虾、瘦牛肉、鸡蛋、豆腐、去皮鸭肉</div><div class="food-desc">蔬菜：菠菜、生菜、油麦菜、西兰花、冬瓜、芹菜、菌菇类（不限量）</div><div class="tips">禁忌：肥肉、动物皮、浓汤、重辣重油菜品、精制白米饭过量</div></div><div class="plan-item"><div class="plan-title">四、晚餐（17:30-19:30，清淡减量，减轻肠胃负担）</div><div class="food-desc">配比建议：减少主食，增加蔬菜与蛋白，主食可减半或替换为薯类</div><div class="food-desc">推荐搭配：清炒时蔬 + 清蒸鱼/水煮虾 +少量红薯/南瓜</div><div class="food-desc">减脂加强版：蔬菜沙拉（无糖沙拉酱）+ 水煮蛋 + 凉拌菌菇</div><div class="tips">禁忌：大碗米饭、面食、烧烤、火锅、夜宵、甜品</div></div><div class="plan-item"><div class="plan-title">五、加餐（上午10点 / 下午15点，避免过度饥饿暴饮暴食）</div><div class="food-desc">健康加餐：小苹果、柚子、蓝莓、原味坚果（10g内）、无糖酸奶、黄瓜、番茄</div><div class="tips">禁忌：饼干、蛋糕、糖果、薯片、辣条、含糖零食</div></div><div class="plan-item"><div class="plan-title">六、运动前后饮食建议</div><div class="food-desc">运动前30-60分钟：少量碳水（半根玉米/一片全麦面包），避免空腹高强度训练</div><div class="food-desc">运动后30分钟内：优先补充蛋白+少量碳水，帮助肌肉恢复，拒绝高油高糖</div></div>`;
+}
+
+function renderWeekPlan(){
+    const wrap=document.getElementById("weekPlan");const t=["周一","周二","周三","周四","周五","周六","周日"];const idx=getWeekDayIndex();let html=`<div class="week-grid">`;
+    t.forEach((d,i)=>{let c=i<5?"week-cell train":"week-cell rest";if(i===idx)c+=" today";html+=`<div class="${c}">${d}<br>${i<5?"训练日":"休息日"}</div>`;});
+    wrap.innerHTML=html+`</div>`;
+}
+
+function renderMonthPlan(){
+    const wrap=document.getElementById("monthPlan");const n=new Date();const y=n.getFullYear();const m=n.getMonth();const td=n.getDate();const fd=new Date(y,m,1).getDay();const days=new Date(y,m+1,0).getDate();let html=`<div class="week-grid">`;
+    for(let i=0;i<fd;i++)html+=`<div class="week-cell"></div>`;
+    for(let d=1;d<=days;d++){let w=(fd+d-1)%7;let c=w>=1&&w<=5?"week-cell train":"week-cell rest";if(d===td)c+=" today";html+=`<div class="${c}">${d}</div>`;}
+    wrap.innerHTML=html+`</div>`;
+}
+
+function doCheckin(){const t=getToday();if(checkin.last===t)return;checkin.last=t;checkin.cont=checkin.last===getYesterday()?checkin.cont+1:1;if(checkin.cont>checkin.maxCont)checkin.maxCont=checkin.cont;checkin.total++;localStorage.setItem(KEY_CHECKIN,JSON.stringify(checkin));renderCheckin();renderCalendar();}
+function cancelCheckin(){checkin.total=Math.max(0,checkin.total-1);checkin.last="";checkin.cont=0;localStorage.setItem(KEY_CHECKIN,JSON.stringify(checkin));renderCheckin();renderCalendar();}
+function renderCheckin(){const t=getToday();const c=checkin.last===t;document.getElementById("checkStatus").innerText=c?"已打卡 ✅":"未打卡";document.getElementById("contDays").innerText=checkin.cont;document.getElementById("btnCheckin").style.display=c?"none":"block";document.getElementById("btnCancel").style.display=c?"block":"none";}
+
+function renderCalendar(){
+    const wrap=document.getElementById("calendarBox");const n=new Date();const y=n.getFullYear();const m=n.getMonth();const td=n.getDate();const fd=new Date(y,m,1).getDay();const days=new Date(y,m+1,0).getDate();let html=`<div class="calendar-grid">`;
+    for(let i=0;i<fd;i++)html+=`<div class="calendar-day other"></div>`;
+    for(let d=1;d<=days;d++){let s=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;let c="calendar-day";if(checkin.last===s)c+=" checked";if(d>td)c+=" other";html+=`<div class="${c}">${d}</div>`;}
+    wrap.innerHTML=html+`</div>`;
+}
+
+function renderReport(){
+    const wrap=document.getElementById("reportBox");const n=new Date();const y=n.getFullYear();const m=n.getMonth();const days=new Date(y,m+1,0).getDate();let cnt=0;
+    for(let d=1;d<=days;d++){let s=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;if(checkin.last===s)cnt++;}
+    wrap.innerHTML=`<div class="report-item"><span>本月打卡天数</span><span>${cnt} 天</span></div><div class="report-item"><span>本月打卡率</span><span>${(cnt/days*100).toFixed(1)} %</span></div><div class="report-item"><span>当前连续打卡</span><span>${checkin.cont} 天</span></div><div class="report-item"><span>历史最高连续</span><span>${checkin.maxCont} 天</span></div><div class="report-item"><span>累计总打卡天数</span><span>${checkin.total} 天</span></div>`;
+}
+
+function saveWeight(){let v=document.getElementById("wInput").value;if(!v)return;weights.unshift({d:getToday(),w:Number(v)});localStorage.setItem(KEY_WEIGHT,JSON.stringify(weights));renderWeights();document.getElementById("wInput").value="";}
+function renderWeights(){const wrap=document.getElementById("weightList");if(weights.length===0){wrap.innerHTML="<div class='tips'>暂无体重记录</div>";return;}let html="";weights.forEach(i=>{html+=`<div class="weight-item"><span>${i.d}</span><span>${i.w} kg</span></div>`;});wrap.innerHTML=html;}
+
+function exportAll(){let a={profile:JSON.parse(localStorage.getItem(KEY_PROFILE)||'{}'),checkin:JSON.parse(localStorage.getItem(KEY_CHECKIN)||'{"last":"","cont":0,"total":0,"maxCont":0}'),weight:JSON.parse(localStorage.getItem(KEY_WEIGHT)||'[]'),train:JSON.parse(localStorage.getItem(KEY_TRAIN)||'{}')};let b=new Blob([JSON.stringify(a,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let l=document.createElement('a');l.href=u;l.download="fit_backup_"+getToday()+".json";l.click();URL.revokeObjectURL(u);}
+function importAll(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=evt=>{try{let a=JSON.parse(evt.target.result);if(a.profile)localStorage.setItem(KEY_PROFILE,JSON.stringify(a.profile));if(a.checkin)localStorage.setItem(KEY_CHECKIN,JSON.stringify(a.checkin));if(a.weight)localStorage.setItem(KEY_WEIGHT,JSON.stringify(a.weight));if(a.train)localStorage.setItem(KEY_TRAIN,JSON.stringify(a.train));alert("导入成功，即将刷新页面");location.reload();}catch(err){alert("导入失败：文件格式错误");}};r.readAsText(f);}
+</script>
+</body>
+</html>
