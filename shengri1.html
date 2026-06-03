@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>生日管理</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:#f8f9fa;
+  font-family:-apple-system,BlinkMacSystemFont,Roboto,sans-serif;
+  padding:12px;
+  padding-bottom:75px;
+  min-height:100vh;
+}
+.card{
+  background:#fff;
+  padding:18px;
+  border-radius:16px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.07);
+  margin-bottom:12px;
+}
+h3{font-size:18px;margin-bottom:14px;color:#222}
+input,select,button{
+  width:100%;
+  padding:14px;
+  margin:7px 0;
+  border-radius:12px;
+  border:1px solid #ddd;
+  font-size:16px;
+}
+button{
+  border:none;color:#fff;font-weight:500;
+  -webkit-tap-highlight-color:transparent;
+}
+button:active{opacity:0.8}
+.save-btn{background:#007bff}
+.del{background:#dc3545}
+.edit{background:#28a745}
+.clear{background:#ff9800}
+.export{background:#17a2b8}
+.import{background:#20c997}
+.batch{background:#6f42c1}
+.template{background:#fd7e14}
+.wish-btn{background:#9c27b0;}
+
+.item{
+  padding:13px 0;
+  border-bottom:1px solid #eee;
+  line-height:1.65;
+  font-size:15px;
+}
+.days{color:#ff5722;font-weight:bold}
+.remark{color:#666;font-size:14px;margin-top:4px}
+.btn-wrap{display:flex;gap:6px;margin-top:8px}
+.btn-wrap button{flex:1;margin:0;padding:10px}
+
+.page{display:none}
+.page.active{display:block}
+
+.nav-bar{
+  position:fixed;left:0;bottom:0;
+  width:100%;display:flex;
+  background:#fff;padding:10px;
+  box-shadow:0 -2px 7px rgba(0,0,0,0.06);
+}
+.nav-btn{
+  flex:1;margin:0 5px;
+  background:#eee;color:#333;
+}
+.nav-btn.active{
+  background:#007bff;color:#fff;
+}
+
+.pop{
+  position:fixed;left:0;top:0;
+  width:100%;height:100%;
+  background:rgba(0,0,0,0.5);
+  display:none;padding:20px;
+}
+.pop.show{display:flex;align-items:center;justify-content:center}
+.pop-box{
+  width:100%;max-width:460px;
+  background:#fff;padding:20px;border-radius:16px;
+}
+
+.pagination{
+  display:flex;justify-content:center;gap:8px;margin-top:12px;
+}
+.page-btn{
+  width:40px;height:40px;border-radius:8px;
+  background:#eee;color:#333;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:bold;
+}
+.page-btn.active{background:#007bff;color:#fff;}
+
+.file-input{display:none;}
+
+/* 备注5:5布局 */
+.remark-row{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.remark-row input{width:50%;margin:7px 0;}
+.remark-row select{width:50%;margin:7px 0;}
+
+/* 复制弹窗 */
+.copy-pop{
+  position:fixed;
+  left:0;top:0;
+  width:100%;height:100%;
+  background:rgba(0,0,0,0.5);
+  display:none;
+  padding:20px;
+}
+.copy-pop-box{
+  max-width:460px;
+  width:100%;
+  margin:15vh auto 0;
+  background:#fff;
+  padding:20px;
+  border-radius:16px;
+}
+#copyText{
+  width:100%;
+  min-height:120px;
+  padding:12px;
+  border:1px solid #ddd;
+  border-radius:10px;
+  font-size:16px;
+  resize:none;
+  margin-bottom:12px;
+}
+.copy-btns{
+  display:flex;gap:8px;
+}
+.copy-btns button{flex:1;padding:12px}
+</style>
+<script src="https://cdn.bootcdn.net/ajax/libs/lunar-javascript/1.7.4/lunar.min.js"></script>
+</head>
+<body>
+
+<div id="pageAdd" class="page active">
+  <div class="card">
+    <h3>🎂 添加生日</h3>
+    <input id="name" placeholder="姓名">
+    <select id="type">
+      <option value="lunar">农历</option>
+      <option value="solar">公历</option>
+    </select>
+    
+    <input type="date" id="date">
+
+    <div class="remark-row">
+      <input id="remark" placeholder="备注（选填）">
+      <select id="selTag" onchange="setRemark(this.value)">
+        <option value="">选择分类</option>
+        <option value="家人">家人</option>
+        <option value="亲戚">亲戚</option>
+        <option value="朋友">朋友</option>
+        <option value="同事">同事</option>
+        <option value="其他">其他</option>
+      </select>
+    </div>
+
+    <button class="save-btn" onclick="add()">保存</button>
+    <button class="clear" onclick="clearCache()">清空全部</button>
+  </div>
+
+  <div class="card">
+    <h3>💾 数据工具</h3>
+    <button class="export" onclick="exportData()">导出备份</button>
+    <button class="import" onclick="document.getElementById('importFile').click()">导入备份</button>
+    <button class="template" onclick="downloadBatchTemplate()">批量模板</button>
+    <button class="batch" onclick="document.getElementById('batchFile').click()">批量导入</button>
+  </div>
+</div>
+
+<div id="pageList" class="page">
+  <div class="card">
+    <h3>📋 生日清单</h3>
+    <div id="list"></div>
+    <div id="pagination" class="pagination"></div>
+  </div>
+</div>
+
+<div class="pop" id="editPop">
+  <div class="pop-box">
+    <h3>编辑生日</h3>
+    <input id="editName" placeholder="姓名">
+    <select id="editType">
+      <option value="lunar">农历</option>
+      <option value="solar">公历</option>
+    </select>
+    
+    <input type="date" id="editDate">
+
+    <div class="remark-row">
+      <input id="editRemark" placeholder="备注">
+      <select id="editSelTag" onchange="setEditRemark(this.value)">
+        <option value="">选择分类</option>
+        <option value="家人">家人</option>
+        <option value="亲戚">亲戚</option>
+        <option value="朋友">朋友</option>
+        <option value="同事">同事</option>
+        <option value="其他">其他</option>
+      </select>
+    </div>
+
+    <div class="btn-wrap">
+      <button class="save-btn" onclick="saveEdit()">保存</button>
+      <button class="del" onclick="closeEdit()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!--复制弹窗-->
+<div class="copy-pop" id="copyPop">
+  <div class="copy-pop-box">
+    <h3>生日祝福语（一键复制）</h3>
+    <textarea id="copyText"></textarea>
+    <div class="copy-btns">
+      <button class="save-btn" onclick="copyContent()">一键复制</button>
+      <button class="del" onclick="closeCopyPop()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="importFile" class="file-input" accept=".json">
+<input type="file" id="batchFile" class="file-input" accept=".csv,.txt">
+
+<div class="nav-bar">
+  <button class="nav-btn active" onclick="switchPage('pageAdd',this)">添加</button>
+  <button class="nav-btn" onclick="switchPage('pageList',this)">列表</button>
+</div>
+
+<script>
+let currentPage = 1;
+const pageSize = 4;
+const nowYear = new Date().getFullYear();
+
+//祝福语库
+const wishList = [
+  "生日快乐，岁岁平安，万事顺遂，喜乐常伴！",
+  "生辰喜乐，日子滚烫，所愿皆所得，所行皆坦途。",
+  "新岁安康，烦恼消散，好运常在，幸福日日相伴。",
+  "愿平安绕身旁，欢喜伴朝夕，岁岁年年皆如意。",
+  "生日快乐，前程似锦，身体健康，生活温暖顺心。",
+  "岁岁无忧，平安喜乐，年年胜意，万事皆可期。"
+];
+
+//打开复制弹窗填入祝福语
+function createWish(name){
+  let ran = Math.floor(Math.random()*wishList.length);
+  let str = `${name}，${wishList[ran]}`;
+  document.getElementById('copyText').value = str;
+  document.getElementById('copyPop').style.display = 'block';
+}
+//关闭复制弹窗
+function closeCopyPop(){
+  document.getElementById('copyPop').style.display = 'none';
+}
+
+//【修复全兼容复制函数：优先Clipboard，失败自动降级传统复制】
+function copyContent(){
+  let txt = document.getElementById('copyText').value;
+  if(!txt){alert('暂无内容');return;}
+  //方案1：现代API
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(txt).then(()=>{
+      alert('复制成功！直接粘贴发送');
+    }).catch(()=>{
+      copyByOld(txt);
+    })
+  }else{
+    //方案2：传统降级（微信/内嵌浏览器必走这里）
+    copyByOld(txt);
+  }
+}
+//传统复制兜底函数
+function copyByOld(text){
+  let tmp = document.createElement('textarea');
+  tmp.style.position = 'fixed';
+  tmp.style.left = '-9999px';
+  tmp.style.opacity = '0';
+  tmp.value = text;
+  document.body.appendChild(tmp);
+  tmp.select();
+  let res = document.execCommand('copy');
+  document.body.removeChild(tmp);
+  if(res){
+    alert('复制成功！直接粘贴发送');
+  }else{
+    alert('复制失败，请手动全选文字复制');
+  }
+}
+
+function setRemark(val){
+  if(val)document.getElementById('remark').value=val;
+}
+function setEditRemark(val){
+  if(val)document.getElementById('editRemark').value=val;
+}
+
+function switchPage(pageId,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'))
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'))
+  document.getElementById(pageId).classList.add('active')
+  btn.classList.add('active')
+  if(pageId === 'pageList'){ currentPage=1; load(); }
+}
+
+function generateId(){
+  return Date.now()+''+Math.random().toString(36).substr(2,5)
+}
+
+function compute(item,y){
+  try{
+    if(item.type==='lunar')return Lunar.fromYmd(y,+item.m,+item.d).getSolar().toYmd();
+    return `${y}-${String(item.m).padStart(2,'0')}-${String(item.d).padStart(2,'0')}`;
+  }catch{return''}
+}
+
+function getDays(item){
+  try{
+    const today = new Date();
+    const y = today.getFullYear();
+    let b;
+    if(item.type==='lunar'){
+      b = new Date(Lunar.fromYmd(y, +item.m, +item.d).getSolar().toYmd());
+    }else{
+      b = new Date(`${y}-${item.m}-${item.d}`);
+    }
+    const t = new Date(y, today.getMonth(), today.getDate());
+    const bd = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+    if(bd >= t) return Math.ceil((bd-t)/86400000);
+    return Math.ceil((new Date(y+1, b.getMonth(), b.getDate())-t)/86400000);
+  }catch(e){return 9999}
+}
+
+function renderPagination(total){
+  const tp = Math.ceil(total/pageSize);
+  let html='';
+  for(let i=1;i<=tp;i++){
+    html+=`<div class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</div>`
+  }
+  document.getElementById('pagination').innerHTML=html;
+}
+function goPage(p){currentPage=p;load()}
+
+function load(){
+  let list = JSON.parse(localStorage.getItem('birth')||'[]');
+  list.sort((a,b)=>getDays(a)-getDays(b));
+  const total = list.length;
+  renderPagination(total);
+  const data = list.slice((currentPage-1)*pageSize, currentPage*pageSize);
+  let html='';
+  data.forEach(item=>{
+    const d = getDays(item);
+    let tip='';
+    if(d===0)tip='🎂今天过生日！';
+    else if(d===1)tip='🎈明天过生日';
+    else tip=`⏳还有${d}天`;
+    let line = '';
+    for(let i=0;i<5;i++){
+      let y = nowYear + i;
+      line += `${y}:${compute(item,y)}<br>`;
+    }
+    html+=`
+    <div class="item">
+      <b>${item.name}</b> ${item.type==='lunar'?'农历':'公历'} <span class="days">${tip}</span><br>
+      固定生日：${item.birthY}年${item.m}月${item.d}日<br>
+      ${line}
+      ${item.remark ? `<div class="remark">备注：${item.remark}</div>` : ''}
+      <div class="btn-wrap">
+        <button class="edit" onclick="openEdit('${item.id}')">编辑</button>
+        <button class="wish-btn" onclick="createWish('${item.name}')">生成祝福</button>
+        <button class="del" onclick="del('${item.id}')">删除</button>
+      </div>
+    </div>`;
+  })
+  document.getElementById('list').innerHTML=html||'暂无生日记录';
+}
+
+function openEdit(id){
+  const arr = JSON.parse(localStorage.getItem('birth')||'[]');
+  const data = arr.find(i=>i.id===id);
+  document.getElementById('editName').value=data.name;
+  document.getElementById('editType').value=data.type;
+  document.getElementById('editDate').value = `${data.birthY}-${String(data.m).padStart(2,'0')}-${String(data.d).padStart(2,'0')}`;
+  document.getElementById('editRemark').value=data.remark||'';
+  let opt = document.querySelector('#editSelTag option[value="'+data.remark+'"]');
+  document.getElementById('editSelTag').value = opt ? data.remark : '';
+  document.getElementById('editPop').dataset.id=id;
+  document.getElementById('editPop').classList.add('show');
+}
+function closeEdit(){document.getElementById('editPop').classList.remove('show')}
+
+function saveEdit(){
+  const id=document.getElementById('editPop').dataset.id;
+  const name=document.getElementById('editName').value.trim();
+  const type=document.getElementById('editType').value;
+  const date=document.getElementById('editDate').value;
+  const remark=document.getElementById('editRemark').value.trim();
+  if(!name||!date){alert('请填写完整');return}
+  const [birthY,m,d]=date.split('-');
+  const arr=JSON.parse(localStorage.getItem('birth')||'[]');
+  const idx=arr.findIndex(i=>i.id===id);
+  arr[idx]={...arr[idx],name,type,birthY,m,d,remark};
+  localStorage.setItem('birth',JSON.stringify(arr));
+  closeEdit();load();
+}
+
+function add(){
+  const name=document.getElementById('name').value.trim();
+  const type=document.getElementById('type').value;
+  const date=document.getElementById('date').value;
+  const remark=document.getElementById('remark').value.trim();
+  if(!name||!date){alert('请填写完整');return}
+  const [birthY,m,d]=date.split('-');
+  const arr=JSON.parse(localStorage.getItem('birth')||'[]');
+  arr.push({id:generateId(),name,type,birthY,m,d,remark});
+  localStorage.setItem('birth',JSON.stringify(arr));
+  document.getElementById('name').value='';
+  document.getElementById('date').value='';
+  document.getElementById('remark').value='';
+  document.getElementById('selTag').value='';
+  load();
+}
+
+function del(id){
+  let arr=JSON.parse(localStorage.getItem('birth')||'[]');
+  arr=arr.filter(i=>i.id!==id);
+  localStorage.setItem('birth',JSON.stringify(arr));
+  currentPage=1;load();
+}
+function clearCache(){
+  if(confirm('确定清空所有数据？不可恢复！')){
+    localStorage.removeItem('birth');
+    currentPage=1;load();
+  }
+}
+
+function exportData(){
+  const data=localStorage.getItem('birth')||'[]';
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='生日备份_'+new Date().toLocaleDateString()+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('importFile').addEventListener('change',function(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(evt){
+    try{
+      const arr=JSON.parse(evt.target.result);
+      if(confirm('导入会覆盖现有数据，确定继续？')){
+        localStorage.setItem('birth',JSON.stringify(arr));
+        currentPage=1;load();
+        alert('导入备份成功！');
+      }
+    }catch(e){
+      alert('导入失败：文件格式错误');
+    }
+  };
+  reader.readAsText(file);
+  this.value='';
+});
+
+function downloadBatchTemplate(){
+  const content=`姓名,类型,出生年,月,日,备注
+张三,农历,2000,10,1,家人
+李四,公历,2000,5,20,朋友
+王五,农历,2000,1,15,同事`;
+  const blob=new Blob(['\uFEFF'+content],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='批量导入模板.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('batchFile').addEventListener('change',function(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(evt){
+    const text=evt.target.result;
+    const lines=text.split('\n').map(i=>i.trim()).filter(i=>i);
+    const arr=JSON.parse(localStorage.getItem('birth')||'[]');
+    let count=0;
+    lines.forEach(line=>{
+      if(line.startsWith('姓名'))return;
+      const p=line.split(',');
+      if(p.length<5)return;
+      const name=p[0];
+      let type=p[1]==='农历'?'lunar':'solar';
+      let birthY = p[2]&&p[2]!='' ? p[2] : '2000';
+      const m=p[3];
+      const d=p[4];
+      const remark=p[5]||'';
+      if(!name||!type||!m||!d)return;
+      arr.push({id:generateId(),name,type,birthY,m,d,remark});
+      count++;
+    });
+    localStorage.setItem('birth',JSON.stringify(arr));
+    currentPage=1;
+    load();
+    alert(`批量导入完成！共导入 ${count} 条`);
+  };
+  reader.readAsText(file);
+  this.value='';
+});
+
+async function checkNotify(){
+  if(!Notification)return;
+  if(Notification.permission !== 'granted'){
+    await Notification.requestPermission();
+  }
+  const list = JSON.parse(localStorage.getItem('birth')||'[]');
+  list.forEach(item=>{
+    const d=getDays(item);
+    if(d>=0&&d<=7){
+      new Notification('生日提醒',{
+        body:`${item.name} 还有 ${d===0?'今天':d+'天'} 过生日！`
+      });
+    }
+  });
+}
+
+function showTodayBirthdayAlert() {
+  const list = JSON.parse(localStorage.getItem('birth') || '[]');
+  const today = new Date();
+  const ty = today.getFullYear();
+  const tm = today.getMonth() + 1;
+  const td = today.getDate();
+  let todayBirth = [];
+  list.forEach(item => {
+    let birthDate;
+    if (item.type === 'lunar') {
+      birthDate = Lunar.fromYmd(ty, +item.m, +item.d).getSolar();
+    } else {
+      birthDate = { year: ty, month: +item.m, day: +item.d };
+    }
+    if (birthDate.year === ty && birthDate.month === tm && birthDate.day === td) {
+      todayBirth.push(item.name);
+    }
+  });
+  if (todayBirth.length > 0) {
+    alert('🎉 今天过生日：\n' + todayBirth.join('、'));
+  }
+}
+
+load();
+checkNotify();
+showTodayBirthdayAlert();
+</script>
+</body>
+</html>
