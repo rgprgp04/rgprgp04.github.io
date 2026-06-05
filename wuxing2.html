@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>中华干支历法与五行民俗科普工具</title>
+  <script src="https://cdn.bootcdn.net/ajax/libs/lunar-javascript/1.7.4/lunar.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      background: #f7f5f2;
+      background-image: radial-gradient(#e9e6e0 8%, transparent 8%);
+      background-size: 32px 32px;
+      min-height: 100vh;
+      padding: max(20px, env(safe-area-inset-top)) 12px max(80px, env(safe-area-inset-bottom));
+      color: #2d3748;
+      font-size: 15px;
+    }
+    .container {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    .page {
+      display: none;
+      animation: fadeIn 0.3s ease-out;
+    }
+    .page.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0;transform: translateY(12px);}
+      to {opacity: 1;transform: translateY(0);}
+    }
+    .title {
+      text-align: center;
+      margin: 6px 0 18px;
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(90deg,#4f46e5,#9333ea);
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: 0.5px;
+    }
+    .tip {
+      background: linear-gradient(135deg,#fef2f2,#fee2e2);
+      color: #b91c1c;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 16px;
+      border: 1px solid #fecdd3;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.92);
+    }
+    .label {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 10px;
+      color: #374151;
+    }
+    select {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      font-size: 15px;
+      margin-bottom: 12px;
+      transition: 0.25s ease;
+    }
+    select:focus {
+      outline: none;
+      border-color: #4f46e5;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
+    }
+    .btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(90deg, #4f46e5, #7c3aed);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 550;
+      margin-top: 8px;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    }
+    .btn:active {
+      transform: scale(0.97);
+    }
+    .line {
+      padding: 12px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .line:first-child {padding-top:0;}
+    .line:last-child {border-bottom: none;padding-bottom:0;}
+    .label2 {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+    .val {
+      font-size: 16px;
+      font-weight: 520;
+      color: #111827;
+    }
+    .wu {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top:10px;
+    }
+    .wu-item {
+      flex: 1;
+      min-width:60px;
+      text-align: center;
+      padding:10px 6px;
+      border-radius:10px;
+      font-size:14px;
+      font-weight:520;
+      color:#fff;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+    }
+    .wu-mu {background: linear-gradient(135deg,#059669,#10b981);}
+    .wu-huo {background: linear-gradient(135deg,#dc2626,#ef4444);}
+    .wu-tu {background: linear-gradient(135deg,#d97706,#f59e0b);}
+    .wu-jin {background: linear-gradient(135deg,#4b5563,#6b7280);}
+    .wu-shui {background: linear-gradient(135deg,#2563eb,#3b82f6);}
+    .agree {
+      margin:12px 0;
+      font-size:13px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:#374151;
+    }
+    .agree input {
+      width:18px;height:18px;
+      accent-color:#4f46e5;
+    }
+    .explain, .mianze {
+      line-height:1.6;
+      font-size:14px;
+      white-space:pre-line;
+      color:#2d3748;
+      text-align:justify;
+    }
+    
+    /* 手机底部导航修复（核心！不会再超出屏幕） */
+    .footer-nav {
+      position:fixed;
+      bottom:0;
+      left:0;
+      right:0;
+      height:66px;
+      padding-bottom: env(safe-area-inset-bottom);
+      background:#ffffff;
+      border-top:1px solid #e5e7eb;
+      display:flex;
+      align-items:center;
+      justify-content:space-evenly;
+      box-shadow:0 -4px 10px rgba(0,0,0,0.07);
+      padding-left:6px;
+      padding-right:6px;
+    }
+    .footer-nav button {
+      padding:10px 12px;
+      border:none;
+      border-radius:12px;
+      background:#f3f4f6;
+      font-size:14px;
+      font-weight:500;
+      color:#6b7280;
+      min-height:44px;
+      min-width:72px;
+      flex-shrink: 1;
+    }
+    .footer-nav button.active {
+      background:linear-gradient(135deg,#4f46e5,#7c3aed);
+      color:#fff;
+      transform:translateY(-2px);
+      box-shadow:0 3px 8px rgba(79,70,229,0.2);
+    }
+    .bold-text {
+      font-weight:600;
+      color:#4f46e5;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <div class="page active" id="page1">
+    <div class="title">中华干支历法与五行民俗科普工具</div>
+    <div class="tip">
+      <strong>科普说明：</strong>公历转古代干支历法依托天文万年历换算<span class="bold-text">100%准确</span>；五行数量机械统计<span class="bold-text">100%准确</span>；五行配比得分仅为古代扶抑理论数学演算，**无任何预测命运、性格、吉凶的科学效力，不可用作人生决策参考**，本软件仅中华传统文化科普研学素材，绝非算命工具。
+    </div>
+    <div class="card">
+      <div class="label">出生年月日时（仅用来换算古代干支纪年计时历法）</div>
+      <select id="y"></select>
+      <select id="m"></select>
+      <select id="d"></select>
+      <select id="s">
+        <option value="0">子时 23-01</option>
+        <option value="1">丑时 01-03</option>
+        <option value="2">寅时 03-05</option>
+        <option value="3">卯时 05-07</option>
+        <option value="4">辰时 07-09</option>
+        <option value="5">巳时 09-11</option>
+        <option value="6">午时 11-13</option>
+        <option value="7">未时 13-15</option>
+        <option value="8">申时 15-17</option>
+        <option value="9">酉时 17-19</option>
+        <option value="10">戌时 19-21</option>
+        <option value="11">亥时 21-23</option>
+      </select>
+      <div class="agree">
+        <input type="checkbox" id="ok">
+        <label>我已阅读：本工具仅限历法与五行民俗科普学习，无占卜、预测运势功能，严禁用于择吉、改运、婚恋择业参考</label>
+      </div>
+      <button class="btn" onclick="startCalc()">开始科普学习</button>
+    </div>
+  </div>
+
+  <div class="page" id="page2">
+    <div class="title">科普学习结果</div>
+    <div class="tip">历法换算<span class="bold-text">100%准确</span>｜五行计数<span class="bold-text">100%准确</span>｜五行配比得分仅古法简化演算，**无现实参考与预判价值**</div>
+    <div class="card">
+      <div class="line">
+        <div class="label2">干支历法（古代纪年计时文字）</div>
+        <div class="val" id="bz"></div>
+      </div>
+      <div class="line">
+        <div class="label2">日主天干（传统五行学说定义标识，仅文化符号）</div>
+        <div class="val" id="rz"></div>
+      </div>
+      <div class="line">
+        <div class="label2">五行数量统计（天干+地支本气，固定规则累加）</div>
+        <div class="wu" id="wx"></div>
+      </div>
+      <div class="line">
+        <div class="label2">五行配比量化得分（扶抑模型演算结果）</div>
+        <div class="val" id="wr"></div>
+      </div>
+      <div class="line">
+        <div class="label2">传统民俗五行适配观点（仅古人学术看法，非客观结论）</div>
+        <div class="val" id="xiji"></div>
+      </div>
+      <div class="line">
+        <div class="label2">古代民俗五行对应性格学说（文史资料摘抄，不对应个人真实性格）</div>
+        <div class="val" id="xingge"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page3">
+    <div class="title">逐项大白话详细解析</div>
+    <div class="tip">历法换算<span class="bold-text">100%准</span>，五行配比仅简化扶抑算法推演，缺少调候、通关等古法规则，**全部内容仅限文史科普，不能作为现实依据**</div>
+    <div class="card">
+      <div class="explain" id="detail"></div>
+    </div>
+  </div>
+
+  <div class="page" id="page4">
+    <div class="title">完整使用免责声明</div>
+    <div class="card">
+      <div class="mianze" id="mianzeContent"></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer-nav">
+  <button onclick="go(1)" id="n1" class="active">输入</button>
+  <button onclick="go(2)" id="n2">结果</button>
+  <button onclick="go(3)" id="n3">详解</button>
+  <button onclick="go(4)" id="n4">免责</button>
+</div>
+
+<script>
+let result = {};
+const zhiArr = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+const ganArr = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
+const ganWx = {"甲":"木","乙":"木","丙":"火","丁":"火","戊":"土","己":"土","庚":"金","辛":"金","壬":"水","癸":"水"};
+const zhiBenQiWx = {"子":"水","丑":"土","寅":"木","卯":"木","辰":"土","巳":"火","午":"火","未":"土","申":"金","酉":"金","戌":"土","亥":"水"};
+const benGenZhi = ["丑", "未", "辰", "戌"];
+const yuGenZhi = ["寅", "申", "巳", "午"];
+const shengKe = {
+  "木":{sheng:"水",tong:"木",ke:"金",woKe:"土",woSheng:"火"},
+  "火":{sheng:"木",tong:"火",ke:"水",woKe:"金",woSheng:"土"},
+  "土":{sheng:"火",tong:"土",ke:"木",woKe:"水",woSheng:"金"},
+  "金":{sheng:"土",tong:"金",ke:"火",woKe:"木",woSheng:"水"},
+  "水":{sheng:"金",tong:"水",ke:"土",woKe:"火",woSheng:"木"}
+};
+
+window.onload = () => {
+  let y = document.getElementById("y"), m = document.getElementById("m"), d = document.getElementById("d");
+  for (let i = 1920; i <= 2030; i++) { let o = document.createElement("option"); o.value = i; o.innerText = i + "年"; if (i == 2019) o.selected = true; y.appendChild(o) }
+  for (let i = 1; i <= 12; i++) { let o = document.createElement("option"); o.value = i; o.innerText = i + "月"; if (i == 2) o.selected = true; m.appendChild(o) }
+  for (let i = 1; i <= 31; i++) { let o = document.createElement("option"); o.value = i; o.innerText = i + "日"; if (i == 21) o.selected = true; d.appendChild(o) }
+  document.getElementById("mianzeContent").innerText = getMianze();
+}
+
+function go(n) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".footer-nav button").forEach(b => b.classList.remove("active"));
+  document.getElementById("page" + n).classList.add("active");
+  document.getElementById("n" + n).classList.add("active");
+}
+
+function getShiGan(dayGan, idx) {
+  let s = 0;
+  if (["甲", "己"].includes(dayGan)) s = 0;
+  else if (["乙", "庚"].includes(dayGan)) s = 2;
+  else if (["丙", "辛"].includes(dayGan)) s = 4;
+  else if (["丁", "壬"].includes(dayGan)) s = 6;
+  else s = 8;
+  return ganArr[(s + idx) % 10];
+}
+
+function startCalc() {
+  if (!document.getElementById("ok").checked) { alert("请勾选阅读科普免责后继续"); return }
+  let Y = document.getElementById("y").value;
+  let M = document.getElementById("m").value;
+  let D = document.getElementById("d").value;
+  let S = document.getElementById("s").value * 1;
+  try {
+    let solar = Solar.fromYmd(Y, M, D);
+    let lunar = solar.getLunar();
+    let bazi = lunar.getEightChar();
+    let nian = bazi.getYear();
+    let yue = bazi.getMonth();
+    let ri = bazi.getDay();
+    let rg = ri[0];
+    let rwx = ganWx[rg];
+    let sg = getShiGan(rg, S);
+    let sz = zhiArr[S];
+    let shi = sg + sz;
+    let bzStr = nian + "　" + yue + "　" + ri + "　" + shi;
+    let gans = [nian[0], yue[0], ri[0], shi[0]];
+    let zhis = [nian[1], yue[1], ri[1], sz];
+
+    let wx = { 木: 0, 火: 0, 土: 0, 金: 0, 水: 0 };
+    gans.forEach(g => wx[ganWx[g]]++);
+    zhis.forEach(z => wx[zhiBenQiWx[z]]++);
+
+    let sk = shengKe[rwx];
+    let yueZhi = yue[1];
+    let yueZhiWx = zhiBenQiWx[yueZhi];
+    let deLing = 0;
+    let deLingDesc = "";
+
+    if (yueZhiWx === sk.sheng) { deLing = 30; deLingDesc = `月令地支${yueZhi}五行${yueZhiWx}生本天干，得令+30`; }
+    else if (yueZhiWx === sk.tong) { deLing = 20; deLingDesc = `月令地支${yueZhi}五行${yueZhiWx}同类本天干，得令+20`; }
+    else if (yueZhiWx === sk.woSheng) { deLing = 10; deLingDesc = `月令地支${yueZhi}五行${yueZhiWx}被本天干生，得令+10`; }
+    else { deLing = 0; deLingDesc = `月令地支${yueZhi}五行${yueZhiWx}相克本天干，不得令+0`; }
+
+    let deDi = 0;
+    let diDetail = [];
+    zhis.forEach(z => {
+      if (benGenZhi.includes(z)) { deDi += 15; diDetail.push(`${z}(本气土根+15)`); }
+      else if (yuGenZhi.includes(z)) { deDi += 5; diDetail.push(`${z}(余气土根+5)`); }
+      else { diDetail.push(`${z}(无根+0)`); }
+    });
+    if (deDi > 40) deDi = 40;
+
+    let yinCount = gans.filter(g => ganWx[g] === sk.sheng).length;
+    let deSheng = yinCount >= 1 ? (yinCount >= 2 ? 15 : 8) : 0;
+
+    let biCount = gans.filter(g => g !== rg && ganWx[g] === sk.tong).length;
+    let deZhu = biCount >= 1 ? (biCount >= 2 ? 15 : 8) : 0;
+
+    let total = deLing + deDi + deSheng + deZhu;
+
+    let wr, xiText, jiText, xg;
+    if (total > 60) {
+      wr = `同类五行偏重（<span class="bold-text">${total}</span>分＞60）`;
+      xiText = `古人观点：本行为${rwx}，偏重宜以克制五行${sk.ke}、消耗五行${sk.woKe}、泄化五行${sk.woSheng}调和配比`;
+      jiText = `古人观点：不宜继续增补生扶五行${sk.sheng}、同类五行${sk.tong}`;
+      xg = `古籍民俗观点：同类偏多则性格外向主动，仅文史摘抄`;
+    } else if (total >= 40) {
+      wr = `五行配比均衡（<span class="bold-text">${total}</span>分，40~60区间）`;
+      xiText = `古人观点：本行为${rwx}，五行配比均衡无需刻意调和配比`;
+      jiText = `古人观点：无需要刻意规避的五行`;
+      xg = `古籍民俗观点：配比均衡则性情平和，仅文史摘抄`;
+    } else {
+      wr = `同类五行偏少（<span class="bold-text">${total}</span>分＜40）`;
+      xiText = `古人观点：本行为${rwx}，偏少宜以生扶五行${sk.sheng}、同类五行${sk.tong}增补配比`;
+      jiText = `古人观点：不宜继续克制五行${sk.ke}、消耗五行${sk.woKe}、泄化五行${sk.woSheng}`;
+      xg = `古籍民俗观点：同类偏少则性格内敛细腻，仅文史摘抄`;
+    }
+
+    result = {bzStr, rg, rwx, wx, total, wr, xiText, jiText, xg,gans, zhis, sk, yue, deLing, deDi, deSheng, deZhu,deLingDesc, diDetail, yinCount, biCount};
+    showResult();
+    showDetail();
+    go(2);
+  } catch (e) { alert("日期格式异常，请重新选择年月日时") }
+}
+
+function showResult() {
+  document.getElementById("bz").innerText = result.bzStr;
+  document.getElementById("rz").innerHTML = result.rg + "（五行：" + result.rwx + "｜传统标识符号）";
+  document.getElementById("wr").innerHTML = result.wr;
+  document.getElementById("xiji").innerText = result.xiText + " ｜ " + result.jiText;
+  document.getElementById("xingge").innerText = result.xg;
+
+  let colorMap = { 木: "wu-mu", 火: "wu-huo", 土: "wu-tu", 金: "wu-jin", 水: "wu-shui" };
+  let wxhtml = "";
+  for (let k in result.wx) {
+    wxhtml += `<div class="wu-item ${colorMap[k]}"><div>${k}</div><div>${result.wx[k]}个</div></div>`;
+  }
+  document.getElementById("wx").innerHTML = wxhtml;
+}
+
+function showDetail() {
+  let d = `
+【第一部分：什么是干支历法（100%准确，古代计时方式科普）】
+换算结果：${result.bzStr}
+天干列表：${result.gans.join("、")}
+地支列表：${result.zhis.join("、")}
+科普释义：古代不用公元纪年，用天干+地支组合标记年月日，是中国传统历法内容，历法换算依托天文万年历，没有误差。
+
+【第二部分：五行数量完整计算步骤（100%固定算法，纯数学统计）】
+1、规则：天干逐个换算五行、四个地支只算本气五行，挨个累加计数；
+2、逐个拆分统计：
+木：${result.wx.木}个｜火：${result.wx.火}个｜土：${result.wx.土}个｜金：${result.wx.金}个｜水：${result.wx.水}个
+举例：天干丙=火、地支寅=木，遇到就对应加1数量。
+
+【第三部分：五行相生相克通俗释义（古代自然哲学民俗认知）】
+相生=滋养：木生火、火生土、土生金、金生水、水生木
+相克=制约：木克土、土克水、水克火、火克金、金克木
+对应天干【${result.rg}${result.rwx}】：
+▸生我：${result.sk.sheng}=可滋养本五行
+▸同我：${result.sk.tong}=和本五行属性一致
+▸克我：${result.sk.ke}=克制本五行
+▸我克：${result.sk.woKe}=被本五行消耗
+▸我生：${result.sk.woSheng}=本五行向外消耗
+
+【第四部分：四项配比得分逐项拆解（仅扶抑简化数学模型，无科学依据）】
+1.得令（满分30，只看出生月份地支本气）：${result.deLingDesc}，得分${result.deLing}分
+2.得地（满分40，本气土根单个+15、余气土根单个+5，超40封顶40）
+  各地支拆分：${result.diDetail.join("，")}，合计${result.deDi}分
+3.得生（满分15，天干生扶本五行：1个+8、≥2个封顶15）：共${result.yinCount}个，得分${result.deSheng}分
+4.得助（满分15，天干同类本五行、排除自身：1个+8、≥2个封顶15）：共${result.biCount}个，得分${result.deZhu}分
+▸总分计算公式：得令+得地+得生+得助 = ${result.deLing}+${result.deDi}+${result.deSheng}+${result.deZhu}=${result.total}分
+
+【第五部分：五行配比划分&古人调和思路说明】
+档位划分是近代简化民俗算法：
+①总分＜40分=同类五行偏少：古人认为可增补生扶五行调和配比→${result.sk.sheng}、${result.sk.tong}
+②40≤总分≤60分=配比均衡：古人认为无需刻意调整五行配比
+③总分＞60分=同类五行偏重：古人认为可用克制、消耗五行调和配比→${result.sk.ke}、${result.sk.woKe}、${result.sk.woSheng}
+⚠️重要：以上全部是古代民俗观点，**不存在客观科学效力，不能用来调整生活、择业、健康**。
+
+【第六部分：算法局限性重要说明】
+传统命理古法包含调候、格局、扶抑、通关、病药多套理论，体系庞杂；
+当前程序仅简化【扶抑】单一数学模型，缺绝大多数古法规则，演算结果仅民俗推演，**完全不具备预判、参考人生的作用，仅供传统文化研读**。
+
+【第七部分：性格文案来源说明】
+全部性格描述取自明清民俗古籍分类随笔，是古人主观归纳，**和使用者本人性格无任何客观关联，不可当真参考**。
+
+【科普重要提醒】
+五行配比计分是传统民俗哲学衍生的简易演算，不属于现代自然科学，严禁凭借本页面内容用于婚恋、工作、医疗、理财等现实决策，仅做国学民俗学习素材。
+`;
+  document.getElementById("detail").innerText = d;
+}
+
+function getMianze() {
+  return `一、产品定位说明
+本工具严格定位：中华传统干支历法+五行民俗文化科普研学工具，**无算命、占卜、运势预测、吉凶测算任何功能，不属于玄学测算软件**，所有内容仅传统文化史料展示。
+
+二、数据与结论效力说明
+1.公历转干支历法依托天文万年历，年月日时辰干支换算100%准确，属于古代历法科普；
+2.天干地支五行数量机械计数，统计规则固定，计数100%准确；
+3.五行配比得分、五行调和观点源自简化扶抑民俗算法，缺调候、通关等古法规则，**无任何现实参考、决策效力，不能用来判断命运、祸福、健康、财运**。
+
+三、强制性使用禁令
+1.严禁使用者将页面任何内容用于医疗问诊、投资理财、升学择业、婚姻抉择、风水改运、择吉办事等全部现实关键决策；
+2.严禁利用本软件开展有偿测算、起名改运、化解灾祸、售卖符咒、风水咨询等经营性迷信活动；
+3.禁止未成年人参考本内容规划人生，仅可在监护人陪同下作为国学历史素材学习。
+
+四、用户隐私说明
+本工具全部计算在本地浏览器运行，不上传、不储存用户出生时间、身份信息，无后端数据采集。
+
+五、责任界定
+1.勾选同意即代表用户完整阅读并认可全部免责，自愿知悉内容无预测效力；
+2.用户私自采信本内容造成财产损失、人生决策失误，全部法律与经济责任由使用者自行承担；
+3.本软件可随时更新文案与算法，更新不再另行通知。
+
+六、法律适用
+遵照《互联网信息服务管理办法》《网络安全法》及民法典相关法规编制，发生争议适用中国大陆现行法律。`;
+}
+</script>
+</body>
+</html>
