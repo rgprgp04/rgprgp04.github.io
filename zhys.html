@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>黄帝内经 综合养生手册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "微软雅黑", sans-serif;
+        }
+        body {
+            background: #f7f9fc;
+            padding: 12px;
+            max-width: 480px;
+            margin: 0 auto;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+        .title {
+            text-align: center;
+            padding: 12px 0;
+            color: #a82a2a;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .desc {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .tab-box {
+            display: flex;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+        }
+        .tab {
+            flex: 1 1 18%;
+            padding: 10px 4px;
+            text-align: center;
+            font-size: 12px;
+            background: #fff;
+            border: none;
+            outline: none;
+            color: #555;
+        }
+        .tab.active {
+            background: #a82a2a;
+            color: #fff;
+        }
+        .page {
+            display: none;
+        }
+        .page.show {
+            display: block;
+        }
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .card h3 {
+            font-size: 15px;
+            color: #a82a2a;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .label {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #fff;
+            margin: 0 3px;
+        }
+        .gan { background: #f59e0b; }    /* 甘 土 */
+        .suan { background: #16a34a; }  /* 酸 木 */
+        .xian { background: #2563eb; }  /* 咸 水 */
+        .ku { background: #7e22ce; }    /* 苦 火 */
+        .xin { background: #ea580c; }   /* 辛 金 */
+        .list-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .item {
+            flex: 1 1 42%;
+            background: #f8fafc;
+            padding: 10px 5px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 13px;
+        }
+        .quote {
+            background: #fffbeb;
+            border-left: 3px solid #f59e0b;
+            padding: 8px 10px;
+            margin: 8px 0;
+            font-size: 13px;
+            color: #78350f;
+        }
+        .rule-line {
+            border-top: 1px dashed #ddd;
+            margin: 10px 0;
+            padding-top: 10px;
+        }
+        .classic {
+            color: #8c3d0f;
+            font-style: italic;
+            margin: 6px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="title">黄帝内经 综合养生手册</div>
+<div class="desc">摘录《素问》《灵枢》经典 | 饮食·起居·情志·顺时 四维养生</div>
+
+<!-- 顶部导航标签 -->
+<div class="tab-box">
+    <button class="tab active" data-target="page1">总纲理论</button>
+    <button class="tab" data-target="page2">饮食养生</button>
+    <button class="tab" data-target="page3">起居养生</button>
+    <button class="tab" data-target="page4">情志养生</button>
+    <button class="tab" data-target="page5">顺时养生</button>
+</div>
+
+<!-- 页面1：总纲理论 -->
+<div id="page1" class="page show">
+    <div class="card">
+        <h3>📜 内经养生总纲</h3>
+        <p class="classic">上古之人，其知道者，法于阴阳，和于术数，食饮有节，起居有常，不妄作劳，故能形与神俱，而尽终其天年，度百岁乃去。</p>
+        <p>出自《素问·上古天真论》，全书养生核心：效法阴阳规律、饮食有度、作息规律、劳逸适度，实现形体与精神合一。</p>
+    </div>
+
+    <div class="card">
+        <h3>🔍 四大养生体系概述</h3>
+        <p><strong>1. 饮食养生</strong>：五味调和、五谷五果搭配，补虚泻实，养护五脏。</p>
+        <p><strong>2. 起居养生</strong>：顺应昼夜节律，合理作息、劳逸、居所调护。</p>
+        <p><strong>3. 情志养生</strong>：调和七情，避免情绪过激损伤脏腑，养心为根本。</p>
+        <p><strong>4. 顺时养生</strong>：顺应四季、昼夜、节气变化，天人合一。</p>
+    </div>
+
+    <div class="card">
+        <h3>🏥 五脏五味基础对应</h3>
+        <p>💚 肝 ｜ <span class="label suan">酸味</span> ｜ 主疏泄、养筋膜、调情绪</p>
+        <p>❤️ 心 ｜ <span class="label ku">苦味</span> ｜ 主血脉、宁心神、清虚火</p>
+        <p>💛 脾 ｜ <span class="label gan">甘味</span> ｜ 主运化、补气血、祛湿气</p>
+        <p>🤍 肺 ｜ <span class="label xin">辛味</span> ｜ 主宣降、散寒邪、通鼻窍</p>
+        <p>🖤 肾 ｜ <span class="label xian">咸味</span> ｜ 主藏精、壮筋骨、固本源</p>
+    </div>
+
+    <div class="card">
+        <h3>📝 五味相生 & 养生成语释义</h3>
+        <p>火生土 → <span class="label ku">苦</span>生<span class="label gan">甘</span> ｜ <strong>先苦后甜、苦尽甘来</strong></p>
+        <p>释义：苦味食材疏通脾胃积滞，运化恢复后气血充盈，是脾胃调理的典型过程。</p>
+        <p>木生火 → <span class="label suan">酸</span>生<span class="label ku">苦</span> ｜ <strong>酸甜苦辣</strong></p>
+        <p>土生金 → <span class="label gan">甘</span>生<span class="label xin">辛</span> ｜ <strong>甘之如饴</strong></p>
+        <p>金生水 → <span class="label xin">辛</span>生<span class="label xian">咸</span> ｜ <strong>五味俱全</strong></p>
+    </div>
+</div>
+
+<!-- 页面2：饮食养生（原五味体系完整扩展） -->
+<div id="page2" class="page">
+    <div class="card">
+        <h3>📜 经典原文</h3>
+        <p class="classic">心欲苦，肺欲辛，肝欲酸，脾欲甘，肾欲咸，此五味之所合也。——《素问·五脏生成》</p>
+        <p class="classic">肝色青，宜食甘；心色赤，宜食酸；脾色黄，宜食咸；肺色白，宜食苦；肾色黑，宜食辛。——《灵枢·五味》</p>
+    </div>
+
+    <div class="card">
+        <h3>🔍 饮食养生两大原则</h3>
+        <p><strong>同气相求（体虚进补）</strong>：脏腑虚弱，食用本味食材滋养正气。</p>
+        <p><strong>相克制衡（失衡调治）</strong>：脏腑火旺、壅滞，用相克性味疏导调和。</p>
+        <p class="quote">核心要求：食饮有节，不可偏食、过饱、贪凉嗜辣。</p>
+    </div>
+
+    <div class="card">
+        <h3>🍃 日常补虚养生（五脏亏虚）</h3>
+        <h4>💚 养肝（眼干、疲劳、情绪压抑）</h4>
+        <p>性味：<span class="label suan">酸味</span> | 食材：李子、韭菜、乌梅、山楂、柠檬</p>
+
+        <h4>❤️ 养心（心慌、失眠、心烦）</h4>
+        <p>性味：<span class="label ku">苦味</span> | 食材：杏子、羊肉、苦瓜、莲子心、苦菜</p>
+
+        <h4>💛 补脾（食欲差、腹胀、乏力）</h4>
+        <p>性味：<span class="label gan">甘味</span> | 食材：大枣、牛肉、粳米、山药、南瓜、桂圆</p>
+
+        <h4>🤍 补肺（易感冒、气短、咳嗽）</h4>
+        <p>性味：<span class="label xin">辛味</span> | 食材：桃子、鸡肉、大葱、生姜、香菜</p>
+
+        <h4>🖤 补肾（腰膝酸软、精力不足）</h4>
+        <p>性味：<span class="label xian">咸味</span> | 食材：栗子、猪肉、大豆、海带、紫菜</p>
+    </div>
+
+    <div class="card">
+        <h3>⚕️ 失衡调治（火旺、湿滞、郁结）</h3>
+        <p>肝火旺 → 宜<span class="label gan">甘味</span> | 心火盛 → 宜<span class="label suan">酸味</span></p>
+        <p>脾湿积食 → 宜<span class="label xian">咸味</span> | 肺热痰多 → 宜<span class="label ku">苦味</span></p>
+        <p>肾寒水肿 → 宜<span class="label xin">辛味</span></p>
+    </div>
+
+    <div class="card">
+        <h3>📋 五物食材总览</h3>
+        <div class="list-wrap">
+            <div class="item">五畜：牛甘、狗酸、猪咸、羊苦、鸡辛</div>
+            <div class="item">五果：枣甘、李酸、栗咸、杏苦、桃辛</div>
+            <div class="item">五谷：粳米甘、小豆酸、大豆咸、小麦苦、黄黍辛</div>
+            <div class="item">五菜：葵甘、韭酸、藿咸、薤苦、葱辛</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>⚠️ 饮食禁忌（内经警示）</h3>
+        <p class="classic">多食酸，则胝胼而唇揭；多食苦，则皮槁而毛拔；多食甘，则骨痛而发落；多食辛，则筋急而爪枯；多食咸，则脉凝泣而变色。</p>
+        <p>五味过食皆伤脏腑，日常务必清淡均衡，三餐定时，七八分饱为宜。</p>
+    </div>
+</div>
+
+<!-- 页面3：起居养生 -->
+<div id="page3" class="page">
+    <div class="card">
+        <h3>📜 经典原文</h3>
+        <p class="classic">起居有常，不妄作劳。——《素问·上古天真论》</p>
+        <p class="classic">夜半而阴隆，平旦而阴尽，日中而阳隆，日入而阳尽。——《灵枢·营卫生会》</p>
+    </div>
+
+    <div class="card">
+        <h3>🌙 作息规律：顺昼夜阴阳</h3>
+        <p><strong>晨起</strong>：平旦（清晨5-7点）阳气生发，宜早起活动，舒展形体，勿赖床。</p>
+        <p><strong>日间</strong>：白天阳气充盛，适合劳作、运动、办事，顺应阳气动而不息。</p>
+        <p><strong>午休</strong>：午时（11-13点）心经当令，小憩15-30分钟，养心安神，缓解疲惫。</p>
+        <p><strong>入夜</strong>：日落后阳气收敛，减少剧烈活动、熬夜，23点前入睡，养护阴气与肾精。</p>
+    </div>
+
+    <div class="card">
+        <h3>💪 劳逸有度：不妄作劳</h3>
+        <p>1. 体劳：劳作、运动量力而行，久行伤筋、久立伤骨、久坐伤肉、久卧伤气。</p>
+        <p>2. 心劳：思虑过度耗伤心血，工作间隙及时放松，避免持续用脑。</p>
+        <p>3. 房劳：节制房事，耗损肾精，肾精亏虚则百病丛生。</p>
+        <p class="quote">劳逸结合，动静结合，是起居养生核心。</p>
+    </div>
+
+    <div class="card">
+        <h3>🏠 居所与穿戴养护</h3>
+        <p>1. 居室：通风干燥，冷暖适宜，避免久居潮湿、阴冷、闷热环境。</p>
+        <p>2. 穿衣：顺应气温增减衣物，春捂秋冻，尤其保护腰腹、四肢、足部。</p>
+        <p>3. 沐浴：出汗后不宜立刻吹风、冲冷水，防止风寒侵入经络。</p>
+    </div>
+
+    <div class="card">
+        <h3>❌ 起居大忌</h3>
+        <p>• 熬夜不睡：逆阳气收敛，伤阴耗精，损害心肾。</p>
+        <p>• 久卧不起：气血运行迟缓，气机郁滞，全身乏力。</p>
+        <p>• 久坐不动：脾胃运化减弱，气血不畅，易生痰湿。</p>
+        <p>• 大汗淋漓后吹风涉水：外邪入侵，引发关节、呼吸道问题。</p>
+    </div>
+</div>
+
+<!-- 页面4：情志养生 -->
+<div id="page4" class="page">
+    <div class="card">
+        <h3>📜 经典原文</h3>
+        <p class="classic">人有五脏，化五气，以生喜怒悲忧恐。——《素问·阴阳应象大论》</p>
+        <p class="classic">恬淡虚无，真气从之，精神内守，病安从来。——《素问·上古天真论》</p>
+    </div>
+
+    <div class="card">
+        <h3>😐 七情对应五脏（情志伤脏）</h3>
+        <p>💚 肝主怒：大怒伤肝，急躁易怒、郁闷压抑都会损伤肝气。</p>
+        <p>❤️ 心主喜：过喜伤心，狂喜、大笑不止，易心气涣散、心慌乏力。</p>
+        <p>💛 脾主思：思虑过度伤脾，胡思乱想、焦虑，影响消化与气血。</p>
+        <p>🤍 肺主悲忧：悲伤、忧愁过度伤肺，易胸闷、气短、精神消沉。</p>
+        <p>🖤 肾主恐：恐惧、惊吓过度伤肾，易腰膝发软、小便失常。</p>
+        <p class="quote">情绪过激，是内伤疾病的主要诱因。</p>
+    </div>
+
+    <div class="card">
+        <h3>✨ 情志调和方法</h3>
+        <p><strong>1. 恬淡平和</strong>：减少欲望，心态淡然，不过分追名逐利，稳定心神。</p>
+        <p><strong>2. 疏导宣泄</strong>：情绪压抑时，适度倾诉、散步、舒缓运动，疏解肝气。</p>
+        <p><strong>3. 专注安神</strong>：日常静心养神，闭目养神、慢呼吸，收敛浮躁心气。</p>
+        <p><strong>4. 移情易性</strong>：烦闷时转移注意力，听舒缓音乐、赏花读书，调和情绪。</p>
+    </div>
+
+    <div class="card">
+        <h3>🔄 情志相克调节法（内经理论）</h3>
+        <p>怒伤肝 → 以悲制怒 | 喜伤心 → 以恐制喜</p>
+        <p>思伤脾 → 以怒制思 | 忧伤肺 → 以喜制忧</p>
+        <p>恐伤肾 → 以思制恐</p>
+        <p>释义：用平和的对立情绪疏导过激情绪，不可刻意极端刺激。</p>
+    </div>
+
+    <div class="card">
+        <h3>💡 日常养心要点</h3>
+        <p>少生气、少焦虑、少悲伤、不惊恐、不大喜。心态中正平和，五脏气机顺畅，正气充足则外邪难侵。</p>
+    </div>
+</div>
+
+<!-- 页面5：顺时养生（顺应自然四季） -->
+<div id="page5" class="page">
+    <div class="card">
+        <h3>📜 经典原文</h3>
+        <p class="classic">圣人春夏养阳，秋冬养阴，以从其根。——《素问·四气调神大论》</p>
+        <p class="classic">顺四时而适寒暑，和喜怒而安居处。——《灵枢·本神》</p>
+    </div>
+
+    <div class="card">
+        <h3>🌱 春季养生（对应肝脏 · 木气）</h3>
+        <p>气候：阳气生发，万物复苏。</p>
+        <p>作息：早睡早起，多外出踏青，舒展肢体，疏解肝气。</p>
+        <p>饮食：少酸多甘，助脾养肝，避免生冷油腻。</p>
+        <p>情志：戒暴怒、戒抑郁，保持心情舒畅。</p>
+    </div>
+
+    <div class="card">
+        <h3>☀️ 夏季养生（对应心脏 · 火气）</h3>
+        <p>气候：阳气极盛，天气炎热。</p>
+        <p>作息：晚睡早起，适当午休，避开正午烈日。</p>
+        <p>饮食：适当增苦减甘，清心降火，补水防暑，少食冰饮。</p>
+        <p>情志：戒烦躁、戒恼怒，静心安神。</p>
+    </div>
+
+    <div class="card">
+        <h3>🍂 秋季养生（对应肺脏 · 金气）</h3>
+        <p>气候：阳气收敛，气候干燥。</p>
+        <p>作息：早睡早起，顺应阳气收敛。</p>
+        <p>饮食：少辛多酸，润肺生津，抵御秋燥。</p>
+        <p>情志：戒悲伤、消沉，保持乐观开朗。</p>
+    </div>
+
+    <div class="card">
+        <h3>❄️ 冬季养生（对应肾脏 · 水气）</h3>
+        <p>气候：阴气极盛，天寒地冻。</p>
+        <p>作息：早睡晚起，避寒保暖，养护阳气与肾精。</p>
+        <p>饮食：温补为主，适当咸味，固本培元。</p>
+        <p>情志：安稳内敛，减少外出剧烈活动。</p>
+    </div>
+
+    <div class="card">
+        <h3>🌍 核心原则：天人合一</h3>
+        <p>人体阴阳气血，与自然界四季、昼夜、寒暑同步变化。顺应自然规律调养，就是养护自身正气，达到防病、延年的目的。</p>
+    </div>
+</div>
+
+<script>
+    // 标签切换交互
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const targetId = tab.dataset.target;
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('show');
+            });
+            document.getElementById(targetId).classList.add('show');
+        });
+    });
+</script>
+
+</body>
+</html>
