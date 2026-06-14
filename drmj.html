@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>福安16张麻将 手机版｜优化完整版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:#065f46; padding:6px; margin:0;color:#fff;font-size:14px;}
+/* 手牌 手机大尺寸 */
+.tile-hand {
+  width:min(48px, 22vw);
+  height:min(66px, 30vw);
+  flex-shrink: 0;
+  border-radius:8px;
+  clip-path:polygon(8% 0, 92% 0, 100% 8%, 100% 92%, 92% 100%, 8% 100%, 0 92%, 0 8%);
+  transform:rotateX(6deg);
+  border:2px solid transparent;
+  background-clip:padding-box, border-box;
+  background-origin:padding-box, border-box;
+  background-image:linear-gradient(145deg,#fff,#f0f0f0),linear-gradient(#ddd,#999);
+  box-shadow:inset 0 2px 4px rgba(255,255,255,0.8),0 4px 8px rgba(0,0,0,0.3);
+  transition:0.15s;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  font-family:SimSun,serif;
+  font-size:min(18px, 7vw);
+  margin:2px;
+}
+.tile-meld {
+  width:min(32px, 12vw);
+  height:min(44px, 16vw);
+  flex-shrink: 0;
+  border-radius:4px;
+  clip-path:polygon(6% 0, 94% 0, 100% 6%, 100% 94%, 94% 100%, 6% 100%, 0 94%, 0 6%);
+  background-image:linear-gradient(145deg,#fff,#f0f0f0),linear-gradient(#ccc,#888);
+  box-shadow:inset 0 1px 3px rgba(255,255,255,0.7),0 2px 4px rgba(0,0,0,0.2);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-weight:bold;font-family:SimSun,serif;font-size:min(11px, 4vw);margin:1px;
+}
+.tile-discard {
+  width:min(32px, 12vw);
+  height:min(44px, 16vw);
+  flex-shrink: 0;
+  border-radius:4px;
+  filter:grayscale(40%);opacity:0.8;
+  border:1px solid #aaa;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-weight:bold;font-family:SimSun,serif;font-size:min(11px, 4vw);margin:1px;
+  pointer-events:none;
+}
+.tile-back{
+  background:#047857;
+  color:#fff;
+  background-image:radial-gradient(#059669 1px,transparent 1px);
+  background-size:7px 7px;
+}
+.tile-hand:active{
+  transform:rotateX(2deg) translateY(-3px);
+  box-shadow:0 8px 12px rgba(255,220,80,0.35),0 0 6px rgba(255,220,80,0.4);
+}
+.tile-selected{
+  transform:translateY(-8px) !important;
+  box-shadow:0 10px 16px rgba(0,0,0,0.4),0 0 12px rgba(255,210,60,0.6) !important;
+  border-color:#ffcc55 !important;
+}
+.tile-ting{box-shadow:0 0 10px #ffdd44 !important;}
+.tile-joker{background:#fffbe0;color:#c99000;border-color:#ffd700;}
+@keyframes pulse{
+  0%{box-shadow:0 0 4px rgba(255,220,80,0.3);}
+  50%{box-shadow:0 0 14px rgba(255,220,80,0.7);}
+  100%{box-shadow:0 0 4px rgba(255,220,80,0.3);}
+}
+.tile-new-draw{animation:pulse 1.2s infinite;}
+.tile-wan{
+  color:#b50000;
+  background-image:linear-gradient(135deg,#fff5f5,#ffe8e8),radial-gradient(rgba(180,0,0,0.05) 2px,transparent 2px),linear-gradient(#c41818,#880000);
+  background-size:100% 100%,6px 6px;
+}
+.tile-tiao{
+  color:#007a2b;
+  background-image:linear-gradient(135deg,#f2fff6,#e6f9ec),linear-gradient(to right,rgba(0,120,40,0.06) 1px,transparent 1px),linear-gradient(#009933,#006622);
+  background-size:100% 100%,11px 100%;
+}
+.tile-tong{
+  color:#924e00;
+  background-image:linear-gradient(135deg,#fffbf0,#fff0da),radial-gradient(rgba(140,70,0,0.07) 2px,transparent 2px),linear-gradient(#b56c00,#7c3e00);
+  background-size:100% 100%,7px 7px;
+}
+.log-box{max-height:120px;overflow-y:auto;background:#022c22;padding:6px;border-radius:4px;font-size:12px;}
+.tip-pop{background:#111827;border:1px solid #fbbf24;padding:10px;border-radius:6px;margin:4px 0;position:fixed;z-index:999;top:50%;left:50%;transform:translate(-50%,-50%);width:92%;max-width:360px;}
+.hidden{display:none !important;}
+.btn-disabled{opacity:0.35;pointer-events:none;}
+.ting-hint{color:#ffdd44;font-weight:bold;font-size:13px;}
+.error-hint{color:#f87171;font-weight:bold;}
+.win-hint{color:#4ade80;font-weight:bold;font-size:16px;}
+.tag-gang-dark{background:#ffe608;color:#000;padding:1px 4px;border-radius:3px;margin-right:4px;font-size:12px;}
+.tag-gang-ming{background:#ff6b6b;color:#fff;padding:1px 4px;border-radius:3px;margin-right:4px;font-size:12px;}
+.tag-eat{background:#38bdf8;color:#fff;padding:1px 4px;border-radius:3px;margin-right:4px;font-size:12px;}
+.tag-peng{background:#fb923c;color:#fff;padding:1px 4px;border-radius:3px;margin-right:4px;font-size:12px;}
+#my-hand,#opp-hand,#my-dis,#opp-dis,#my-meld,#opp-meld {
+  display:flex;
+  flex-wrap:wrap;
+  gap:3px;
+  align-items:center;
+}
+section{margin-bottom:10px; padding:8px !important;border-radius:6px;}
+.control-buttons{display:flex; flex-wrap:wrap; gap:5px; justify-content:center;}
+.operate-buttons{display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-top:6px;}
+button{padding:6px 10px;font-size:13px;border-radius:5px;border:none;font-weight:bold;}
+h1{font-size:18px;margin:6px 0;}
+h3{font-size:14px;margin:0 0 6px 0;}
+</style>
+</head>
+<body>
+<div class="max-w-lg mx-auto">
+  <h1 class="text-center font-bold">福安16张麻将 手机版｜优化完整版</h1>
+  <div class="bg-emerald-900 px-2 py-2 rounded mb-2">
+    <div class="control-buttons mb-1">
+      <button onclick="initGame()" class="bg-amber-400 text-black">新开局</button>
+      <button onclick="clearAllSave()" class="bg-red-500 text-white">清存档</button>
+      <select id="ai-diff-select" onchange="setAiDifficulty(this.value)" class="text-black rounded px-1">
+        <option value="easy">简单AI</option>
+        <option value="normal" selected>标准AI</option>
+        <option value="hard">困难AI</option>
+      </select>
+    </div>
+    <div class="flex flex-wrap gap-1 text-xs items-center">
+      <span id="game-info">等待开局</span>
+      <span>我:<span id="my-score" class="text-amber-300 font-bold">0</span></span>
+      <span>AI:<span id="opp-score" class="text-amber-300 font-bold">0</span></span>
+      <span>庄:<span id="banker-tag">我</span></span>
+      <span>连庄:<span id="lianzhuang-tag">1</span></span>
+      <span class="ting-hint ml-1" id="ting-tip"></span>
+    </div>
+  </div>
+  <div class="log-box mb-2" id="game-log"></div>
+
+  <section class="bg-emerald-900/60">
+    <h3>对手手牌</h3>
+    <div id="opp-hand" class="min-h-[60px] mb-1"></div>
+    <div class="flex flex-wrap gap-3">
+      <div class="flex-1 min-w-[120px]">副露:<div id="opp-meld" class="min-h-[40px]"></div></div>
+      <div class="flex-1 min-w-[120px]">弃牌:<div id="opp-dis" class="min-h-[40px]"></div></div>
+    </div>
+  </section>
+
+  <section class="bg-emerald-950 my-2">
+    <div class="flex justify-between items-center text-xs mb-1">
+      <div>剩余:<span id="pile-count">0</span></div>
+      <div>AI打出:<span id="last-dis-tile">无</span></div>
+    </div>
+    <div id="operate-btn" class="operate-buttons">
+      <button id="btn-chi" onclick="actionChi()" class="bg-sky-500 text-white">吃牌</button>
+      <button id="btn-peng" onclick="actionPeng()" class="bg-orange-500 text-white">碰牌</button>
+      <button id="btn-minggang" onclick="actionGangMing()" class="bg-red-500 text-white">明杠</button>
+      <button id="btn-hu" onclick="actionHu()" class="bg-pink-500 text-white">胡牌</button>
+      <button id="btn-pass" onclick="passOperate()" class="bg-gray-500 text-white">过牌</button>
+    </div>
+    <div id="selfmo-btn-box" class="operate-buttons mt-1">
+      <button id="btn-selfmo" onclick="actionZiMo()" class="bg-fuchsia-500 text-white">自摸</button>
+      <button id="btn-darkgang" onclick="selfAnGangCheck()" class="bg-yellow-500 text-black">暗杠检测</button>
+    <button onclick="showTingInfo()" class="bg-yellow-400 text-black">看听牌</button>
+    </div>
+  </section>
+
+  <section class="bg-emerald-900/60">
+    <h3>我方手牌</h3>
+    <div id="my-hand" class="min-h-[60px] mb-1"></div>
+    <div class="flex flex-wrap gap-3">
+      <div class="flex-1 min-w-[120px]">我方副露:<div id="my-meld" class="min-h-[40px]"></div></div>
+      <div class="flex-1 min-w-[120px]">我方弃牌:<div id="my-dis" class="min-h-[40px]"></div></div>
+    </div>
+  </section>
+</div>
+<div id="float-tip" class="tip-pop hidden"></div>
+
+<script>
+// ====================== 1.全局常量层 ======================
+// 牌基础定义
+const TILE_TYPES = [
+  {type:'wan',num:1,text:'一万'},{type:'wan',num:2,text:'二万'},{type:'wan',num:3,text:'三万'},
+  {type:'wan',num:4,text:'四万'},{type:'wan',num:5,text:'五万'},{type:'wan',num:6,text:'六万'},
+  {type:'wan',num:7,text:'七万'},{type:'wan',num:8,text:'八万'},{type:'wan',num:9,text:'九万'},
+  {type:'tiao',num:1,text:'一条'},{type:'tiao',num:2,text:'二条'},{type:'tiao',num:3,text:'三条'},
+  {type:'tiao',num:4,text:'四条'},{type:'tiao',num:5,text:'五条'},{type:'tiao',num:6,text:'六条'},
+  {type:'tiao',num:7,text:'七条'},{type:'tiao',num:8,text:'八条'},{type:'tiao',num:9,text:'九条'},
+  {type:'tong',num:1,text:'一筒'},{type:'tong',num:2,text:'二筒'},{type:'tong',num:3,text:'三筒'},
+  {type:'tong',num:4,text:'四筒'},{type:'tong',num:5,text:'五筒'},{type:'tong',num:6,text:'六筒'},
+  {type:'tong',num:7,text:'七筒'},{type:'tong',num:8,text:'八筒'},{type:'tong',num:9,text:'九筒'},
+  {type:'joker',num:0,text:'白板'}
+];
+const ALL_TILES = [];
+TILE_TYPES.forEach(t=>{ALL_TILES.push(t,t,t,t);});
+
+// AI难度权重配置（一键切换简单/标准/困难）
+const AI_WEIGHT_CONFIG = {
+  easy: {
+    safeTileBonus: 2,
+    edgePenalty: -3,
+    lonePenalty: -2,
+    splitTingPenalty: -15,
+    pureColorBonus: 3,
+    pengpengBonus: 3,
+    playerDangerPenalty: -5,
+    eatWantRate: 0.2,
+    gangWantRate: 0.4
+  },
+  normal: {
+    safeTileBonus: 8,
+    edgePenalty: -8,
+    lonePenalty: -5,
+    splitTingPenalty: -30,
+    pureColorBonus: 8,
+    pengpengBonus: 8,
+    playerDangerPenalty: -15,
+    eatWantRate: 0.5,
+    gangWantRate: 0.7
+  },
+  hard: {
+    safeTileBonus: 15,
+    edgePenalty: -15,
+    lonePenalty: -10,
+    splitTingPenalty: -60,
+    pureColorBonus: 15,
+    pengpengBonus: 15,
+    playerDangerPenalty: -40,
+    eatWantRate: 0.8,
+    gangWantRate: 1
+  }
+};
+let CURRENT_AI_WEIGHT = AI_WEIGHT_CONFIG.normal;
+function setAiDifficulty(level){
+  CURRENT_AI_WEIGHT = AI_WEIGHT_CONFIG[level];
+  addLog(`AI难度切换为：${level==='easy'?'简单':level==='normal'?'标准':'困难'}`);
+}
+
+// 游戏全局固定常量
+const JOKER_TYPE = 'joker';
+const GANG_BASE_SCORE = 10;
+const DELAY_OPERATE_MS = 700;
+const DELAY_MELD_MS = 600;
+const STREAM_LIMIT = 8;
+
+// 游戏状态枚举容器
+let game = {
+  pile:[],myHand:[],oppHand:[],
+  myMeld:[],oppMeld:[],
+  myDis:[],oppDis:[],
+  myScore:0,oppScore:0,isMyTurn:false,
+  banker: false,round:1,lastTile:null,waitOperate:false,
+  selectIndex:-1,gameOver:false,gangBonus:GANG_BASE_SCORE,canPlayCard:true,
+  tingList:[],discardRecord:[],isFirstOppDiscard:true,
+  isTianHuCheck:false,haveDrawAfterOpp:false,lianZhuang:1,
+  isLiuJuChouZhuang:false,isAfterGang: false,
+  // 本地存档持久字段
+  totalMingGang:0,totalDarkGang:0
+};
+
+// ====================== 2.牌库基础工具层 ======================
+function randomBanker(){game.banker = Math.random() >= 0.5;}
+function buildPile(){
+  let arr=[...ALL_TILES];
+  for(let i=arr.length-1;i>0;i--){
+    const r=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[r]]=[arr[r],arr[i]];
+  }
+  return arr;
+}
+function sortHand(list){
+  const order={wan:1,tiao:2,tong:3,joker:99};
+  const arr=[...list];
+  arr.sort((a,b)=>order[a.type]-order[b.type]||a.num-b.num);
+  return arr;
+}
+function countFixedMeldGroup(meldArr){let g=0;meldArr.forEach(x=>g++);return g;}
+function getAllPossibleTiles(){return [...TILE_TYPES];}
+
+// ====================== 3.本地持久存档层 ======================
+function saveGameData(){
+  const obj={
+    myScore:game.myScore,oppScore:game.oppScore,banker:game.banker,
+    round:game.round,lianZhuang:game.lianZhuang,
+    totalMingGang:game.totalMingGang,totalDarkGang:game.totalDarkGang
+  };
+  localStorage.setItem('fuAnMjSave',JSON.stringify(obj));
+}
+function loadGameData(){
+  const s=localStorage.getItem('fuAnMjSave');
+  if(!s) { randomBanker(); return false; }
+  const d=JSON.parse(s);
+  game.myScore=d.myScore;game.oppScore=d.oppScore;game.banker=d.banker;
+  game.round=d.round;game.lianZhuang = Number(d.lianZhuang) || 1;
+  game.totalMingGang = Number(d.totalMingGang)||0;
+  game.totalDarkGang = Number(d.totalDarkGang)||0;
+  return true;
+}
+function clearAllSave(){
+  localStorage.removeItem('fuAnMjSave');
+  game.myScore=0;game.oppScore=0;game.round=1;game.lianZhuang=1;
+  game.totalMingGang=0;game.totalDarkGang=0;
+  randomBanker();initGame();addLog('存档清空，分数/杠分全部重置');
+}
+
+// ====================== 4.UI工具层（渲染、弹窗、延时、日志） ======================
+function addLog(t){
+  const log=document.getElementById('game-log');
+  log.innerHTML+=`<div class="py-0.5 border-b border-emerald-700">${t}</div>`;
+  log.scrollTop=log.scrollHeight;
+}
+function setInfo(t){document.getElementById('game-info').innerText=t;}
+function updateScoreUI(){
+  document.getElementById('my-score').innerText=game.myScore;
+  document.getElementById('opp-score').innerText=game.oppScore;
+  document.getElementById('banker-tag').innerText=game.banker?'我方':'AI';
+  document.getElementById('lianzhuang-tag').innerText=game.lianZhuang;
+  saveGameData();
+}
+function hideFloatTip(){document.getElementById('float-tip').classList.add('hidden');}
+function showFloatTip(html){
+  const tip=document.getElementById('float-tip');
+  tip.innerHTML=html+'<br><button onclick="hideFloatTip()" class="bg-gray-500 w-full mt-2">关闭</button>';
+  tip.classList.remove('hidden');
+  setTimeout(hideFloatTip,2800);
+}
+function renderTile(tile,type='hand',idx=0,selected=false,isTing=false){
+  let cls = `tile-${tile.type}`;
+  if(tile.type===JOKER_TYPE) cls = 'tile-joker';
+  if(selected) cls += ' tile-selected';
+  if(isTing) cls += ' tile-ting';
+  const click = type==='hand' ? `onclick="clickHand(${idx})"` : '';
+  return `<div class="tile-hand ${cls}" ${click}>${tile.text}</div>`;
+}
+function renderMeldTile(tile){
+  let cls = `tile-${tile.type}`;
+  if(tile.type===JOKER_TYPE) cls = 'tile-joker';
+  return `<div class="tile-meld ${cls}">${tile.text}</div>`;
+}
+function updateUI(){
+  document.getElementById('pile-count').innerText=game.pile.length;
+  let oppHtml='';game.oppHand.forEach(()=>oppHtml+='<div class="tile-hand tile-back"></div>');
+  document.getElementById('opp-hand').innerHTML=oppHtml;
+  const sorted=sortHand(game.myHand);
+  let myHtml='';
+  sorted.forEach((t,i)=>{
+    const isTing=game.tingList.length>0;
+    myHtml += renderTile(t,'hand',i,game.selectIndex===i,isTing);
+  });
+  document.getElementById('my-hand').innerHTML=myHtml;
+  function renderMeldGroup(list){let h='';list.forEach(g=>g.list.forEach(t=>h+=renderMeldTile(t)));return h||'无';}
+  document.getElementById('my-meld').innerHTML=renderMeldGroup(game.myMeld);
+  document.getElementById('opp-meld').innerHTML=renderMeldGroup(game.oppMeld);
+  function renderDiscard(arr){let h='';arr.forEach(t=>{let cls = `tile-${t.type}`;if(t.type===JOKER_TYPE) cls='tile-joker';h+=`<div class="tile-discard ${cls}">${t.text}</div>`;});return h;}
+  document.getElementById('my-dis').innerHTML=renderDiscard(game.myDis);
+  document.getElementById('opp-dis').innerHTML=renderDiscard(game.oppDis);
+  const btnChi = document.getElementById('btn-chi');
+  const btnPeng = document.getElementById('btn-peng');
+  const btnMingGang = document.getElementById('btn-minggang');
+  const btnHu = document.getElementById('btn-hu');
+  const btnPass = document.getElementById('btn-pass');
+  const darkGangBtn=document.getElementById('btn-darkgang');
+  btnChi.classList.toggle('btn-disabled', !game.waitOperate);
+  btnPeng.classList.toggle('btn-disabled', !game.waitOperate);
+  btnMingGang.classList.toggle('btn-disabled', !game.waitOperate);
+  btnHu.classList.toggle('btn-disabled', !game.waitOperate);
+  btnPass.classList.toggle('btn-disabled', !game.waitOperate);
+  let hasFour=false;
+  const map={};game.myHand.forEach(x=>map[x.type+x.num]=(map[x.type+x.num]||0)+1);
+  for(let k in map) if(map[k]===4) hasFour=true;
+  darkGangBtn.classList.toggle('btn-disabled', !hasFour);
+}
+function endWaitOperate(){
+  game.waitOperate=false;game.lastTile=null;game.selectIndex=-1;
+  game.canPlayCard=true;game.isMyTurn=true;
+  if(!game.banker) game.haveDrawAfterOpp=true;
+  document.getElementById('last-dis-tile').innerText = '无';
+}
+
+// ====================== 5.公共核心层（玩家&AI共用：胡牌/听牌/番型/计分） ======================
+function splitValidMianzi(numList, jokerLeft, need) {
+    if (need === 0) return true;
+    if (numList.length === 0) return jokerLeft >= need * 3;
+    const arr = [...numList].sort((a, b) => a.type.localeCompare(b.type) || a.num - b.num);
+    const first = arr[0];
+    const rest = arr.slice(1);
+    if (jokerLeft >= 1) if (splitValidMianzi(rest, jokerLeft - 1, need)) return true;
+
+    let sameNumCount = rest.filter(x => x.type === first.type && x.num === first.num).length;
+    if (sameNumCount >= 2) {
+        const newRest = rest.filter((_, i) => i >= 2);
+        if (splitValidMianzi(newRest, jokerLeft, need - 1)) return true;
+    }
+    const totalSame = 1 + sameNumCount;
+    const fillJk = 3 - totalSame;
+    if (fillJk >= 0 && jokerLeft >= fillJk) {
+        const newRest = rest.filter(x => !(x.type === first.type && x.num === first.num));
+        if (splitValidMianzi(newRest, jokerLeft - fillJk, need - 1)) return true;
+    }
+
+    const midTile = rest.find(x => x.type === first.type && x.num === first.num + 1);
+    const lastTile = rest.find(x => x.type === first.type && x.num === first.num + 2);
+    if (midTile && lastTile) {
+        let newRest = rest.filter(x => x !== midTile && x !== lastTile);
+        if (splitValidMianzi(newRest, jokerLeft, need - 1)) return true;
+    }
+    if (jokerLeft >= 1) {
+        if (midTile) {
+            let newRest = rest.filter(x => x !== midTile);
+            if (splitValidMianzi(newRest, jokerLeft - 1, need - 1)) return true;
+        }
+        if (lastTile) {
+            let newRest = rest.filter(x => x !== lastTile);
+            if (splitValidMianzi(newRest, jokerLeft - 1, need - 1)) return true;
+        }
+    }
+    if (jokerLeft >= 3) if (splitValidMianzi(arr, jokerLeft - 3, need - 1)) return true;
+    return false;
+}
+function checkPingHu(fullHand, fixedMeld) {
+    const targetNeedGroup = 5 - fixedMeld;
+    const jokerTotal = fullHand.filter(t => t.type === JOKER_TYPE).length;
+    const pureNumCards = fullHand.filter(t => t.type !== JOKER_TYPE);
+    const uniqueCardKey = new Set(pureNumCards.map(t => `${t.type}_${t.num}`));
+    for (const key of uniqueCardKey) {
+        const [type, numStr] = key.split("_");
+        const num = Number(numStr);
+        let tempNums = [...pureNumCards];
+        let removeCnt = 0;
+        for (let i = 0; i < tempNums.length && removeCnt < 2; i++) {
+            const item = tempNums[i];
+            if (item.type === type && item.num === num) {
+                tempNums.splice(i, 1); removeCnt++; i--;
+            }
+        }
+        if (removeCnt < 2) continue;
+        if (splitValidMianzi(tempNums, jokerTotal, targetNeedGroup)) return true;
+    }
+    if (jokerTotal >= 2) if (splitValidMianzi(pureNumCards, jokerTotal - 2, targetNeedGroup)) return true;
+    return false;
+}
+function checkJinJiang(fullHand, fixedMeld) {
+    const targetNeedGroup = 5 - fixedMeld;
+    const jokerTotal = fullHand.filter(t => t.type === JOKER_TYPE).length;
+    if (jokerTotal < 2) return false;
+    const pureNumCards = fullHand.filter(t => t.type !== JOKER_TYPE);
+    const remainJoker = jokerTotal - 2;
+    return splitValidMianzi(pureNumCards, remainJoker, targetNeedGroup);
+}
+function checkHandOnlyHu(handAfterDraw, fixedGroup) {
+    const jokerCount = handAfterDraw.filter(t => t.type === JOKER_TYPE).length;
+    if (jokerCount >= 3) return true;
+    const huPing = checkPingHu(handAfterDraw, fixedGroup);
+    const huJin = checkJinJiang(handAfterDraw, fixedGroup);
+    return huPing || huJin;
+}
+// 统一胡牌判定（AI/玩家共用）
+function checkHuCan(hand,meldArr,huTile=null){
+  const fixedGroup = countFixedMeldGroup(meldArr);
+  let handOnly = [...hand];
+  if(huTile) handOnly.push(huTile);
+  return checkHandOnlyHu(handOnly, fixedGroup);
+}
+// 统一听牌判定（AI/玩家共用）
+function getAllTingCards(hand, meldArr) {
+  const res = [];
+  const allTypes = getAllPossibleTiles();
+  for (const tile of allTypes) {
+    if(checkHuCan(hand, meldArr, tile)) res.push(tile.text);
+  }
+  return [...new Set(res)];
+}
+function checkMyTing(){
+  game.tingList = getAllTingCards(game.myHand, game.myMeld);
+  const tipDom = document.getElementById('ting-tip');
+  if(game.tingList.length > 0){
+    tipDom.innerText = `｜听:${game.tingList.join('、')}`;
+    tipDom.className = 'ml-1 ting-hint';
+  }else tipDom.innerText = '';
+}
+function showTingInfo(){
+  if(game.tingList.length===0){showFloatTip('未听牌');return;}
+  showFloatTip(`可胡牌：${game.tingList.join(' ')}`);
+}
+// 统一番型计算（AI/玩家共用）
+function calcFanType(hand, meldArr, huTile=null){
+  const temp = [...hand];if(huTile) temp.push(huTile);
+  let jokerAll = 0;
+  temp.forEach(t=>{if(t.type===JOKER_TYPE)jokerAll++;});
+  meldArr.forEach(m=>m.list.forEach(t=>{if(t.type===JOKER_TYPE)jokerAll++;}));
+  let fan = {
+    base:1,nameList:['平胡'],isPingHu:true,isPengPeng:false,isQingYiSe:false,
+    isLong:false,isJiangDui:false,isMenQing:true,gangShangHua:false,
+    gangNum:0,darkGangNum:0,sanJinDao:jokerAll===3,siJinDao:jokerAll===4
+  };
+  meldArr.forEach(m=>{
+    if(m.type==='minggang'||m.type==='darkgang') fan.gangNum++;
+    if(m.type==='darkgang') fan.darkGangNum++;
+    if(m.type==='eat') fan.isMenQing = false;
+  });
+  if(fan.sanJinDao){fan.base +=6; fan.nameList.push('三金倒');}
+  if(fan.siJinDao){fan.base +=12; fan.nameList.push('四金倒');}
+  let hasShun = false;
+  function checkShun(group){
+    if(group.length!==3) return;
+    const arr = sortHand(group);
+    const nums = arr.filter(x=>x.type!==JOKER_TYPE).map(x=>x.num);
+    if(nums.length===3 && nums[0]+1===nums[1]&&nums[1]+1===nums[2]) hasShun=true;
+  }
+  meldArr.forEach(g=>checkShun(g.list));
+  const copyTemp = [...temp];
+  function scanShun(list){
+    if(list.length===0) return;
+    const f = list.find(x=>x.type!==JOKER_TYPE);
+    if(!f) return;
+    const idx1 = list.findIndex(x=>x.type===f.type&&x.num===f.num+1&&x.type!==JOKER_TYPE);
+    const idx2 = list.findIndex(x=>x.type===f.type&&x.num===f.num+2&&x.type!==JOKER_TYPE);
+    if(idx1>-1&&idx2>-1) hasShun=true;
+  }
+  scanShun(copyTemp);
+  if(!hasShun){
+    fan.isPengPeng = true;fan.isPingHu = false;fan.nameList = ['碰碰胡'];fan.base +=2;
+  }
+  const typeSet = new Set();
+  temp.forEach(t=>{if(t.type!==JOKER_TYPE)typeSet.add(t.type);});
+  meldArr.forEach(m=>m.list.forEach(t=>{if(t.type!==JOKER_TYPE)typeSet.add(t.type);}));
+  if(typeSet.size === 1){
+    fan.isQingYiSe = true;fan.base +=5;fan.nameList.push('清一色');
+    const allNums = temp.filter(x=>x.type!==JOKER_TYPE).map(x=>x.num);
+    meldArr.forEach(m=>m.list.filter(x=>x.type!==JOKER_TYPE).forEach(x=>allNums.push(x.num)));
+    const s = new Set(allNums);
+    if([1,2,3,4,5,6,7,8,9].every(x=>s.has(x))){fan.isLong = true;fan.base +=3;fan.nameList.push('一条龙');}
+  }
+  if(fan.isPengPeng){
+    let all258 = true;
+    const allCards = [...temp];
+    meldArr.forEach(m=>allCards.push(...m.list));
+    const map = {};
+    allCards.filter(x=>x.type!==JOKER_TYPE).forEach(t=>map[t.type+t.num]=(map[t.type+t.num]||0)+1);
+    for(let k in map){const n = Number(k.slice(-1));if(![2,5,8].includes(n)) all258=false;}
+    if(all258){fan.isJiangDui = true;fan.base +=3;fan.nameList.push('将对');}
+  }
+  if(fan.isMenQing) { fan.base +=2; fan.nameList.push('门清'); }
+  if(fan.gangNum >=1){
+    if(fan.gangNum===3){fan.base+=4;fan.nameList.push('三杠');}
+    if(fan.gangNum===4){fan.base=8;fan.nameList=['四杠(封顶)'];}
+    if(fan.darkGangNum>=2&&fan.gangNum<3){fan.base+=3;fan.nameList.push('双暗杠');}
+  }
+  return fan;
+}
+// 统一完整计分（AI/玩家自摸/点炮通用）
+function calcFullScore(hand,meldArr,isZiMo,huTile=null,isTianHu=false,isDiHu=false,isGangShangHua=false){
+  const fanData = calcFanType(hand,meldArr,huTile);
+  let baseMul = fanData.base;
+  let gangTotal = 0;
+  meldArr.forEach(g=>{
+    if(g.type==='minggang') gangTotal += game.gangBonus;
+    if(g.type==='darkgang') gangTotal += game.gangBonus * 2;
+  });
+  if(isTianHu) baseMul *=10;
+  if(isDiHu) baseMul *=5;
+  if(isGangShangHua) { baseMul +=2; fanData.nameList.push('杠上开花'); }
+  const lianMul = game.lianZhuang;
+  return { score: baseMul * lianMul + gangTotal, fanName: fanData.nameList.join('、') };
+}
+function switchBanker(isBankerWin){
+  if(isBankerWin || game.isLiuJuChouZhuang){game.lianZhuang += 1;addLog(`连庄+1 ×${game.lianZhuang}`);}
+  else{game.banker = !game.banker;game.lianZhuang = 1;addLog('下庄，连庄重置');}
+  game.round++;game.isLiuJuChouZhuang = false;
+}
+
+// ====================== 6.玩家操作层（吃碰杠胡自摸暗杠） ======================
+function initGame(){
+  game.pile=buildPile();game.myHand=[];game.oppHand=[];game.myMeld=[];game.oppMeld=[];
+  game.myDis=[];game.oppDis=[];game.waitOperate=false;game.gameOver=false;
+  game.isAfterGang=false;game.tingList=[];game.isFirstOppDiscard=true;
+  document.getElementById('game-log').innerHTML='';document.getElementById('ting-tip').innerText='';
+  hideFloatTip();
+  for(let i=0;i<16;i++){game.myHand.push(game.pile.shift());game.oppHand.push(game.pile.shift());}
+  if(game.banker) game.myHand.push(game.pile.shift());else game.oppHand.push(game.pile.shift());
+  const needMy=game.banker?17:16;
+  if(game.myHand.length!==needMy){addLog('手牌异常重发');initGame();return;}
+  addLog(`第${game.round}局 庄:${game.banker?'我方':'AI'} 连庄${game.lianZhuang}`);
+  if(game.banker){
+    game.isTianHuCheck=true;
+    if(checkHuCan(game.myHand,game.myMeld,null)){
+      game.gameOver=true;
+      const scoreRes = calcFullScore(game.myHand,game.myMeld,true,null,true,false,false);
+      game.myScore += scoreRes.score;game.oppScore -= scoreRes.score;
+      addLog(`<span class="win-hint">🎉天胡 ${scoreRes.fanName} +${scoreRes.score}</span>`);
+      setInfo('天胡胜利');switchBanker(true);updateScoreUI();return;
+    }
+    game.isMyTurn=true;setInfo('你是庄家，点击手牌打出');
+  }else{
+    setInfo('AI庄家出牌...');updateScoreUI();setTimeout(()=>aiBankerFirstDiscard(),DELAY_OPERATE_MS);
+  }
+  updateUI();
+}
+function clickHand(idx){
+  if(game.waitOperate){showFloatTip('先点过/吃碰杠胡');return;}
+  if(!game.banker&&!game.haveDrawAfterOpp){showFloatTip('闲家需摸牌再出牌');return;}
+  if(game.gameOver||!game.canPlayCard||!game.isMyTurn)return;
+  const sorted=sortHand(game.myHand);
+  const t=sorted[idx];
+  const realIdx=game.myHand.findIndex(x=>x.type===t.type&&x.num===t.num);
+  if(game.selectIndex===idx){
+    const out=game.myHand.splice(realIdx,1)[0];
+    game.myDis.push(out);game.discardRecord.push(out.type+out.num);
+    game.selectIndex=-1;game.canPlayCard=false;game.lastTile=out;
+    game.isMyTurn=false;game.waitOperate=true;
+    document.getElementById('last-dis-tile').innerText=out.text;
+    addLog(`打出${out.text}`);setInfo(`打出${out.text}，等待AI`);
+    updateUI();checkMyTing();
+    setTimeout(()=>{game.canPlayCard=true;oppAiProcess();},DELAY_OPERATE_MS);
+    return;
+  }
+  game.selectIndex=idx;updateUI();
+}
+function passOperate(){if(!game.waitOperate)return;hideFloatTip();endWaitOperate();addLog('选择过，摸牌');drawMyTile();}
+function drawMyTile(){
+  game.isAfterGang = false;
+  if(game.pile.length<=STREAM_LIMIT){
+    addLog('<span class="error-hint">流局臭庄</span>');game.isLiuJuChouZhuang=true;game.gameOver=true;switchBanker(false);updateScoreUI();return;
+  }
+  const t=game.pile.shift();game.myHand.push(t);
+  game.isMyTurn=true;game.selectIndex=-1;game.canPlayCard=true;
+  addLog(`摸到${t.text}`);updateUI();
+  let canSelfHu = checkHuCan(game.myHand,game.myMeld,null);
+  if(canSelfHu) setInfo('可点自摸胡，也能直接出牌');
+  else setInfo('摸完，请点击手牌打出');
+}
+function actionHu(){
+  if(!game.waitOperate||game.gameOver) return;
+  const target=game.lastTile;
+  if(checkHuCan(game.myHand,game.myMeld,target)){
+    game.gameOver=true;
+    const scoreRes = calcFullScore(game.myHand,game.myMeld,false,target,false,false,false);
+    if(game.banker){game.myScore += scoreRes.score;game.oppScore -= scoreRes.score;addLog(`<span class="win-hint">庄点炮胡 ${scoreRes.fanName} +${scoreRes.score}</span>`);switchBanker(true);}
+    else{game.myScore += scoreRes.score;game.oppScore -= scoreRes.score;addLog(`<span class="win-hint">闲点炮胡 ${scoreRes.fanName} +${scoreRes.score}</span>`);switchBanker(false);}
+    setInfo(`胡牌得分${scoreRes.score}`);updateScoreUI();return;
+  }
+  showFloatTip('无法胡牌');
+}
+function actionZiMo(){
+  if(game.waitOperate||game.gameOver) return;
+  if(!checkHuCan(game.myHand,game.myMeld,null)){showFloatTip('不能自摸');return;}
+  hideFloatTip();game.gameOver=true;
+  const scoreRes = calcFullScore(game.myHand,game.myMeld,true,null,false,false,game.isAfterGang);
+  let isDiHu = (!game.banker&&game.isFirstOppDiscard);
+  if(game.banker){
+    game.myScore += scoreRes.score;game.oppScore -= scoreRes.score;
+    if(game.isAfterGang) addLog(`<span class="win-hint">庄杠上开花 ${scoreRes.fanName} +${scoreRes.score}</span>`);
+    else if(isDiHu) addLog(`<span class="win-hint">地胡 ${scoreRes.fanName} +${scoreRes.score}</span>`);
+    else addLog(`<span class="win-hint">庄家自摸 ${scoreRes.fanName} +${scoreRes.score}</span>`);
+    switchBanker(true);
+  }else{
+    game.myScore += scoreRes.score;game.oppScore -= scoreRes.score;
+    if(game.isAfterGang) addLog(`<span class="win-hint">闲杠上开花 ${scoreRes.fanName} +${scoreRes.score}</span>`);
+    else if(isDiHu) addLog(`<span class="win-hint">地胡 ${scoreRes.fanName} +${scoreRes.score}</span>`);
+    else addLog(`<span class="win-hint">闲家自摸 ${scoreRes.fanName} +${scoreRes.score}</span>`);
+    switchBanker(false);
+  }
+  updateScoreUI();
+}
+function getChiList(target,hand){
+  if(target.type === JOKER_TYPE) return [];
+  const nums=hand.filter(x=>x.type===target.type).map(x=>x.num);
+  const n=target.num;let res=[];
+  if(n-2>=1&&nums.includes(n-1)&&nums.includes(n-2)) res.push([n-2,n-1]);
+  if(n-1>=1&&nums.includes(n-1)&&nums.includes(n+1)) res.push([n-1,n+1]);
+  if(n+2<=9&&nums.includes(n+1)&&nums.includes(n+2)) res.push([n+1,n+2]);
+  return res;
+}
+function doChi(nums){
+  hideFloatTip();
+  const out=game.lastTile;let hand=[...game.myHand];const meld=[out];
+  nums.forEach(num=>{const i=hand.findIndex(x=>x.type===out.type&&x.num===num);meld.unshift(hand.splice(i,1)[0]);});
+  game.myHand=hand;game.myMeld.push({type:'eat', list:meld});
+  addLog(`吃${meld.map(x=>x.text).join('')}`);endWaitOperate();updateUI();
+}
+function actionChi(){
+  if(!game.waitOperate) return;
+  const out=game.lastTile;
+  if(out.type === JOKER_TYPE){showFloatTip('白板不能吃');return;}
+  const list=getChiList(out,game.myHand);
+  if(list.length===0){showFloatTip('无法吃');return;}
+  let html='可吃：';
+  list.forEach(g=>{const s=g.map(n=>out.type==='wan'?n+'万':out.type==='tiao'?n+'条':n+'筒').join('');
+  html+=`<button onclick="doChi([${g}])" class="bg-sky-400 mx-1 text-black">${s}</button>`;});
+  showFloatTip(html);
+}
+function actionPeng(){
+  if(!game.waitOperate) return;
+  const out=game.lastTile;
+  if(out.type === JOKER_TYPE){showFloatTip('白板不能碰');return;}
+  const same=game.myHand.filter(x=>x.type===out.type&&x.num===out.num);
+  if(same.length<2){showFloatTip('手牌不够两张');return;}
+  hideFloatTip();const meld=[out];let cnt=0;
+  game.myHand=game.myHand.filter(x=>{if(x.type===out.type&&x.num===out.num&&cnt<2){meld.push(x);cnt++;return false;}return true;});
+  game.myMeld.push({type:'peng', list:meld});addLog(`碰${out.text}`);endWaitOperate();updateUI();
+}
+function actionGangMing(){
+  if(!game.waitOperate) return;
+  const out=game.lastTile;
+  if(out.type === JOKER_TYPE){showFloatTip('白板不能明杠');return;}
+  const same=game.myHand.filter(x=>x.type===out.type&&x.num===out.num);
+  if(same.length<3){showFloatTip('不足三张明杠');return;}
+  hideFloatTip();const meld=[out];let cnt=0;
+  game.myHand=game.myHand.filter(x=>{if(x.type===out.type&&x.num===out.num&&cnt<3){meld.push(x);cnt++;return false;}return true;});
+  game.myMeld.push({type:'minggang', list:meld});
+  game.totalMingGang += game.gangBonus;
+  saveGameData();
+  addLog(`明杠${out.text}补牌`);endWaitOperate();game.isAfterGang = true;drawMyTile();
+}
+function selfAnGangCheck(){
+  const map={};game.myHand.forEach(x=>map[x.type+x.num]=(map[x.type+x.num]||0)+1);
+  let gangKey=null;for(let k in map) if(map[k]===4){gangKey=k;break;}
+  if(!gangKey){showFloatTip('无四张暗杠');return;}
+  const type=gangKey.slice(0,-1);const num=Number(gangKey.slice(-1));
+  const tileObj=TILE_TYPES.find(t=>t.type===type&&t.num===num);
+  const list=[];for(let i=0;i<4;i++){const idx=game.myHand.findIndex(x=>x.type===type&&x.num===num);list.push(game.myHand.splice(idx,1)[0]);}
+  game.myMeld.push({type:'darkgang', list});
+  game.totalDarkGang += game.gangBonus * 2;
+  saveGameData();
+  addLog(`暗杠${tileObj.text}补牌`);updateUI();game.isAfterGang = true;drawMyTile();
+}
+
+// ======================7.AI完整逻辑层（全部需求落地） ======================
+// 获取玩家所有听牌
+function getPlayerAllTing(){return getAllTingCards(game.myHand, game.myMeld);}
+// 打出某张后的听牌数量
+function calcHandTingCount(hand, meld, delIdx){
+  const tmp = hand.filter((_,i)=>i!==delIdx);
+  return getAllTingCards(tmp, meld).length;
+}
+// 判断手牌是否已经听牌
+function handIsTing(hand, meld){
+  return getAllTingCards(hand, meld).length > 0;
+}
+// 获取桌面安全牌（出过的牌）
+function aiGetSafeTile(){
+  const safe=[];
+  game.discardRecord.forEach(k=>{
+    const t=k.slice(0,-1),n=Number(k.slice(-1));
+    const find=TILE_TYPES.find(x=>x.type===t&&x.num===n);
+    if(find) safe.push(find);
+  });
+    return safe;
+}
+// 检测手牌是否趋近清一色
+function aiCheckQingYiSe(hand, meld) {
+  let typeSet = new Set();
+  hand.forEach(c => { if (c.type !== JOKER_TYPE) typeSet.add(c.type); });
+  meld.forEach(g => g.list.forEach(c => { if (c.type !== JOKER_TYPE) typeSet.add(c.type); }));
+  return typeSet.size <= 1;
+}
+// 检测手牌趋近碰碰胡
+function aiCheckPengPengHu(hand, meld) {
+  let hasShun = false;
+  const allCards = [...hand];
+  meld.forEach(g => allCards.push(...g.list));
+  const sorted = sortHand(allCards.filter(x => x.type !== JOKER_TYPE));
+  for (let i = 0; i < sorted.length - 2; i++) {
+    const a = sorted[i], b = sorted[i + 1], c = sorted[i + 2];
+    if (a.type === b.type && b.type === c.type && a.num + 1 === b.num && b.num + 1 === c.num) {
+      hasShun = true;
+      break;
+    }
+  }
+  return !hasShun;
+}
+// AI手牌打分核心函数（全套权重、白板保护、听牌不拆搭、边张孤张扣分、大牌加分、防守扣分）
+function scoreCardGroupAi(hand, meld) {
+  const weight = CURRENT_AI_WEIGHT;
+  let scoreMap = new Map();
+  hand.forEach((card, idx) => scoreMap.set(idx, 0));
+
+  // 1.白板强制保护，打分无穷大，绝不打出
+  const jokerIdx = hand.findIndex(x => x.type === JOKER_TYPE);
+  if (jokerIdx > -1) scoreMap.set(jokerIdx, 9999);
+
+  const isHandTing = handIsTing(hand, meld);
+  const safePool = aiGetSafeTile();
+  const playerTingList = getPlayerAllTing();
+  const isNearQingYi = aiCheckQingYiSe(hand, meld);
+  const isNearPengPeng = aiCheckPengPengHu(hand, meld);
+
+  hand.forEach((card, idx) => {
+    let sc = scoreMap.get(idx);
+    // 安全牌加分
+    const isSafe = safePool.some(s => s.type === card.type && s.num === card.num);
+    if (isSafe) sc += weight.safeTileBonus;
+    // 玩家听牌危险牌大幅扣分
+    const isDanger = playerTingList.some(txt => txt === card.text);
+    if (isDanger) sc += weight.playerDangerPenalty;
+    // 1、9边张扣分
+    if (card.num === 1 || card.num === 9) sc += weight.edgePenalty;
+
+    // 听牌状态：拆搭巨量扣分
+    if (isHandTing) {
+      const afterTingCnt = calcHandTingCount(hand, meld, idx);
+      if (afterTingCnt === 0) sc += weight.splitTingPenalty;
+    }
+
+    // 清一色、碰碰胡手牌加分，留住对应花色/对子
+    if (isNearQingYi) sc += weight.pureColorBonus;
+    if (isNearPengPeng) sc += weight.pengpengBonus;
+
+    // 孤张扣分：无左右相邻牌
+    const sameTypeCards = hand.filter((c, i) => c.type === card.type && i !== idx);
+    const hasLeft = sameTypeCards.some(c => c.num === card.num - 1);
+    const hasRight = sameTypeCards.some(c => c.num === card.num + 1);
+    if (!hasLeft && !hasRight) sc += weight.lonePenalty;
+
+    scoreMap.set(idx, sc);
+  });
+  return scoreMap;
+}
+// AI选牌出牌逻辑（分层优先级：安全牌>低风险牌>最优孤张边张）
+function aiSelectDiscard(hand, meld) {
+  const weight = CURRENT_AI_WEIGHT;
+  const playerTingList = getPlayerAllTing();
+  const safePool = aiGetSafeTile();
+  const scoreMap = scoreCardGroupAi(hand, meld);
+  let candidateIdx = [];
+
+  // 第一优先级：出过的安全牌、不点炮
+  for (let i = 0; i < hand.length; i++) {
+    const card = hand[i];
+    const isDanger = playerTingList.some(txt => txt === card.text);
+    const isSafeDiscard = safePool.some(s => s.type === card.type && s.num === card.num);
+    if (isSafeDiscard && !isDanger) candidateIdx.push(i);
+  }
+  if (candidateIdx.length > 0) {
+    candidateIdx.sort((a, b) => scoreMap.get(a) - scoreMap.get(b));
+    return candidateIdx[0];
+  }
+
+  // 第二优先级：非危险牌（不点玩家听牌）
+  candidateIdx = [];
+  for (let i = 0; i < hand.length; i++) {
+    const card = hand[i];
+    const isDanger = playerTingList.some(txt => txt === card.text);
+    if (!isDanger) candidateIdx.push(i);
+  }
+  if (candidateIdx.length > 0) {
+    candidateIdx.sort((a, b) => scoreMap.get(a) - scoreMap.get(b));
+    return candidateIdx[0];
+  }
+
+  // 第三优先级：所有牌，选损失最小
+  let bestIdx = 0;
+  let minScore = scoreMap.get(0);
+  for (let i = 1; i < hand.length; i++) {
+    const s = scoreMap.get(i);
+    if (s < minScore) {
+      minScore = s;
+      bestIdx = i;
+    }
+  }
+  return bestIdx;
+}
+// AI吃牌判断
+function aiCanChi(target, hand) {
+  if (target.type === JOKER_TYPE) return false;
+  const chiList = getChiList(target, hand);
+  return chiList.length > 0 && Math.random() < CURRENT_AI_WEIGHT.eatWantRate;
+}
+// AI明杠判断（优先级高于碰）
+function aiCheckMingGang(target, hand) {
+  if (target.type === JOKER_TYPE) return false;
+  const same = hand.filter(x => x.type === target.type && x.num === target.num);
+  return same.length >= 3 && Math.random() < CURRENT_AI_WEIGHT.gangWantRate;
+}
+// AI碰判断
+function aiCheckPeng(target, hand) {
+  if (target.type === JOKER_TYPE) return false;
+  const same = hand.filter(x => x.type === target.type && x.num === target.num);
+  return same.length >= 2;
+}
+// AI庄家首次出牌
+function aiBankerFirstDiscard() {
+  if (game.gameOver) return;
+  const dropIdx = aiSelectDiscard(game.oppHand, game.oppMeld);
+  const out = game.oppHand.splice(dropIdx, 1)[0];
+  game.oppDis.push(out);
+  game.lastTile = out;
+  game.waitOperate = true;
+  game.isFirstOppDiscard = false;
+  document.getElementById('last-dis-tile').innerText = out.text;
+  setInfo(`AI打出${out.text}，可吃碰杠胡`);
+  addLog(`AI打出${out.text}`);
+  updateUI();
+}
+// AI处理玩家打出的牌：明杠>碰>吃>过，新增AI点炮胡判定
+function oppAiProcess() {
+  if (game.gameOver) return;
+  const out = game.lastTile;
+
+  // 新增需求：AI点炮胡，玩家出牌AI能胡
+  if (checkHuCan(game.oppHand, game.oppMeld, out)) {
+    game.gameOver = true;
+    const scoreRes = calcFullScore(game.oppHand, game.oppMeld, false, out, false, false, false);
+    game.oppScore += scoreRes.score;
+    game.myScore -= scoreRes.score;
+    addLog(`<span class="win-hint">AI点炮胡｜番型:${scoreRes.fanName} 我方扣除${scoreRes.score}分</span>`);
+    setInfo(`AI胡牌，我方扣分`);
+    switchBanker(false);
+    updateScoreUI();
+    return;
+  }
+
+  // 明杠优先级高于碰
+  if (aiCheckMingGang(out, game.oppHand)) {
+    const meld = [out];
+    let cnt = 0;
+    game.oppHand = game.oppHand.filter(x => {
+      if (x.type === out.type && x.num === out.num && cnt < 3) {
+        meld.push(x); cnt++;
+        return false;
+      }
+      return true;
+    });
+    game.oppMeld.push({ type: 'minggang', list: meld });
+    game.totalMingGang += game.gangBonus;
+    saveGameData();
+    addLog(`AI明杠${out.text}，补牌`);
+    game.isAfterGang = true;
+    updateUI();
+    setTimeout(() => oppAiDraw(), DELAY_MELD_MS);
+    return;
+  }
+
+  // 碰
+  if (aiCheckPeng(out, game.oppHand)) {
+    const meld = [out];
+    let cnt = 0;
+    game.oppHand = game.oppHand.filter(x => {
+      if (x.type === out.type && x.num === out.num && cnt < 2) {
+        meld.push(x); cnt++;
+        return false;
+      }
+      return true;
+    });
+    game.oppMeld.push({ type: 'peng', list: meld });
+    addLog(`AI碰${out.text}`);
+    updateUI();
+    setTimeout(() => oppAiDraw(), DELAY_MELD_MS);
+    return;
+  }
+
+  // 吃
+  if (aiCanChi(out, game.oppHand)) {
+    const chiList = getChiList(out, game.oppHand);
+    const pickChi = chiList[0];
+    let hand = [...game.oppHand];
+    const meld = [out];
+    pickChi.forEach(num => {
+      const i = hand.findIndex(x => x.type === out.type && x.num === num);
+      meld.unshift(hand.splice(i, 1)[0]);
+    });
+    game.oppHand = hand;
+    game.oppMeld.push({ type: 'eat', list: meld });
+    addLog(`AI吃${meld.map(x => x.text).join('')}`);
+    updateUI();
+    setTimeout(() => oppAiDraw(), DELAY_MELD_MS);
+    return;
+  }
+
+  // 无操作，过牌摸牌
+  addLog('AI选择过，摸牌');
+  oppAiDraw();
+}
+// AI摸牌、暗杠、出牌完整流程
+function oppAiDraw() {
+  game.isAfterGang = false;
+  if (game.pile.length <= STREAM_LIMIT) {
+    addLog('<span class="error-hint">流局臭庄</span>');
+    game.isLiuJuChouZhuang = true;
+    game.gameOver = true;
+    switchBanker(false);
+    updateScoreUI();
+    return;
+  }
+  const t = game.pile.shift();
+  game.oppHand.push(t);
+
+  // AI自摸胡判定
+  if (checkHuCan(game.oppHand, game.oppMeld, null)) {
+    game.gameOver = true;
+    const scoreRes = calcFullScore(game.oppHand, game.oppMeld, true, null, false, false, game.isAfterGang);
+    game.oppScore += scoreRes.score;
+    game.myScore -= scoreRes.score;
+    addLog(`<span class="win-hint">🎉AI自摸胡｜番型:${scoreRes.fanName} 我方扣除${scoreRes.score}分</span>`);
+    setInfo(`AI胡牌，我方扣分`);
+    switchBanker(false);
+    updateScoreUI();
+    return;
+  }
+
+  // AI暗杠检测，白板禁止暗杠
+  const map = {};
+  game.oppHand.forEach(x => {
+    if (x.type !== JOKER_TYPE) map[x.type + x.num] = (map[x.type + x.num] || 0) + 1;
+  });
+  let gangKey = null;
+  for (let k in map) if (map[k] === 4) gangKey = k;
+  if (gangKey) {
+    const type = gangKey.slice(0, -1);
+    const num = Number(gangKey.slice(-1));
+    const list = [];
+    for (let i = 0; i < 4; i++) {
+      const idx = game.oppHand.findIndex(x => x.type === type && x.num === num);
+      list.push(game.oppHand.splice(idx, 1)[0]);
+    }
+    game.oppMeld.push({ type: 'darkgang', list });
+    game.totalDarkGang += game.gangBonus * 2;
+    saveGameData();
+    const tileName = TILE_TYPES.find(t => t.type === type && t.num === num).text;
+    addLog(`AI暗杠${tileName}，补牌`);
+    game.isAfterGang = true;
+    updateUI();
+    setTimeout(() => oppAiDraw(), DELAY_MELD_MS);
+    return;
+  }
+
+  // AI出牌
+  const dropIdx = aiSelectDiscard(game.oppHand, game.oppMeld);
+  const out = game.oppHand.splice(dropIdx, 1)[0];
+  game.oppDis.push(out);
+  game.lastTile = out;
+  game.waitOperate = true;
+  game.isFirstOppDiscard = false;
+  document.getElementById('last-dis-tile').innerText = out.text;
+  setInfo(`AI打出${out.text}，你可吃/碰/明杠/胡`);
+  addLog(`AI打出${out.text}`);
+  updateUI();
+}
+
+// ====================== 8.程序入口 ======================
+window.onload = function () {
+  loadGameData();
+  updateScoreUI();
+  initGame();
+}
+</script>
+</body>
+</html>
