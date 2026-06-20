@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>福安白板金麻将 - 完全穷举顺子刻子</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+.case-card {border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:12px 0;}
+.pass {border-left:6px solid #22c55e;background:#f0fdf4;}
+.fail {border-left:6px solid #ef4444;background:#fef2f2;}
+.error {border-left:6px solid #f59e0b;background:#fffbeb;}
+.label {font-weight:bold;min-width:90px;display:inline-block;}
+.correct-text {color:#16a34a;font-weight:bold;}
+.calc-text {color:#2563eb;font-weight:bold;}
+.err-text {color:#dc2626;font-weight:bold;}
+.mono {font-family:Consolas,monospace;font-size:14px;}
+</style>
+</head>
+<body class="bg-gray-50 max-w-6xl mx-auto p-4">
+<h1 class="text-2xl font-bold text-center mb-4 text-gray-800">福安白板金麻将：5面子+1将（完全穷举）</h1>
+<div class="bg-white rounded-lg shadow p-4 mb-6">
+<h2 class="font-bold text-lg mb-2">规则与修复</h2>
+<ul class="text-sm text-gray-700 space-y-1">
+<li>✅ 胡牌型：5面子 + 1将（总17张）</li>
+<li>✅ 白板万能，可补任意牌，但不能单独消失</li>
+<li>✅ 副露不参与拆分，只影响面子数</li>
+<li>✅ 穷举所有顺子（n=1..7）和所有刻子</li>
+<li>✅ 正确处理多张牌（刻子只减3张）</li>
+</ul>
+<button id="runAllBtn" class="mt-3 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">批量运行全部10条测试用例</button>
+<div id="statBar" class="mt-3 p-2 bg-gray-100 rounded hidden"></div>
+<div id="resultContainer" class="mt-4"></div>
+</div>
+<script>
+const SUITS = ['wan','tiao','tong'];
+const SUIT_CN = {wan:'万',tiao:'条',tong:'筒'};
+function createCard(suit,num){return {suit,num,isBai:false};}
+function createBai(){return {suit:'bai',num:0,isBai:true};}
+function cardToStr(c){return c.isBai?'白板':c.num+SUIT_CN[c.suit];}
+function cardsToStrList(arr){return arr.map(cardToStr).join(' ');}
+
+function parseCardText(text){
+    const cards=[];
+    const parts=text.trim().split(/\s+/);
+    for(let p of parts){
+        if(p==='白板'){cards.push(createBai());continue;}
+        let suit;
+        if(p.endsWith('万')) suit='wan';
+        else if(p.endsWith('条')) suit='tiao';
+        else if(p.endsWith('筒')) suit='tong';
+        else continue;
+        const numStr = p.slice(0,-1);
+        for(let ch of numStr){
+            const n = parseInt(ch);
+            if(n>=1&&n<=9) cards.push(createCard(suit,n));
+        }
+    }
+    return cards;
+}
+
+function copyCount(origin){
+    const res = {};
+    for(let k in origin) res[k] = origin[k];
+    return res;
+}
+
+// 核心回溯：穷举所有刻子和顺子
+function canFormMelds(cnt, bai, targetSets) {
+    if(targetSets === 0) {
+        for(let k in cnt) if(cnt[k] > 0) return false;
+        return bai === 0;
+    }
+    let keys = Object.keys(cnt).filter(k => cnt[k] > 0);
+    if(keys.length === 0) {
+        return bai === 3 * targetSets;
+    }
+    // 尝试刻子（对每个键）
+    for(let k of keys) {
+        let val = cnt[k];
+        if(val >= 3) {
+            let nc = copyCount(cnt);
+            nc[k] = val - 3;
+            if(nc[k] === 0) delete nc[k];
+            if(canFormMelds(nc, bai, targetSets - 1)) return true;
+        } else {
+            let need = 3 - val;
+            if(need <= bai) {
+                let nc = copyCount(cnt);
+                delete nc[k];
+                if(canFormMelds(nc, bai - need, targetSets - 1)) return true;
+            }
+        }
+    }
+    // 尝试顺子：对每个花色，对n=1..7
+    for(let s of SUITS) {
+        for(let n = 1; n <= 7; n++) {
+            let k1 = s + '-' + n;
+            let k2 = s + '-' + (n+1);
+            let k3 = s + '-' + (n+2);
+            let v1 = cnt[k1] || 0;
+            let v2 = cnt[k2] || 0;
+            let v3 = cnt[k3] || 0;
+            if(v1 + v2 + v3 === 0) continue;
+            let need = 0;
+            if(v1 < 1) need++;
+            if(v2 < 1) need++;
+            if(v3 < 1) need++;
+            if(need <= bai) {
+                let nc = copyCount(cnt);
+                if(v1 > 0) { nc[k1] = v1 - 1; if(nc[k1] === 0) delete nc[k1]; }
+                if(v2 > 0) { nc[k2] = v2 - 1; if(nc[k2] === 0) delete nc[k2]; }
+                if(v3 > 0) { nc[k3] = v3 - 1; if(nc[k3] === 0) delete nc[k3]; }
+                if(canFormMelds(nc, bai - need, targetSets - 1)) return true;
+            }
+        }
+    }
+    return false;
+}
+
+function splitCore(cnt, bai, targetSets) {
+    return canFormMelds(cnt, bai, targetSets);
+}
+
+function isHu(fullCards, targetSets) {
+    let baiTotal = 0;
+    let cnt = {};
+    for(let c of fullCards){
+        if(c.isBai){
+            baiTotal++;
+            continue;
+        }
+        const key = c.suit + '-' + c.num;
+        cnt[key] = (cnt[key]||0) + 1;
+    }
+    // 三金倒
+    if(baiTotal >= 3) return true;
+    // 实体牌做将
+    const allKeys = Object.keys(cnt);
+    for(let k of allKeys){
+        let val = cnt[k];
+        let useBai = Math.max(2 - val, 0);
+        if(useBai > baiTotal) continue;
+        const nc = copyCount(cnt);
+        nc[k] = Math.max(val - 2, 0);
+        if(nc[k] === 0) delete nc[k];
+        const leftBai = baiTotal - useBai;
+        if(splitCore(nc, leftBai, targetSets)) return true;
+    }
+    // 白板做将
+    if(baiTotal >= 2){
+        const leftBai = baiTotal - 2;
+        if(splitCore(copyCount(cnt), leftBai, targetSets)) return true;
+    }
+    return false;
+}
+
+function getTingList(fuCards, handCards) {
+    const fuCount = fuCards.length / 3;
+    const targetSets = 5 - fuCount; // 福安规则5面子
+    const fuBai = fuCards.filter(x=>x.isBai).length;
+    const handBai = handCards.filter(x=>x.isBai).length;
+    const tingSet = new Set();
+    const testDraw = [];
+    SUITS.forEach(s=>{
+        for(let i=1;i<=9;i++) testDraw.push(createCard(s,i));
+    });
+    testDraw.push(createBai());
+
+    for(let draw of testDraw){
+        const drawBai = draw.isBai ? 1 : 0;
+        const allBai = fuBai + handBai + drawBai;
+        if(allBai >= 3){
+            tingSet.add(cardToStr(draw));
+            continue;
+        }
+        const full = [...handCards, draw];
+        if(isHu(full, targetSets)){
+            tingSet.add(cardToStr(draw));
+        }
+    }
+    return tingSet;
+}
+
+const TEST_CASES = [
+{id:1,desc:'副露 123678条，手牌 1124555万，44条白板',fuText:'123678条',handText:'1124555万 44条 白板',standardAns:new Set(['1万','3万','4条','白板'])},
+{id:2,desc:'副露 111万，手牌 3478万，89条，34577筒，双白板',fuText:'111万',handText:'3478万 89条 34577筒 白板 白板',standardAns:new Set(['2万','5万','6万','9万','7条','白板'])},
+{id:3,desc:'手牌 345678万，4499条，334455筒（无副露）',fuText:'',handText:'345678万 4499条 334455筒',standardAns:new Set(['4条','9条','白板'])},
+{id:4,desc:'副露 123条，手牌 445万，45778条，4556筒白板',fuText:'123条',handText:'445万 45778条 4556筒 白板',standardAns:new Set()},
+{id:5,desc:'副露 567789条，手牌 4457万，12条，123筒白板',fuText:'567789条',handText:'4457万 12条 123筒 白板',standardAns:new Set(['3条','6万','白板'])},
+{id:6,desc:'副露 123筒123条567万，手牌 111444万六筒',fuText:'123筒 123条 567万',handText:'111444万 6筒',standardAns:new Set(['6筒','白板'])},
+{id:7,desc:'副露 567万567条，手牌 789万，2224678筒',fuText:'567万 567条',handText:'789万 2224678筒',standardAns:new Set(['3筒','4筒','白板'])},
+{id:8,desc:'副露 234筒345万 手牌 55万，22445条，888筒',fuText:'234筒 345万',handText:'55万 22445条 888筒',standardAns:new Set()},
+{id:9,desc:'副露 999万，手牌 234678条，557889筒，白板',fuText:'999万',handText:'234678条 557889筒 白板',standardAns:new Set(['5筒','6筒','7筒','8筒','9筒','白板'])},
+{id:10,desc:'副露 999万，手牌 55678条，4557999筒，白板',fuText:'999万',handText:'55678条 4557999筒 白板',standardAns:new Set(['3筒','6筒','白板'])}
+];
+
+const runBtn = document.getElementById('runAllBtn');
+const container = document.getElementById('resultContainer');
+const statBar = document.getElementById('statBar');
+runBtn.onclick = ()=>{
+    container.innerHTML = '';
+    statBar.classList.remove('hidden');
+    statBar.innerText = '===== 开始批量执行10组测试用例 =====';
+    let pass = 0, fail = 0;
+    for(const item of TEST_CASES){
+        const wrap = document.createElement('div');
+        wrap.className = 'case-card';
+        const fu = parseCardText(item.fuText);
+        const hand = parseCardText(item.handText);
+        const total = fu.length + hand.length;
+        let html = `<div class="font-bold text-lg mb-2">【用例${item.id}】${item.desc}</div>`;
+        html += `<div class="mono mb-1"><span class="label">副露牌：</span>${cardsToStrList(fu)}</div>`;
+        html += `<div class="mono mb-1"><span class="label">手牌：</span>${cardsToStrList(hand)}</div>`;
+        html += `<div class="mono mb-2"><span class="label">总牌数：</span>${total} 张（标准16）</div>`;
+        try{
+            const res = getTingList(fu, hand);
+            const calc = Array.from(res).sort();
+            const std = Array.from(item.standardAns).sort();
+            html += `<div class="mono mb-1"><span class="label text-blue-700">算法听牌：</span><span class="calc-text">${calc.length ? calc.join('、') : '无听牌'}</span></div>`;
+            html += `<div class="mono mb-2"><span class="label text-green-700">标准答案：</span><span class="correct-text">${std.length ? std.join('、') : '无听牌'}</span></div>`;
+            let match = true;
+            if(calc.length !== std.length) match = false;
+            else for(let i=0;i<calc.length;i++) if(calc[i]!==std[i]){match=false;break;}
+            if(match){
+                wrap.classList.add('pass');
+                html += '<div class="text-green-600 font-bold">✅ 测试通过</div>';
+                pass++;
+            }else{
+                wrap.classList.add('fail');
+                html += '<div class="text-red-600 font-bold">❌ 结果不匹配</div>';
+                fail++;
+            }
+        }catch(e){
+            wrap.classList.add('error');
+            html += `<div class="err-text">异常：${e.message}</div>`;
+            fail++;
+        }
+        wrap.innerHTML = html;
+        container.appendChild(wrap);
+    }
+    statBar.innerText = `===== 全部执行完毕 ===== 通过：${pass} 条 | 失败：${fail} 条`;
+};
+</script>
+</body>
+</html>
