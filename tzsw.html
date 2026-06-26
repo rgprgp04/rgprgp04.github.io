@@ -1,0 +1,2331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>📌 投资思维 · 软木板</title>
+    <style>
+        /* ============================================================
+               全局重置 & 软木板主题
+               ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, "PingFang SC", "Helvetica Neue", "Chalkboard SE", cursive, sans-serif;
+            background-color: #b38b5b;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E"), repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 2px, transparent 2px, transparent 8px), radial-gradient(circle at 20% 30%, rgba(255, 215, 175, 0.2) 0%, transparent 25%), radial-gradient(circle at 80% 70%, rgba(160, 120, 80, 0.25) 0%, transparent 30%);
+            min-height: 100vh;
+            padding: 16px 14px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: inset 0 0 120px rgba(50, 30, 10, 0.5);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ============================================================
+               顶部标题栏
+               ============================================================ */
+        .header {
+            width: 100%;
+            max-width: 720px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 4px 14px 4px;
+            position: relative;
+            z-index: 2;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-title .pin-icon {
+            font-size: 28px;
+            transform: rotate(-20deg);
+            display: inline-block;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+            animation: wiggle 3s ease-in-out infinite;
+        }
+
+        @keyframes wiggle {
+            0%,
+            100% {
+                transform: rotate(-20deg);
+            }
+            50% {
+                transform: rotate(-10deg);
+            }
+        }
+
+        .header-title h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fcf3e6;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+            letter-spacing: 1.5px;
+        }
+
+        .header-stats {
+            font-size: 12px;
+            color: rgba(245, 235, 220, 0.5);
+            background: rgba(0, 0, 0, 0.15);
+            padding: 2px 12px;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            white-space: nowrap;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: rgba(255, 242, 230, 0.10);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 242, 230, 0.15);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fcf3e6;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            letter-spacing: 0.3px;
+            font-family: inherit;
+            user-select: none;
+            touch-action: manipulation;
+            white-space: nowrap;
+        }
+
+        .btn:active {
+            transform: scale(0.94);
+            background: rgba(255, 242, 230, 0.2);
+        }
+
+        .btn-shuffle {
+            background: rgba(255, 215, 140, 0.2);
+            border-color: rgba(255, 215, 140, 0.3);
+        }
+        .btn-reset {
+            background: rgba(200, 180, 160, 0.12);
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+        .btn-add {
+            background: rgba(160, 200, 150, 0.2);
+            border-color: rgba(160, 200, 150, 0.25);
+        }
+        .btn-export {
+            background: rgba(140, 180, 220, 0.15);
+            border-color: rgba(140, 180, 220, 0.2);
+            font-size: 11px;
+            padding: 6px 12px;
+        }
+
+        /* ============================================================
+               搜索栏
+               ============================================================ */
+        .search-bar {
+            width: 100%;
+            max-width: 720px;
+            position: relative;
+            z-index: 2;
+            margin-bottom: 4px;
+            padding: 0 4px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px 16px 10px 42px;
+            border: none;
+            border-radius: 30px;
+            background: rgba(255, 248, 240, 0.15);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: #fcf3e6;
+            font-size: 14px;
+            font-family: inherit;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+        .search-bar input::placeholder {
+            color: rgba(245, 235, 220, 0.35);
+        }
+        .search-bar input:focus {
+            outline: none;
+            background: rgba(255, 248, 240, 0.25);
+            border-color: rgba(255, 215, 140, 0.2);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+        }
+        .search-bar .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .search-bar .clear-search {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(245, 235, 220, 0.3);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 4px;
+            display: none;
+        }
+        .search-bar .clear-search.show {
+            display: block;
+        }
+
+        /* ============================================================
+               便签网格
+               ============================================================ */
+        .note-grid {
+            width: 100%;
+            max-width: 720px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px 24px;
+            padding: 12px 4px 16px;
+            position: relative;
+            z-index: 2;
+            perspective: 800px;
+            min-height: 200px;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(245, 235, 220, 0.3);
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        .empty-state .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        /* ============================================================
+               单张便签
+               ============================================================ */
+        .note {
+            position: relative;
+            padding: 18px 14px 14px;
+            border-radius: 2px 2px 8px 8px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, opacity 0.3s ease;
+            cursor: grab;
+            display: flex;
+            flex-direction: column;
+            min-height: 180px;
+            will-change: transform;
+            backface-visibility: hidden;
+            background: #fffdf7;
+            transform: rotate(var(--rot, 0deg)) translateY(0px);
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.12));
+            background-image: repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.008) 0px, rgba(0, 0, 0, 0.008) 2px, transparent 2px, transparent 8px);
+            animation: float 5s ease-in-out infinite;
+            animation-delay: calc(var(--i, 0) * 0.12s);
+            user-select: none;
+        }
+
+        .note.dragging {
+            opacity: 0.5;
+            transform: rotate(0deg) scale(0.95) !important;
+            animation-play-state: paused;
+            cursor: grabbing;
+            z-index: 100;
+        }
+
+        .note.drag-over {
+            transform: rotate(0deg) scale(1.02) !important;
+            box-shadow: 0 0 0 3px rgba(255, 215, 140, 0.4);
+        }
+
+        @keyframes float {
+            0% {
+                transform: rotate(var(--rot, 0deg)) translateY(0px);
+            }
+            50% {
+                transform: rotate(var(--rot, 0deg)) translateY(-6px);
+            }
+            100% {
+                transform: rotate(var(--rot, 0deg)) translateY(0px);
+            }
+        }
+
+        .note::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            right: 0;
+            height: 12px;
+            background: radial-gradient(circle at 10% 100%, transparent 8px, #fffdf7 8px), radial-gradient(circle at 30% 100%, transparent 8px, #fffdf7 8px), radial-gradient(circle at 50% 100%, transparent 8px, #fffdf7 8px), radial-gradient(circle at 70% 100%, transparent 8px, #fffdf7 8px), radial-gradient(circle at 90% 100%, transparent 8px, #fffdf7 8px);
+            background-size: 20% 100%;
+            background-repeat: repeat-x;
+            filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.04));
+            pointer-events: none;
+        }
+
+        .note::before {
+            content: '';
+            position: absolute;
+            top: -11px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 22px;
+            height: 22px;
+            background: radial-gradient(circle at 35% 30%, #ffe4a0, #c4882b 70%, #8a5e1a);
+            border-radius: 50%;
+            box-shadow: inset -3px -3px 8px rgba(0, 0, 0, 0.4), inset 3px 3px 8px rgba(255, 220, 140, 0.7), 0 4px 10px rgba(0, 0, 0, 0.25);
+            z-index: 5;
+            border: 1px solid rgba(255, 200, 100, 0.4);
+            pointer-events: none;
+        }
+
+        .note .corner-fold {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(225deg, transparent 50%, rgba(0, 0, 0, 0.03) 50%);
+            pointer-events: none;
+            z-index: 2;
+            border-radius: 0 2px 0 0;
+        }
+
+        .note-buffett {
+            background: #fdf4e3;
+        }
+        .note-buffett::after {
+            background: radial-gradient(circle at 10% 100%, transparent 8px, #fdf4e3 8px), radial-gradient(circle at 30% 100%, transparent 8px, #fdf4e3 8px), radial-gradient(circle at 50% 100%, transparent 8px, #fdf4e3 8px), radial-gradient(circle at 70% 100%, transparent 8px, #fdf4e3 8px), radial-gradient(circle at 90% 100%, transparent 8px, #fdf4e3 8px);
+            background-size: 20% 100%;
+            background-repeat: repeat-x;
+        }
+        .note-munger {
+            background: #e5f0f9;
+        }
+        .note-munger::after {
+            background: radial-gradient(circle at 10% 100%, transparent 8px, #e5f0f9 8px), radial-gradient(circle at 30% 100%, transparent 8px, #e5f0f9 8px), radial-gradient(circle at 50% 100%, transparent 8px, #e5f0f9 8px), radial-gradient(circle at 70% 100%, transparent 8px, #e5f0f9 8px), radial-gradient(circle at 90% 100%, transparent 8px, #e5f0f9 8px);
+            background-size: 20% 100%;
+            background-repeat: repeat-x;
+        }
+        .note-marks {
+            background: #e6f5ea;
+        }
+        .note-marks::after {
+            background: radial-gradient(circle at 10% 100%, transparent 8px, #e6f5ea 8px), radial-gradient(circle at 30% 100%, transparent 8px, #e6f5ea 8px), radial-gradient(circle at 50% 100%, transparent 8px, #e6f5ea 8px), radial-gradient(circle at 70% 100%, transparent 8px, #e6f5ea 8px), radial-gradient(circle at 90% 100%, transparent 8px, #e6f5ea 8px);
+            background-size: 20% 100%;
+            background-repeat: repeat-x;
+        }
+        .note-lynch {
+            background: #f4edf7;
+        }
+        .note-lynch::after {
+            background: radial-gradient(circle at 10% 100%, transparent 8px, #f4edf7 8px), radial-gradient(circle at 30% 100%, transparent 8px, #f4edf7 8px), radial-gradient(circle at 50% 100%, transparent 8px, #f4edf7 8px), radial-gradient(circle at 70% 100%, transparent 8px, #f4edf7 8px), radial-gradient(circle at 90% 100%, transparent 8px, #f4edf7 8px);
+            background-size: 20% 100%;
+            background-repeat: repeat-x;
+        }
+        .note-graham {
+            background: #fce8e0;
+        }
+        .note-graham::after {
+            background: radial-gradient(circle at 10% 100%, transparent 8px, #fce8e0 8px), radial-gradient(circle at 30% 100%, transparent 8px, #fce8e0 8px), radial-gradient(circle at 50% 100%, transparent 8px, #fce8e0 8px), radial-gradient(circle at 70% 100%, transparent 8px, #fce8e0 8px), radial-gradient(circle at 90% 100%, transparent 8px, #fce8e0 8px);
+            background-size: 20% 100%;
+            background-repeat: repeat-x;
+        }
+        .note-soros {
+            background: #e8edf5;
+        }
+        .note-soros::after {
+            background: radial-gradient(circle at 10% 100%, transparent 8px, #e8edf5 8px), radial-gradient(circle at 30% 100%, transparent 8px, #e8edf5 8px), radial-gradient(circle at 50% 100%, transparent 8px, #e8edf5 8px), radial-gradient(circle at 70% 100%, transparent 8px, #e8edf5 8px), radial-gradient(circle at 90% 100%, transparent 8px, #e8edf5 8px);
+            background-size: 20% 100%;
+            background-repeat: repeat-x;
+        }
+
+        .note-custom {
+            /* 背景由 JS 设置 */;
+        }
+        .note-custom::after {
+            background: none;
+        }
+
+        .note:active {
+            transform: rotate(var(--rot, 0deg)) scale(0.96) !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+            transition-duration: 0.06s;
+            animation-play-state: paused;
+        }
+
+        .note.hidden-note {
+            display: none;
+        }
+
+        .note-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .note-avatar {
+            font-size: 26px;
+            line-height: 1;
+            flex-shrink: 0;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.04));
+        }
+        .note-avatar-custom {
+            font-size: 22px;
+        }
+
+        .note-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #3d322a;
+            letter-spacing: 0.2px;
+            line-height: 1.2;
+            flex: 1;
+        }
+        .note-name .sub {
+            font-weight: 400;
+            font-size: 10px;
+            color: rgba(61, 50, 42, 0.4);
+            display: block;
+            margin-top: 0px;
+        }
+
+        .note-actions-top {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            margin-left: auto;
+        }
+
+        .note-fav {
+            background: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            opacity: 0.2;
+            transition: all 0.2s;
+            padding: 0 2px;
+            line-height: 1;
+        }
+        .note-fav.active {
+            opacity: 1;
+        }
+        .note-fav:active {
+            transform: scale(1.2);
+        }
+
+        .note-tag {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.04);
+            padding: 1px 10px;
+            border-radius: 10px;
+            font-size: 9px;
+            font-weight: 600;
+            color: #4a3f36;
+            letter-spacing: 0.2px;
+            align-self: flex-start;
+            margin-bottom: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            position: relative;
+            z-index: 1;
+        }
+
+        .note-quote {
+            font-size: 12.5px;
+            line-height: 1.6;
+            color: #3d322a;
+            font-weight: 500;
+            padding: 2px 0 4px;
+            flex: 1;
+            position: relative;
+            z-index: 1;
+            font-style: italic;
+            word-break: break-word;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .note-quote::before {
+            content: '"';
+            font-size: 18px;
+            color: rgba(61, 50, 42, 0.10);
+            margin-right: 1px;
+            font-weight: 700;
+            font-style: normal;
+        }
+        .note-quote::after {
+            content: '"';
+            font-size: 18px;
+            color: rgba(61, 50, 42, 0.10);
+            margin-left: 1px;
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        .note-idea {
+            font-size: 10.5px;
+            color: rgba(61, 50, 42, 0.55);
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px dashed rgba(61, 50, 42, 0.06);
+            line-height: 1.4;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: flex-start;
+            gap: 5px;
+        }
+        .note-idea .icon {
+            font-size: 11px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .note-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .note-date {
+            font-size: 9px;
+            color: rgba(61, 50, 42, 0.2);
+            letter-spacing: 0.3px;
+        }
+
+        .note-hint {
+            font-size: 8px;
+            color: rgba(61, 50, 42, 0.15);
+            letter-spacing: 0.3px;
+            transition: color 0.3s;
+        }
+        .note:hover .note-hint {
+            color: rgba(61, 50, 42, 0.3);
+        }
+
+        .note-delete {
+            background: none;
+            border: none;
+            font-size: 14px;
+            color: rgba(61, 50, 42, 0.15);
+            cursor: pointer;
+            padding: 0 3px;
+            transition: color 0.2s, transform 0.2s;
+            line-height: 1;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .note:hover .note-delete {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .note-delete:active {
+            transform: scale(1.2);
+            color: #c0392b;
+        }
+
+        /* ============================================================
+               主模态框
+               ============================================================ */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(30, 18, 8, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 16px;
+            opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-card {
+            background: #fcf9f5;
+            border-radius: 24px;
+            max-width: 460px;
+            width: 100%;
+            padding: 28px 24px 24px;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+            transform: scale(0.92) translateY(30px) rotate(-1deg);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
+            opacity: 0;
+            max-height: 92vh;
+            overflow-y: auto;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1) translateY(0) rotate(0deg);
+            opacity: 1;
+        }
+
+        .modal-close {
+            position: sticky;
+            top: 0;
+            float: right;
+            font-size: 22px;
+            background: rgba(0, 0, 0, 0.03);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            color: #6b5d52;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2px;
+            backdrop-filter: blur(4px);
+            z-index: 10;
+        }
+
+        .modal-close:active {
+            background: rgba(0, 0, 0, 0.08);
+            transform: scale(0.92);
+        }
+
+        .modal-avatar {
+            font-size: 44px;
+            display: block;
+            margin-bottom: 0px;
+        }
+
+        .modal-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2d241e;
+            margin-bottom: 0px;
+        }
+
+        .modal-tag {
+            font-size: 12px;
+            color: #6b5d52;
+            background: rgba(0, 0, 0, 0.04);
+            display: inline-block;
+            padding: 3px 14px;
+            border-radius: 16px;
+            margin-bottom: 14px;
+            font-weight: 500;
+        }
+
+        .modal-bio {
+            font-size: 13.5px;
+            line-height: 1.7;
+            color: #4a3f36;
+            background: rgba(0, 0, 0, 0.02);
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border-left: 3px solid rgba(180, 140, 100, 0.25);
+        }
+
+        .modal-section-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #4a3f36;
+            margin: 16px 0 8px;
+            letter-spacing: 0.8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .modal-section-title span {
+            background: rgba(0, 0, 0, 0.04);
+            padding: 0 10px;
+            border-radius: 10px;
+            font-size: 9px;
+        }
+
+        /* ----- 语录列表（每条都是可点击的链接） ----- */
+        .modal-quotes {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 10px;
+        }
+
+        .modal-quotes li {
+            padding: 8px 0 8px 18px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            font-size: 13.5px;
+            line-height: 1.6;
+            color: #3d322a;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-radius: 4px;
+        }
+
+        .modal-quotes li:hover {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .modal-quotes li:last-child {
+            border-bottom: none;
+        }
+
+        .modal-quotes li .quote-link {
+            color: #4a3f36;
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            text-underline-offset: 4px;
+            text-decoration-color: rgba(180, 140, 100, 0.3);
+            transition: color 0.2s, text-decoration-color 0.2s;
+            display: inline;
+            cursor: pointer;
+        }
+
+        .modal-quotes li .quote-link:hover {
+            color: #8a6a4a;
+            text-decoration-color: rgba(180, 140, 100, 0.7);
+        }
+
+        .modal-quotes li .quote-link-hint {
+            font-size: 10px;
+            color: rgba(61, 50, 42, 0.2);
+            margin-left: 6px;
+            white-space: nowrap;
+        }
+
+        .modal-quotes li::before {
+            content: "“";
+            position: absolute;
+            left: 0;
+            top: 8px;
+            font-size: 16px;
+            color: rgba(61, 50, 42, 0.10);
+            font-weight: 700;
+        }
+
+        .modal-quotes li::after {
+            content: "”";
+            font-size: 16px;
+            color: rgba(61, 50, 42, 0.10);
+            font-weight: 700;
+        }
+
+        .modal-books {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 2px;
+        }
+
+        .modal-books span {
+            background: rgba(180, 140, 100, 0.10);
+            padding: 3px 12px;
+            border-radius: 16px;
+            font-size: 11.5px;
+            color: #5a4a3a;
+            border: 1px solid rgba(180, 140, 100, 0.08);
+        }
+
+        .modal-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+            gap: 10px;
+        }
+
+        .modal-nav .btn {
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            color: #4a3f36;
+            padding: 5px 14px;
+            font-size: 11.5px;
+            border-radius: 30px;
+            flex: 1;
+            justify-content: center;
+            box-shadow: none;
+        }
+
+        .modal-nav .btn:active {
+            background: rgba(0, 0, 0, 0.08);
+        }
+
+        .modal-source {
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(0, 0, 0, 0.03);
+            font-size: 10.5px;
+            color: #8a7a6a;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        /* ============================================================
+               语录详情弹窗（独立于主模态框之上）
+               ============================================================ */
+        .quote-detail-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(20, 12, 6, 0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .quote-detail-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .quote-detail-card {
+            background: #fcf9f5;
+            border-radius: 20px;
+            max-width: 420px;
+            width: 100%;
+            padding: 28px 24px 24px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+            transform: scale(0.92) translateY(20px);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+            opacity: 0;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .quote-detail-overlay.active .quote-detail-card {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        .quote-detail-close {
+            position: sticky;
+            top: 0;
+            float: right;
+            font-size: 20px;
+            background: rgba(0, 0, 0, 0.03);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            color: #6b5d52;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 4px;
+            backdrop-filter: blur(4px);
+            z-index: 10;
+        }
+
+        .quote-detail-close:active {
+            background: rgba(0, 0, 0, 0.08);
+            transform: scale(0.92);
+        }
+
+        .quote-detail-original {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d241e;
+            padding: 4px 0 12px 0;
+            line-height: 1.6;
+            font-style: italic;
+            border-bottom: 2px solid rgba(180, 140, 100, 0.15);
+            margin-bottom: 16px;
+        }
+
+        .quote-detail-original::before {
+            content: '"';
+            font-size: 22px;
+            color: rgba(61, 50, 42, 0.12);
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        .quote-detail-original::after {
+            content: '"';
+            font-size: 22px;
+            color: rgba(61, 50, 42, 0.12);
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        .quote-detail-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #8a7a6a;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .quote-detail-body {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #3d322a;
+            padding: 4px 0;
+        }
+
+        .quote-detail-body p {
+            margin-bottom: 10px;
+        }
+
+        .quote-detail-body p:last-child {
+            margin-bottom: 0;
+        }
+
+        .quote-detail-master {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+            font-size: 12px;
+            color: #8a7a6a;
+            text-align: right;
+            letter-spacing: 0.3px;
+        }
+
+        /* ============================================================
+               添加表单（在模态框内）
+               ============================================================ */
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #4a3f36;
+            margin-bottom: 3px;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 14px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            font-size: 13.5px;
+            font-family: inherit;
+            background: #fff;
+            transition: border 0.2s;
+            resize: vertical;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: rgba(180, 140, 100, 0.35);
+            box-shadow: 0 0 0 3px rgba(180, 140, 100, 0.08);
+        }
+        .form-group textarea {
+            min-height: 70px;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            padding: 4px 0;
+        }
+        .color-option {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: border 0.2s, transform 0.2s;
+        }
+        .color-option.active {
+            border-color: #3d322a;
+            transform: scale(1.1);
+        }
+        .color-option:active {
+            transform: scale(0.9);
+        }
+
+        .modal-submit {
+            width: 100%;
+            padding: 10px;
+            background: rgba(180, 140, 100, 0.18);
+            border: 1px solid rgba(180, 140, 100, 0.25);
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #4a3f36;
+            cursor: pointer;
+            transition: all 0.25s;
+            margin-top: 4px;
+        }
+        .modal-submit:active {
+            transform: scale(0.96);
+            background: rgba(180, 140, 100, 0.3);
+        }
+
+        /* ============================================================
+               底部
+               ============================================================ */
+        .footer {
+            width: 100%;
+            max-width: 720px;
+            text-align: center;
+            padding-top: 20px;
+            font-size: 10.5px;
+            color: rgba(245, 235, 220, 0.2);
+            letter-spacing: 1.5px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            margin-top: 8px;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        /* ============================================================
+               Toast 通知
+               ============================================================ */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: rgba(30, 20, 12, 0.85);
+            backdrop-filter: blur(12px);
+            padding: 10px 24px;
+            border-radius: 30px;
+            color: #fcf3e6;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 3000;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0px);
+        }
+
+        /* ============================================================
+               响应式
+               ============================================================ */
+        @media (max-width: 640px) {
+            .note-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 26px 18px;
+            }
+            .note {
+                min-height: 160px;
+                padding: 16px 12px 12px;
+            }
+            .note-name {
+                font-size: 13px;
+            }
+            .note-avatar {
+                font-size: 22px;
+            }
+            .note-quote {
+                font-size: 11.5px;
+            }
+            .note-idea {
+                font-size: 10px;
+            }
+            .note-tag {
+                font-size: 8px;
+                padding: 1px 8px;
+            }
+            .header-title h1 {
+                font-size: 18px;
+            }
+            .btn {
+                font-size: 10.5px;
+                padding: 5px 10px;
+            }
+            .modal-card {
+                padding: 22px 16px 18px;
+            }
+            .modal-name {
+                font-size: 20px;
+            }
+            .modal-quotes li {
+                font-size: 12.5px;
+                padding: 6px 0 6px 16px;
+            }
+            .modal-bio {
+                font-size: 12.5px;
+                padding: 10px 12px;
+            }
+            .note::before {
+                width: 18px;
+                height: 18px;
+                top: -9px;
+            }
+            .note::after {
+                bottom: -5px;
+                height: 10px;
+                background-size: 20% 100%;
+            }
+            .note-delete {
+                opacity: 0.4;
+                pointer-events: auto;
+            }
+            .note-fav {
+                font-size: 12px;
+            }
+            .header-stats {
+                font-size: 10px;
+                padding: 1px 10px;
+            }
+            .search-bar input {
+                font-size: 12px;
+                padding: 8px 14px 8px 36px;
+            }
+            .search-bar .search-icon {
+                font-size: 14px;
+                left: 14px;
+            }
+            .note .corner-fold {
+                width: 20px;
+                height: 20px;
+            }
+            .quote-detail-card {
+                padding: 22px 18px 18px;
+            }
+            .quote-detail-original {
+                font-size: 14px;
+            }
+            .quote-detail-body {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .note-grid {
+                grid-template-columns: 1fr;
+                gap: 28px;
+                max-width: 340px;
+                margin: 0 auto;
+            }
+            .note {
+                min-height: 140px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 4px;
+            }
+            .header-left {
+                justify-content: space-between;
+            }
+            .header-actions {
+                justify-content: flex-start;
+            }
+            .header-title h1 {
+                font-size: 16px;
+            }
+            .btn {
+                font-size: 10px;
+                padding: 4px 10px;
+            }
+            .header-title .pin-icon {
+                font-size: 22px;
+            }
+        }
+
+        @media (min-width: 641px) {
+            .note-grid {
+                gap: 36px 28px;
+            }
+            .note {
+                min-height: 220px;
+                padding: 22px 20px 16px;
+            }
+            .note-avatar {
+                font-size: 32px;
+            }
+            .note-name {
+                font-size: 17px;
+            }
+            .note-quote {
+                font-size: 14px;
+            }
+            .note-idea {
+                font-size: 11.5px;
+            }
+            .header-title h1 {
+                font-size: 26px;
+            }
+            .note::before {
+                width: 26px;
+                height: 26px;
+                top: -13px;
+            }
+            .modal-card {
+                padding: 36px 32px 28px;
+            }
+            .note .corner-fold {
+                width: 32px;
+                height: 32px;
+            }
+        }
+
+        /* 工具类 */
+        .hidden {
+            display: none !important;
+        }
+        .no-scroll {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+        .note-grid.shuffling .note {
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease, opacity 0.3s ease;
+            animation-play-state: paused;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+    顶部标题栏
+    ============================================================ -->
+    <header class="header">
+        <div class="header-left">
+            <div class="header-title">
+                <span class="pin-icon">📌</span>
+                <h1>思维软木板</h1>
+            </div>
+            <span class="header-stats" id="statsDisplay">0 张便签</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-add" id="addNoteBtn">➕ 添加</button>
+            <button class="btn btn-shuffle" id="shuffleBtn">🎲 随机</button>
+            <button class="btn btn-reset" id="resetBtn">↺ 重置</button>
+            <button class="btn btn-export" id="exportBtn">📤 导出</button>
+        </div>
+    </header>
+
+    <!-- ============================================================
+    搜索栏
+    ============================================================ -->
+    <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="搜索便签标题、内容或大师名字..." />
+        <button class="clear-search" id="clearSearchBtn">✕</button>
+    </div>
+
+    <!-- ============================================================
+    便签网格
+    ============================================================ -->
+    <main class="note-grid" id="noteGrid"></main>
+
+    <!-- ============================================================
+    底部
+    ============================================================ -->
+    <footer class="footer">— 拖拽便签可自由排序 · 点击语录链接查看深度解读 —</footer>
+
+    <!-- ============================================================
+    Toast
+    ============================================================ -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ============================================================
+    主模态框（阅读大师 & 添加便签）
+    ============================================================ -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card" id="modalCard">
+            <button class="modal-close" id="modalClose">✕</button>
+            <!-- 阅读模式 -->
+            <div id="readMode">
+                <div class="modal-avatar" id="modalAvatar">🧠</div>
+                <div class="modal-name" id="modalName">大师姓名</div>
+                <div class="modal-tag" id="modalTag">核心标签</div>
+                <div class="modal-bio" id="modalBio">人物简介</div>
+                <div class="modal-section-title">📖 经典语录 <span>点击查看深度解读</span></div>
+                <ul class="modal-quotes" id="modalQuotes"></ul>
+                <div class="modal-section-title">📚 代表著作</div>
+                <div class="modal-books" id="modalBooks"></div>
+                <div class="modal-nav">
+                    <button class="btn" id="prevMasterBtn">◀ 上一位</button>
+                    <button class="btn" id="nextMasterBtn">下一位 ▶</button>
+                </div>
+            </div>
+            <!-- 添加/编辑模式 -->
+            <div id="addMode" style="display:none;">
+                <div style="text-align:center; margin-bottom:8px;">
+                    <span style="font-size:30px;">📝</span>
+                    <h2 style="font-size:19px; color:#3d322a; margin-top:2px;" id="addModeTitle">记录投资灵感</h2>
+                </div>
+                <div class="form-group">
+                    <label>标题 / 核心思想</label>
+                    <input type="text" id="noteTitleInput" placeholder="例如：安全边际" maxlength="40" />
+                </div>
+                <div class="form-group">
+                    <label>详细内容</label>
+                    <textarea id="noteContentInput" placeholder="写下你的投资思维……"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>便签颜色</label>
+                    <div class="color-picker" id="colorPicker">
+                        <span class="color-option active" style="background:#fdf4e3;" data-color="#fdf4e3"></span>
+                        <span class="color-option" style="background:#e5f0f9;" data-color="#e5f0f9"></span>
+                        <span class="color-option" style="background:#e6f5ea;" data-color="#e6f5ea"></span>
+                        <span class="color-option" style="background:#f4edf7;" data-color="#f4edf7"></span>
+                        <span class="color-option" style="background:#fce4e4;" data-color="#fce4e4"></span>
+                        <span class="color-option" style="background:#e8f5e9;" data-color="#e8f5e9"></span>
+                        <span class="color-option" style="background:#fff3e0;" data-color="#fff3e0"></span>
+                        <span class="color-option" style="background:#e3f2fd;" data-color="#e3f2fd"></span>
+                    </div>
+                </div>
+                <button class="modal-submit" id="saveNoteBtn">📌 钉上便签</button>
+            </div>
+            <div class="modal-source" id="modalSource">— 投资思维的深度共鸣 —</div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    语录详情弹窗（独立于主模态框）
+    ============================================================ -->
+    <div class="quote-detail-overlay" id="quoteDetailOverlay">
+        <div class="quote-detail-card" id="quoteDetailCard">
+            <button class="quote-detail-close" id="quoteDetailClose">✕</button>
+            <div class="quote-detail-original" id="quoteDetailOriginal">语录原文</div>
+            <div class="quote-detail-label">📖 深度解读</div>
+            <div class="quote-detail-body" id="quoteDetailBody">
+                <p>详细解读内容……</p>
+            </div>
+            <div class="quote-detail-master" id="quoteDetailMaster">— 来自大师的智慧</div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  大师数据（6位，每条语录带详细解读）
+        // ============================================================
+        const MASTERS = [{
+            id: 'buffett',
+            name: '沃伦·巴菲特',
+            avatar: '🧠',
+            tag: '价值投资 · 长期持有',
+            bio: '伯克希尔·哈撒韦董事长，被誉为“奥马哈的先知”。倡导以合理价格买入优质企业，并长期持有，复利是世界第八大奇迹。',
+            quote: '别人贪婪时我恐惧，别人恐惧时我贪婪',
+            idea: '以合理的价格买入优秀的企业，然后耐心持有',
+            colorClass: 'note-buffett',
+            rotate: -2.2,
+            books: ['《聪明的投资者》序言', '《巴菲特致股东的信》', '《滚雪球》'],
+            quotes: [
+                { text: '别人贪婪时我恐惧，别人恐惧时我贪婪',
+                    detail: '逆向投资的核心要义。市场情绪往往在极端时出现错误定价，当所有人都贪婪时，资产价格被推高，风险增大；当所有人都恐惧时，资产价格被压低，机会显现。巴菲特强调利用市场情绪而非被其左右，在恐慌中买入，在狂热中卖出。' },
+                { text: '以合理的价格买入优秀的企业，远比以低廉的价格买入平庸的企业要好',
+                    detail: '质量优于价格。巴菲特的投资哲学从早期的"捡烟蒂"策略转向"以合理价格买入伟大公司"，因为优秀企业的复利效应远大于廉价平庸企业的短期折扣。伟大企业的持续成长能力是长期回报的核心驱动力。' },
+                { text: '如果你不愿意持有一只股票十年，那就不要考虑持有它十分钟',
+                    detail: '长期投资视角。在买入之前，投资者应该以持有十年以上的心态来评估企业，这意味着关注企业的长期竞争力和商业模式，而非短期价格波动。只有真正理解并信任一家企业的内在价值，才能穿越市场周期。' },
+                { text: '投资的第一条规则是不要赔钱；第二条规则是永远不要忘记第一条',
+                    detail: '风险控制是投资的第一要务。保住本金是复利增长的前提，任何投资决策都应首先考虑下行风险，而非上行收益。巴菲特强调"安全边际"的重要性，始终以防御性思维来构建投资组合。' },
+                { text: '价格是你付出的，价值是你得到的',
+                    detail: '价格与价值的本质区分。市场价格是支付的对价，而内在价值是实际获得的价值。投资者应关注价值而非价格，在价格低于内在价值时买入，在价格远高于内在价值时卖出。这需要对企业进行深入的基本面分析。' }
+            ]
+        }, {
+            id: 'munger',
+            name: '查理·芒格',
+            avatar: '🔍',
+            tag: '多元思维 · 逆向思考',
+            bio: '伯克希尔·哈撒韦副董事长，巴菲特的黄金搭档。提倡"多元思维模型"，用跨学科的知识解决复杂问题，强调逆向思考。',
+            quote: '反过来想，总是反过来想',
+            idea: '建立多元思维模型，避免认知偏差',
+            colorClass: 'note-munger',
+            rotate: 2.5,
+            books: ['《穷查理宝典》', '《查理·芒格的原则》', '《探索智慧》'],
+            quotes: [
+                { text: '反过来想，总是反过来想',
+                    detail: '逆向思维方法论。通过思考"如何把事情搞砸"来反向推导"如何把事情做好"，这种思维方式帮助投资者避免常见的认知陷阱和决策错误。芒格认为，大多数问题在反向思考时会变得更加清晰。' },
+                { text: '在手里拿着锤子的人看来，世界就像一个钉子',
+                    detail: '多元思维模型的重要性。单一学科的思维框架会导致认知偏差，投资者需要掌握多个学科（心理学、物理学、生物学、经济学等）的核心模型，才能更全面地理解复杂问题，避免"锤子综合症"。' },
+                { text: '我这一生中，从未见过不读书的智者',
+                    detail: '终身学习是智慧的基础。芒格强调广泛阅读的重要性，通过阅读不同领域的书籍来构建多元思维模型，提升认知水平。他认为，阅读不仅是获取知识的途径，更是培养独立思考能力的方式。' },
+                { text: '投资中最重要的是避免愚蠢，而不是追求聪明',
+                    detail: '防御性投资哲学。与其追求超额收益的"聪明"决策，不如避免重大错误。长期来看，避免愚蠢比追求聪明更能带来成功，因为一次重大失误可能抹去多年的复利积累。' },
+                { text: '宏观是我们必须接受的，微观才是我们可以有所作为的',
+                    detail: '关注可控因素。宏观经济的波动和趋势是不可控的，投资者应专注于企业基本面、行业竞争格局、管理层质量等微观因素，在这些方面深入研究并做出决策，而非浪费精力在宏观预测上。' }
+            ]
+        }, {
+            id: 'marks',
+            name: '霍华德·马克思',
+            avatar: '🔄',
+            tag: '周期思维 · 第二层次',
+            bio: '橡树资本管理公司联合创始人。专注于市场周期研究，提出"第二层次思维"，认为投资成功的关键在于超越市场共识。',
+            quote: '我们无法预测周期，但可以感知周期',
+            idea: '第二层次思维，超越市场共识',
+            colorClass: 'note-marks',
+            rotate: -1.8,
+            books: ['《投资最重要的事》', '《周期》', '《把握市场》'],
+            quotes: [
+                { text: '市场周期是永恒的，我们无法预测周期，但可以感知周期',
+                    detail: '周期思维的核心。市场总是在极端之间摆动，投资者无法精确预测周期转折点，但可以通过观察市场情绪、估值水平、资金流向等指标来感知当前所处的位置，从而做出更理性的资产配置决策。' },
+                { text: '第二层次思维是："情况很好，但每个人都认为情况很好，所以我要卖出"',
+                    detail: '超越第一层反应的深度思考。第一层次思维是"情况很好，买入"；第二层次思维是"情况很好，但所有人都知道，所以应该卖出"。投资者需要比市场共识想得更深一层，才能获得超额收益。' },
+                { text: '最重要的不是预测未来，而是为未来做好准备',
+                    detail: '未来不可预测，但可以应对。投资者应该构建具有安全边际的投资组合，以应对各种可能的未来情景，而非押注于单一预测。准备比预测更重要，弹性比精确更有价值。' },
+                { text: '风险是损失的可能性，而不是波动的可能性',
+                    detail: '风险的准确定义。波动性不等于风险，真正的风险是永久性资本损失的可能性。投资者应关注基本面恶化、杠杆过高、估值泡沫等导致的损失风险，而非简单地将波动视为风险指标。' },
+                { text: '在投资中，没有什么是确定的，只有概率',
+                    detail: '概率思维。投资决策本质上是概率判断，投资者应基于胜率（盈利概率）和赔率（盈利幅度）做出决策，接受不确定性，并管理好尾部风险。确定性的幻觉是投资中最危险的陷阱之一。' }
+            ]
+        }, {
+            id: 'lynch',
+            name: '彼得·林奇',
+            avatar: '📈',
+            tag: '成长投资 · 生活发现',
+            bio: '富达麦哲伦基金前基金经理，创造了13年年均29%的回报神话。倡导从日常生活中发现十倍股，业余投资者拥有天然优势。',
+            quote: '投资你所了解的',
+            idea: '从日常生活中发现伟大的投资机会',
+            colorClass: 'note-lynch',
+            rotate: 1.6,
+            books: ['《彼得·林奇的成功投资》', '《战胜华尔街》', '《学以致富》'],
+            quotes: [
+                { text: '投资你所了解的',
+                    detail: '能力圈原则。投资者应专注于自己熟悉的领域和行业，利用日常生活中的观察和专业知识来发现投资机会，而不是追逐不熟悉的"热门"概念。了解一个行业和公司，是投资成功的基础。' },
+                { text: '在股市中，业余投资者比专业投资者有更多优势',
+                    detail: '业余投资者的独特优势。业余投资者不受短期业绩压力，可以长期持有，并且能够利用日常生活经验发现被华尔街忽视的机会。普通人在消费、工作中接触到的大量公司，正是投资机会的源泉。' },
+                { text: '如果你在股市中很幸运，那么你会赚很多钱；但如果你很聪明，那么你会赚更多的钱',
+                    detail: '运气与智慧的关系。运气可能带来短期收益，但真正的超额收益来自于深入的研究和正确的投资决策。聪明意味着理解商业模式、评估管理层、判断竞争优势，这些能力可以持续产生回报。' },
+                { text: '不要试图预测市场，而是寻找好公司',
+                    detail: '自下而上的投资方法。与其预测市场走势，不如专注于寻找优秀的公司。好的公司能够穿越周期，为投资者创造价值。市场预测本质上是徒劳的，而好公司的研究是可以积累的。' },
+                { text: '十年来一直持有好公司，比频繁交易要好得多',
+                    detail: '长期持有优于频繁交易。频繁交易增加成本并错失复利效应，长期持有优质公司能够最大化投资回报。好公司的价值需要时间来体现，耐心是投资者最宝贵的品质之一。' }
+            ]
+        }, {
+            id: 'graham',
+            name: '本杰明·格雷厄姆',
+            avatar: '📊',
+            tag: '价值投资 · 安全边际',
+            bio: '价值投资之父，巴菲特的老师。《证券分析》和《聪明的投资者》的作者，提出了"市场先生"和"安全边际"的经典概念。',
+            quote: '市场短期是一台投票机，但长期是一台称重机',
+            idea: '安全边际是价值投资的核心基石',
+            colorClass: 'note-graham',
+            rotate: -1.0,
+            books: ['《证券分析》', '《聪明的投资者》', '《财务报表解读》'],
+            quotes: [
+                { text: '市场短期是一台投票机，但长期是一台称重机',
+                    detail: '短期与长期的价格决定机制。短期价格由市场情绪和资金流向决定（投票），充满噪音和随机性；长期价格由企业的内在价值决定（称重），回归基本面。投资者应关注长期称重结果，而非短期投票波动。' },
+                { text: '安全边际是价值投资的核心',
+                    detail: '安全边际的定义与重要性。以低于内在价值的价格买入，为判断误差和市场波动提供缓冲，是价值投资最核心的概念。安全边际越大，投资的风险越低，潜在回报越高。' },
+                { text: '投资操作是基于透彻的分析，承诺本金安全以及获得令人满意的回报',
+                    detail: '投资的严格定义。投资必须基于分析（而非猜测）、保证本金安全（而非赌博）、并追求合理回报（而非暴利），三者缺一不可。这个定义将投资与投机严格区分开来。' },
+                { text: '市场先生是你的仆人，而不是你的向导',
+                    detail: '利用市场情绪。市场先生的情绪波动是投资者的机会，而不是需要跟随的指引。投资者应利用市场恐慌时买入、市场狂热时卖出，做市场的主人而非仆人。' },
+                { text: '聪明的投资者是现实主义者，他们向乐观主义者卖出，向悲观主义者买入',
+                    detail: '逆向操作的艺术。在市场乐观、价格高企时卖出（向乐观主义者卖出），在市场悲观、价格低廉时买入（向悲观主义者买入）。这是理性投资者的行为模式，也是价值投资的精髓。' }
+            ]
+        }, {
+            id: 'soros',
+            name: '乔治·索罗斯',
+            avatar: '🌊',
+            tag: '反身性 · 宏观投资',
+            bio: '量子基金创始人，以"反身性理论"闻名。认为市场参与者的偏见会扭曲价格，而价格变化又会改变基本面，形成自我强化的循环。',
+            quote: '市场总是错的，但市场也总能自我修正',
+            idea: '理解反身性，把握市场失衡中的机会',
+            colorClass: 'note-soros',
+            rotate: 2.0,
+            books: ['《金融炼金术》', '《索罗斯论全球化》', '《反身性理论》'],
+            quotes: [
+                { text: '市场总是错的，但市场也总能自我修正',
+                    detail: '市场偏差与修正机制。市场参与者的认知总是存在偏见，导致价格偏离均衡，但价格变化又会改变基本面，形成自我修正的过程。投资者应识别市场错误，在偏差最大时采取行动。' },
+                { text: '反身性理论的核心是：参与者的认知与事实之间存在双向反馈',
+                    detail: '反身性的本质。参与者的认知影响事实，事实又反过来影响认知，形成循环反馈。这种双向反馈导致市场非均衡状态，是理解市场泡沫、崩溃和趋势的核心概念。' },
+                { text: '重要的不是判断市场是否正确，而是判断市场的错误有多大',
+                    detail: '错误的程度比方向更重要。市场总是存在偏差，投资者应该评估偏差的大小，在偏差足够大时采取行动。市场的错误程度决定了潜在的机会规模。' },
+                { text: '在金融市场中，不确定性是唯一的确定性',
+                    detail: '接受不确定性。金融市场的本质是不确定的，任何预测都带有不确定性。投资者应该承认并管理这种不确定性，而非试图消除它。不确定性是风险的来源，也是机会的土壤。' },
+                { text: '我之所以成功，是因为我比别人更善于认错',
+                    detail: '纠错能力是成功的关键。成功的投资者不是不犯错，而是能够快速识别错误并及时纠正，减少损失，保护资本。认错不是软弱，而是智慧和勇气的体现。' }
+            ]
+        }];
+
+        // ============================================================
+        //  自定义便签数据（localStorage）
+        // ============================================================
+        const STORAGE_KEY = 'investment_notes_custom_v3';
+        let customNotes = [];
+
+        function loadCustomNotes() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                customNotes = data ? JSON.parse(data) : [];
+            } catch (_) { customNotes = []; }
+        }
+
+        function saveCustomNotes() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(customNotes));
+        }
+
+        // ============================================================
+        //  组合所有便签
+        // ============================================================
+        function getAllNotes() {
+            const masters = MASTERS.map((m, idx) => ({
+                ...m,
+                _type: 'master',
+                _index: idx,
+                _id: 'master-' + idx,
+                isCustom: false,
+                title: m.name,
+                content: m.quote,
+                color: m.colorClass,
+                idea: m.idea,
+                avatar: m.avatar,
+                tag: m.tag,
+                books: m.books,
+                quotes: m.quotes,
+                bio: m.bio,
+                rotate: m.rotate,
+                favorite: false,
+                date: null,
+            }));
+
+            const customs = customNotes.map((c, i) => ({
+                ...c,
+                _type: 'custom',
+                _index: i,
+                _id: 'custom-' + (c.id || i),
+                isCustom: true,
+                name: c.title || '自定义便签',
+                avatar: '📝',
+                tag: c.tag || '投资灵感',
+                quote: c.content || '',
+                idea: c.idea || c.content || '',
+                color: c.color || '#fdf4e3',
+                rotate: c.rotate || (Math.random() * 3 - 1.5),
+                books: [],
+                quotes: [{ text: c.content || '', detail: '' }],
+                bio: c.title || '自定义便签',
+                colorClass: 'note-custom',
+                favorite: c.favorite || false,
+                date: c.date || new Date().toISOString(),
+            }));
+
+            return [...masters, ...customs];
+        }
+
+        // ============================================================
+        //  状态
+        // ============================================================
+        let allNotes = [];
+        let currentOrder = [];
+        let isShuffling = false;
+        let currentModalIndex = 0;
+        let modalMode = 'read';
+        let searchQuery = '';
+        let dragData = null;
+
+        // ============================================================
+        //  DOM 引用
+        // ============================================================
+        const grid = document.getElementById('noteGrid');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const addNoteBtn = document.getElementById('addNoteBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const statsDisplay = document.getElementById('statsDisplay');
+
+        const overlay = document.getElementById('modalOverlay');
+        const modalClose = document.getElementById('modalClose');
+        const modalAvatar = document.getElementById('modalAvatar');
+        const modalName = document.getElementById('modalName');
+        const modalTag = document.getElementById('modalTag');
+        const modalBio = document.getElementById('modalBio');
+        const modalQuotes = document.getElementById('modalQuotes');
+        const modalBooks = document.getElementById('modalBooks');
+        const prevMasterBtn = document.getElementById('prevMasterBtn');
+        const nextMasterBtn = document.getElementById('nextMasterBtn');
+        const modalSource = document.getElementById('modalSource');
+
+        const readMode = document.getElementById('readMode');
+        const addMode = document.getElementById('addMode');
+        const addModeTitle = document.getElementById('addModeTitle');
+        const noteTitleInput = document.getElementById('noteTitleInput');
+        const noteContentInput = document.getElementById('noteContentInput');
+        const colorPicker = document.getElementById('colorPicker');
+        const saveNoteBtn = document.getElementById('saveNoteBtn');
+
+        // 语录详情弹窗
+        const qdOverlay = document.getElementById('quoteDetailOverlay');
+        const qdClose = document.getElementById('quoteDetailClose');
+        const qdOriginal = document.getElementById('quoteDetailOriginal');
+        const qdBody = document.getElementById('quoteDetailBody');
+        const qdMaster = document.getElementById('quoteDetailMaster');
+        const qdCard = document.getElementById('quoteDetailCard');
+
+        const toast = document.getElementById('toast');
+
+        // ============================================================
+        //  Toast 通知
+        // ============================================================
+        let toastTimer = null;
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // ============================================================
+        //  语录详情弹窗控制
+        // ============================================================
+        function openQuoteDetail(quoteText, quoteDetail, masterName) {
+            qdOriginal.textContent = quoteText;
+            // 将详细解读中的段落按换行分割
+            const paragraphs = quoteDetail.split('\n').filter(p => p.trim());
+            qdBody.innerHTML = paragraphs.map(p => `<p>${p.trim()}</p>`).join('');
+            qdMaster.textContent = '— 来自 ' + masterName + ' 的智慧';
+            qdOverlay.classList.add('active');
+            document.body.classList.add('no-scroll');
+            qdCard.scrollTop = 0;
+        }
+
+        function closeQuoteDetail() {
+            qdOverlay.classList.remove('active');
+            document.body.classList.remove('no-scroll');
+        }
+
+        // ============================================================
+        //  核心渲染函数
+        // ============================================================
+        function rebuildAllNotes() {
+            allNotes = getAllNotes();
+            if (currentOrder.length !== allNotes.length) {
+                currentOrder = allNotes.map((_, i) => i);
+            }
+        }
+
+        function getFilteredIndices() {
+            if (!searchQuery.trim()) return currentOrder;
+            const q = searchQuery.trim().toLowerCase();
+            return currentOrder.filter(idx => {
+                const n = allNotes[idx];
+                if (!n) return false;
+                const searchable = [
+                    n.name || '',
+                    n.title || '',
+                    n.content || '',
+                    n.quote || '',
+                    n.idea || '',
+                    n.tag || '',
+                    (n.quotes || []).map(q => q.text || '').join(' '),
+                ].join(' ').toLowerCase();
+                return searchable.includes(q);
+            });
+        }
+
+        function renderNotes() {
+            rebuildAllNotes();
+            grid.innerHTML = '';
+            const filtered = getFilteredIndices();
+
+            if (filtered.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'empty-state';
+                empty.innerHTML =
+                    `<span class="icon">📭</span>${searchQuery.trim() ? '没有找到匹配的便签' : '还没有便签，点击「添加」记录你的投资思维吧'}`;
+                grid.appendChild(empty);
+                updateStats(0);
+                return;
+            }
+
+            filtered.forEach((idx, pos) => {
+                const noteData = allNotes[idx];
+                if (!noteData) return;
+                const isCustom = noteData.isCustom;
+
+                const note = document.createElement('div');
+                note.className = `note ${noteData.colorClass || ''}`;
+                note.draggable = true;
+                note.dataset.idx = idx;
+                note.dataset.pos = pos;
+
+                if (isCustom) {
+                    note.style.background = noteData.color || '#fdf4e3';
+                    const bgColor = noteData.color || '#fdf4e3';
+                    note.style.setProperty('--bg-color', bgColor);
+                    const styleId = 'dynamic-style-' + (noteData.id || '');
+                    let styleEl = document.getElementById(styleId);
+                    if (!styleEl) {
+                        styleEl = document.createElement('style');
+                        styleEl.id = styleId;
+                        document.head.appendChild(styleEl);
+                    }
+                    styleEl.textContent = `
+                            .note[data-custom-id="${noteData.id}"]::after {
+                                background: radial-gradient(circle at 10% 100%, transparent 8px, var(--bg-color) 8px),
+                                            radial-gradient(circle at 30% 100%, transparent 8px, var(--bg-color) 8px),
+                                            radial-gradient(circle at 50% 100%, transparent 8px, var(--bg-color) 8px),
+                                            radial-gradient(circle at 70% 100%, transparent 8px, var(--bg-color) 8px),
+                                            radial-gradient(circle at 90% 100%, transparent 8px, var(--bg-color) 8px);
+                                background-size: 20% 100%;
+                                background-repeat: repeat-x;
+                            }
+                        `;
+                    note.dataset.customId = noteData.id;
+                }
+
+                note.style.setProperty('--rot', (noteData.rotate || 0) + 'deg');
+                note.style.setProperty('--i', pos);
+
+                const avatar = noteData.avatar || '📝';
+                const name = noteData.name || '无名';
+                const tag = noteData.tag || '便签';
+                const quote = noteData.quote || '';
+                const idea = noteData.idea || '';
+                let dateStr = '';
+                if (noteData.date) {
+                    const d = new Date(noteData.date);
+                    dateStr = `${d.getMonth()+1}/${d.getDate()}`;
+                } else if (isCustom) dateStr = '今天';
+
+                const favIcon = noteData.favorite ? '⭐' : '☆';
+                const favClass = noteData.favorite ? 'active' : '';
+                let deleteBtn = '';
+                if (isCustom) {
+                    deleteBtn = `<button class="note-delete" data-custom-id="${noteData.id}" aria-label="删除便签">✕</button>`;
+                }
+
+                note.innerHTML = `
+                        <div class="corner-fold"></div>
+                        <div class="note-header">
+                            <span class="note-avatar ${isCustom ? 'note-avatar-custom' : ''}">${avatar}</span>
+                            <span class="note-name">${name}</span>
+                            <div class="note-actions-top">
+                                <button class="note-fav ${favClass}" data-idx="${idx}">${favIcon}</button>
+                            </div>
+                        </div>
+                        <div class="note-tag">${tag}</div>
+                        <div class="note-quote">${quote}</div>
+                        <div class="note-idea">
+                            <span class="icon">💡</span>
+                            <span>${idea}</span>
+                        </div>
+                        <div class="note-footer">
+                            <span class="note-date">${dateStr}</span>
+                            <span class="note-hint">${isCustom ? '✏️ 编辑' : '📖 阅读'}</span>
+                            ${deleteBtn}
+                        </div>
+                    `;
+
+                // 点击事件
+                note.addEventListener('click', (e) => {
+                    if (e.target.closest('.note-delete') || e.target.closest('.note-fav')) return;
+                    if (isCustom) {
+                        openEditModal(idx);
+                    } else {
+                        openReadModal(idx);
+                    }
+                });
+
+                // 收藏
+                const favBtn = note.querySelector('.note-fav');
+                if (favBtn) {
+                    favBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        toggleFavorite(idx);
+                    });
+                }
+
+                // 删除
+                const delBtn = note.querySelector('.note-delete');
+                if (delBtn) {
+                    delBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteCustomNote(delBtn.dataset.customId);
+                    });
+                }
+
+                // 拖拽
+                note.addEventListener('dragstart', (e) => {
+                    if (isShuffling) return;
+                    dragData = { idx };
+                    note.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', String(idx));
+                });
+
+                note.addEventListener('dragend', () => {
+                    note.classList.remove('dragging');
+                    document.querySelectorAll('.note.drag-over').forEach(el => el.classList.remove('drag-over'));
+                });
+
+                note.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    if (dragData && dragData.idx !== idx) {
+                        document.querySelectorAll('.note.drag-over').forEach(el => el.classList.remove('drag-over'));
+                        note.classList.add('drag-over');
+                    }
+                });
+
+                note.addEventListener('dragleave', () => note.classList.remove('drag-over'));
+
+                note.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    note.classList.remove('drag-over');
+                    if (!dragData || dragData.idx === idx) return;
+                    const fromIdx = dragData.idx;
+                    const toIdx = idx;
+                    const fromPos = currentOrder.indexOf(fromIdx);
+                    const toPos = currentOrder.indexOf(toIdx);
+                    if (fromPos === -1 || toPos === -1) return;
+                    currentOrder.splice(toPos, 0, currentOrder.splice(fromPos, 1)[0]);
+                    renderNotes();
+                    showToast('便签顺序已更新');
+                    dragData = null;
+                });
+
+                // 触控拖拽
+                let touchData = null;
+                note.addEventListener('touchstart', (e) => {
+                    if (isShuffling) return;
+                    const touch = e.touches[0];
+                    touchData = { idx, startX: touch.clientX, startY: touch.clientY, moved: false };
+                }, { passive: true });
+
+                note.addEventListener('touchmove', (e) => {
+                    if (!touchData) return;
+                    const touch = e.touches[0];
+                    const dx = touch.clientX - touchData.startX;
+                    const dy = touch.clientY - touchData.startY;
+                    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                        touchData.moved = true;
+                        document.querySelectorAll('.note.drag-over').forEach(el => el.classList.remove('drag-over'));
+                        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                        if (target) {
+                            const noteEl = target.closest('.note');
+                            if (noteEl && noteEl.dataset.idx !== String(idx)) {
+                                noteEl.classList.add('drag-over');
+                            }
+                        }
+                    }
+                }, { passive: true });
+
+                note.addEventListener('touchend', (e) => {
+                    if (!touchData || !touchData.moved) { touchData = null; return; }
+                    const touch = e.changedTouches[0];
+                    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                    let targetNote = target ? target.closest('.note') : null;
+                    if (targetNote && targetNote.dataset.idx) {
+                        const toIdx = parseInt(targetNote.dataset.idx);
+                        if (toIdx !== idx) {
+                            const fromPos = currentOrder.indexOf(idx);
+                            const toPos = currentOrder.indexOf(toIdx);
+                            if (fromPos !== -1 && toPos !== -1) {
+                                currentOrder.splice(toPos, 0, currentOrder.splice(fromPos, 1)[0]);
+                                renderNotes();
+                                showToast('便签顺序已更新');
+                            }
+                        }
+                    }
+                    document.querySelectorAll('.note.drag-over').forEach(el => el.classList.remove('drag-over'));
+                    touchData = null;
+                }, { passive: true });
+
+                grid.appendChild(note);
+            });
+            updateStats(filtered.length);
+        }
+
+        // ============================================================
+        //  统计更新
+        // ============================================================
+        function updateStats(count) {
+            const total = allNotes.length;
+            const masters = allNotes.filter(n => !n.isCustom).length;
+            const customs = allNotes.filter(n => n.isCustom).length;
+            statsDisplay.textContent = `${count} 张便签 (大师 ${masters} · 自定义 ${customs})`;
+        }
+
+        // ============================================================
+        //  收藏 / 删除
+        // ============================================================
+        function toggleFavorite(idx) {
+            const note = allNotes[idx];
+            if (!note) return;
+            if (note.isCustom) {
+                note.favorite = !note.favorite;
+                saveCustomNotes();
+            } else {
+                note.favorite = !note.favorite;
+            }
+            renderNotes();
+            showToast(note.favorite ? '⭐ 已收藏' : '☆ 已取消收藏');
+        }
+
+        function deleteCustomNote(id) {
+            if (!confirm('确定要删除这张便签吗？')) return;
+            customNotes = customNotes.filter(c => c.id !== id);
+            saveCustomNotes();
+            rebuildAllNotes();
+            const validIds = new Set(allNotes.map(n => n._id));
+            currentOrder = currentOrder.filter(idx => {
+                const n = allNotes[idx];
+                return n && validIds.has(n._id);
+            });
+            renderNotes();
+            showToast('便签已删除');
+        }
+
+        // ============================================================
+        //  模态框：阅读大师
+        // ============================================================
+        function openReadModal(index) {
+            const noteData = allNotes[index];
+            if (!noteData || noteData.isCustom) return;
+            currentModalIndex = index;
+            modalMode = 'read';
+            readMode.style.display = 'block';
+            addMode.style.display = 'none';
+            modalSource.textContent = '— 投资思维的深度共鸣 —';
+
+            modalAvatar.textContent = noteData.avatar || '🧠';
+            modalName.textContent = noteData.name || '';
+            modalTag.textContent = noteData.tag || '';
+            modalBio.textContent = noteData.bio || '';
+
+            // 渲染语录列表（每条都是可点击链接）
+            modalQuotes.innerHTML = '';
+            (noteData.quotes || []).forEach((q, qi) => {
+                const li = document.createElement('li');
+                const link = document.createElement('span');
+                link.className = 'quote-link';
+                link.textContent = q.text;
+                const hint = document.createElement('span');
+                hint.className = 'quote-link-hint';
+                hint.textContent = '🔍 解读';
+                link.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openQuoteDetail(q.text, q.detail || '暂无详细解读', noteData.name);
+                });
+                li.appendChild(link);
+                li.appendChild(hint);
+                modalQuotes.appendChild(li);
+            });
+
+            modalBooks.innerHTML = '';
+            (noteData.books || []).forEach(book => {
+                const span = document.createElement('span');
+                span.textContent = book;
+                modalBooks.appendChild(span);
+            });
+
+            overlay.classList.add('active');
+            document.body.classList.add('no-scroll');
+            document.getElementById('modalCard').scrollTop = 0;
+        }
+
+        // ============================================================
+        //  模态框：编辑自定义
+        // ============================================================
+        function openEditModal(index) {
+            const noteData = allNotes[index];
+            if (!noteData || !noteData.isCustom) return;
+            modalMode = 'edit';
+            readMode.style.display = 'none';
+            addMode.style.display = 'block';
+            addModeTitle.textContent = '✏️ 编辑便签';
+            modalSource.textContent = '— 编辑你的投资思维 —';
+
+            noteTitleInput.value = noteData.title || '';
+            noteContentInput.value = noteData.content || '';
+            const color = noteData.color || '#fdf4e3';
+            document.querySelectorAll('.color-option').forEach(el => {
+                el.classList.toggle('active', el.dataset.color === color);
+            });
+            saveNoteBtn.dataset.editId = noteData.id;
+
+            overlay.classList.add('active');
+            document.body.classList.add('no-scroll');
+            document.getElementById('modalCard').scrollTop = 0;
+        }
+
+        // ============================================================
+        //  关闭主模态框
+        // ============================================================
+        function closeModal() {
+            overlay.classList.remove('active');
+            document.body.classList.remove('no-scroll');
+            if (modalMode === 'add' || modalMode === 'edit') {
+                noteTitleInput.value = '';
+                noteContentInput.value = '';
+                saveNoteBtn.dataset.editId = '';
+                document.querySelectorAll('.color-option').forEach((el, i) => {
+                    el.classList.toggle('active', i === 0);
+                });
+                addModeTitle.textContent = '📝 记录投资灵感';
+            }
+        }
+
+        // ============================================================
+        //  导航大师
+        // ============================================================
+        function navigateMaster(delta) {
+            const masterIndices = [];
+            allNotes.forEach((n, i) => { if (!n.isCustom) masterIndices.push(i); });
+            const currentIdx = masterIndices.indexOf(currentModalIndex);
+            if (currentIdx === -1) return;
+            let newIdx = (currentIdx + delta) % masterIndices.length;
+            if (newIdx < 0) newIdx += masterIndices.length;
+            openReadModal(masterIndices[newIdx]);
+        }
+
+        // ============================================================
+        //  随机排列 & 重置
+        // ============================================================
+        function shuffleArray(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function shuffleNotes() {
+            if (isShuffling) return;
+            isShuffling = true;
+            grid.classList.add('shuffling');
+            const newOrder = shuffleArray(currentOrder);
+            currentOrder = newOrder;
+            renderNotes();
+            void grid.offsetHeight;
+            const notes = grid.querySelectorAll('.note');
+            notes.forEach((note, i) => {
+                const idx = currentOrder[i];
+                const data = allNotes[idx];
+                if (data) {
+                    const extra = (Math.random() - 0.5) * 1.4;
+                    note.style.setProperty('--rot', (data.rotate + extra) + 'deg');
+                }
+            });
+            setTimeout(() => {
+                grid.classList.remove('shuffling');
+                isShuffling = false;
+                showToast('🎲 便签已重新排列');
+            }, 500);
+        }
+
+        function resetNotes() {
+            if (isShuffling) return;
+            const masterCount = MASTERS.length;
+            const customCount = customNotes.length;
+            const newOrder = [];
+            for (let i = 0; i < masterCount; i++) newOrder.push(i);
+            for (let i = 0; i < customCount; i++) newOrder.push(masterCount + i);
+            currentOrder = newOrder;
+            renderNotes();
+            const notes = grid.querySelectorAll('.note');
+            notes.forEach((note, i) => {
+                const idx = currentOrder[i];
+                const data = allNotes[idx];
+                if (data) note.style.setProperty('--rot', data.rotate + 'deg');
+            });
+            showToast('↺ 已重置为初始顺序');
+        }
+
+        // ============================================================
+        //  保存便签（添加/编辑）
+        // ============================================================
+        function saveNote() {
+            const title = noteTitleInput.value.trim();
+            const content = noteContentInput.value.trim();
+            if (!title || !content) { showToast('⚠️ 请填写标题和内容'); return; }
+            const selectedColor = document.querySelector('.color-option.active');
+            const color = selectedColor ? selectedColor.dataset.color : '#fdf4e3';
+
+            const editId = saveNoteBtn.dataset.editId;
+            if (editId) {
+                const index = customNotes.findIndex(c => c.id === editId);
+                if (index !== -1) {
+                    customNotes[index].title = title;
+                    customNotes[index].content = content;
+                    customNotes[index].color = color;
+                    customNotes[index].idea = content;
+                    customNotes[index].tag = '投资灵感';
+                    customNotes[index].date = new Date().toISOString();
+                    saveCustomNotes();
+                    closeModal();
+                    renderNotes();
+                    showToast('✅ 便签已更新');
+                    return;
+                }
+            }
+
+            const newNote = {
+                id: 'custom-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+                title: title,
+                content: content,
+                color: color,
+                idea: content,
+                tag: '投资灵感',
+                rotate: (Math.random() * 3 - 1.5),
+                avatar: '📝',
+                favorite: false,
+                date: new Date().toISOString(),
+            };
+            customNotes.push(newNote);
+            saveCustomNotes();
+            rebuildAllNotes();
+            const newIdx = allNotes.length - 1;
+            currentOrder.push(newIdx);
+            closeModal();
+            renderNotes();
+            showToast('📌 新便签已钉上！');
+        }
+
+        // ============================================================
+        //  导出
+        // ============================================================
+        function exportNotes() {
+            const text = allNotes.map((n, i) => {
+                const prefix = n.isCustom ? '📝 自定义' : `🧠 ${n.name}`;
+                const fav = n.favorite ? ' ⭐' : '';
+                return `${prefix}${fav}\n  ${n.quote || n.content || ''}\n  💡 ${n.idea || ''}\n`;
+            }).join('\n---\n');
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `投资思维_便签_${new Date().toISOString().slice(0,10)}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('📤 便签已导出为文本文件');
+        }
+
+        // ============================================================
+        //  搜索
+        // ============================================================
+        function handleSearch() {
+            searchQuery = searchInput.value;
+            clearSearchBtn.classList.toggle('show', searchQuery.length > 0);
+            renderNotes();
+        }
+
+        function clearSearch() {
+            searchInput.value = '';
+            handleSearch();
+            searchInput.focus();
+        }
+
+        // ============================================================
+        //  颜色选择器
+        // ============================================================
+        document.querySelectorAll('.color-option').forEach(el => {
+            el.addEventListener('click', function() {
+                document.querySelectorAll('.color-option').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // ============================================================
+        //  事件绑定
+        // ============================================================
+        shuffleBtn.addEventListener('click', shuffleNotes);
+        resetBtn.addEventListener('click', resetNotes);
+        exportBtn.addEventListener('click', exportNotes);
+
+        addNoteBtn.addEventListener('click', () => {
+            modalMode = 'add';
+            readMode.style.display = 'none';
+            addMode.style.display = 'block';
+            addModeTitle.textContent = '📝 记录投资灵感';
+            modalSource.textContent = '— 记录你的投资思维 —';
+            noteTitleInput.value = '';
+            noteContentInput.value = '';
+            saveNoteBtn.dataset.editId = '';
+            document.querySelectorAll('.color-option').forEach((el, i) => {
+                el.classList.toggle('active', i === 0);
+            });
+            overlay.classList.add('active');
+            document.body.classList.add('no-scroll');
+            document.getElementById('modalCard').scrollTop = 0;
+        });
+
+        modalClose.addEventListener('click', closeModal);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (qdOverlay.classList.contains('active')) { closeQuoteDetail(); return; }
+                closeModal();
+            }
+            if (e.key === 'ArrowLeft' && overlay.classList.contains('active') && modalMode === 'read') navigateMaster(-1);
+            if (e.key === 'ArrowRight' && overlay.classList.contains('active') && modalMode === 'read') navigateMaster(1);
+        });
+
+        prevMasterBtn.addEventListener('click', () => navigateMaster(-1));
+        nextMasterBtn.addEventListener('click', () => navigateMaster(1));
+
+        saveNoteBtn.addEventListener('click', saveNote);
+
+        // 语录详情弹窗关闭
+        qdClose.addEventListener('click', closeQuoteDetail);
+        qdOverlay.addEventListener('click', (e) => { if (e.target === qdOverlay) closeQuoteDetail(); });
+
+        searchInput.addEventListener('input', handleSearch);
+        clearSearchBtn.addEventListener('click', clearSearch);
+
+        // 触摸下滑关闭主模态框
+        let touchStartY = 0;
+        overlay.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+        overlay.addEventListener('touchmove', (e) => {
+            const deltaY = e.touches[0].clientY - touchStartY;
+            if (deltaY > 70 && overlay.classList.contains('active')) closeModal();
+        }, { passive: true });
+
+        // ============================================================
+        //  响应式调整旋转
+        // ============================================================
+        function adjustRotations() {
+            const width = window.innerWidth;
+            const notes = grid.querySelectorAll('.note');
+            if (width < 400) {
+                notes.forEach((note, i) => {
+                    const idx = currentOrder[i] !== undefined ? currentOrder[i] : i;
+                    const data = allNotes[idx];
+                    if (data) {
+                        const factor = 0.35;
+                        const extra = (i % 2 === 0) ? 0.15 : -0.15;
+                        note.style.setProperty('--rot', (data.rotate * factor + extra) + 'deg');
+                    }
+                });
+            } else if (width < 640) {
+                notes.forEach((note, i) => {
+                    const idx = currentOrder[i] !== undefined ? currentOrder[i] : i;
+                    const data = allNotes[idx];
+                    if (data) {
+                        const factor = 0.6;
+                        const extra = (i % 2 === 0) ? 0.2 : -0.2;
+                        note.style.setProperty('--rot', (data.rotate * factor + extra) + 'deg');
+                    }
+                });
+            } else {
+                notes.forEach((note, i) => {
+                    const idx = currentOrder[i] !== undefined ? currentOrder[i] : i;
+                    const data = allNotes[idx];
+                    if (data) {
+                        const extra = (i % 2 === 0) ? 0.3 : -0.3;
+                        note.style.setProperty('--rot', (data.rotate + extra) + 'deg');
+                    }
+                });
+            }
+        }
+
+        // ============================================================
+        //  初始化
+        // ============================================================
+        loadCustomNotes();
+        rebuildAllNotes();
+        const masterCount = MASTERS.length;
+        const customCount = customNotes.length;
+        currentOrder = [];
+        for (let i = 0; i < masterCount; i++) currentOrder.push(i);
+        for (let i = 0; i < customCount; i++) currentOrder.push(masterCount + i);
+
+        renderNotes();
+        adjustRotations();
+
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(adjustRotations, 200);
+        });
+
+        // ============================================================
+        //  控制台彩蛋
+        // ============================================================
+        console.log('📌 投资思维 · 软木板 v3');
+        console.log('🧠 6位投资大师 · 每条语录都有深度解读');
+        console.log('🔍 支持搜索 · ⭐ 收藏 · 🎲 随机排列 · 🖱️ 拖拽排序');
+        console.log('📖 点击语录链接，弹出详细解读弹窗');
+        console.log('⌨️  阅读模式中 ← → 切换大师');
+    </script>
+</body>
+</html>
