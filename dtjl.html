@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>基金组合定投判定工具</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: '#4338ca',
+        danger: '#dc2626',
+        info: '#0284c7',
+        profit: '#16a34a',
+        loss: '#ef4444',
+        neutral: '#334155',
+      },
+      boxShadow: {
+        card: '0 2px 10px rgba(67, 56, 202, 0.06)',
+        inner: 'inset 0 1px 2px rgba(0,0,0,0.03)',
+        btn: '0 2px 6px rgba(67, 56, 202, 0.1)',
+      }
+    }
+  }
+}
+</script>
+<style>
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+summary::-webkit-details-marker {
+  display: none;
+}
+summary::after {
+  content: "▼";
+  float: right;
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+details[open] summary::after {
+  transform: rotate(180deg);
+}
+.trans-all {
+  transition: all 0.18s ease;
+}
+body {
+  line-height: 1.45;
+}
+</style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-sky-50 to-blue-50 min-h-screen p-4">
+<div class="max-w-md mx-auto bg-white rounded-xl shadow-card p-5">
+    <!-- 标题 -->
+    <header class="mb-4 pb-2.5 border-b border-indigo-100">
+        <h1 class="text-lg font-bold text-center text-primary">📊 基金组合定投判定器</h1>
+    </header>
+
+    <!-- 输入卡片分组 -->
+    <div class="grid grid-cols-1 gap-4 mb-4">
+        <!-- 组合持仓 -->
+        <div class="bg-gradient-to-r from-slate-50 to-indigo-50 rounded-lg p-4 shadow-inner trans-all">
+            <h2 class="text-sm font-semibold text-primary mb-2.5 flex items-center gap-1.5">
+                <span class="w-5 h-5 flex items-center justify-center bg-primary text-white rounded text-[10px] shrink-0">1</span>
+                组合持仓数据
+            </h2>
+            <div class="space-y-2.5">
+                <div>
+                    <label class="block text-xs text-neutral mb-1">总持仓市值(元)</label>
+                    <input id="holdMoney" type="number" step="0.01" placeholder="68000"
+                    class="w-full border border-indigo-100 rounded-md px-3 py-2 text-sm bg-white trans-all focus:ring-2 focus:ring-primary/15 focus:border-primary/60 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs text-neutral mb-1">总浮动收益(元)</label>
+                    <input id="totalProfit" type="number" step="0.01" placeholder="亏损填负数"
+                    class="w-full border border-indigo-100 rounded-md px-3 py-2 text-sm bg-white trans-all focus:ring-2 focus:ring-primary/15 focus:border-primary/60 outline-none">
+                </div>
+            </div>
+        </div>
+
+        <!-- 剔除劣基 -->
+        <div class="bg-gradient-to-r from-red-50 to-rose-50 rounded-lg p-4 shadow-inner trans-all">
+            <h2 class="text-sm font-semibold text-danger mb-2.5 flex items-center gap-1.5">
+                <span class="w-5 h-5 flex items-center justify-center bg-danger text-white rounded text-[10px] shrink-0">2</span>
+                剔除恶化基金
+            </h2>
+            <div>
+                <label class="block text-xs text-neutral mb-1">待剔除市值(元)</label>
+                <input id="removeValue" type="number" step="0.01" value="0" placeholder="无剔除填0"
+                class="w-full border border-rose-100 rounded-md px-3 py-2 text-sm bg-white trans-all focus:ring-2 focus:ring-danger/15 focus:border-danger/60 outline-none">
+                <p class="text-[11px] text-danger mt-1 opacity-80">劣基盈亏已计入总收益，无需单独填写</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 功能按钮 -->
+    <div class="grid grid-cols-2 gap-3 mb-4">
+        <button onclick="calcAction()"
+        class="bg-gradient-to-r from-primary to-indigo-600 hover:from-indigo-700 hover:to-indigo-600 text-white py-2.5 rounded-lg font-semibold text-sm shadow-btn trans-all active:scale-[0.98]">
+            一键测算方案
+        </button>
+        <button onclick="resetForm()"
+        class="bg-gradient-to-r from-slate-400 to-slate-500 hover:from-slate-500 hover:to-slate-600 text-white py-2.5 rounded-lg font-semibold text-sm shadow-btn trans-all active:scale-[0.98]">
+            重置数据
+        </button>
+    </div>
+
+    <!-- 结果面板 -->
+    <section id="resultBox" class="p-4 rounded-lg hidden mb-4 shadow-inner text-sm trans-all"></section>
+
+    <!-- 折叠规则区 -->
+    <details class="bg-gradient-to-r from-cyan-50 to-sky-50 rounded-lg p-4 shadow-inner text-xs trans-all">
+        <summary class="font-semibold text-info cursor-pointer select-none">📜 交易规则说明</summary>
+        <div class="mt-2.5 text-neutral space-y-2 leading-relaxed">
+            <div><span class="font-semibold">调仓周期：</span>按月末收盘核算，日内冲高不操作</div>
+            <div><span class="font-semibold">剔除标准：</span>换经理、风格漂移、长期跑输、规模暴涨失效</div>
+            <div><span class="font-semibold">计算逻辑：</span>总本金=总市值-总收益；剔除仅剥离本金，重算剩余仓位收益率</div>
+            <div>
+                <span class="font-semibold">定投纪律：</span>
+                <ul class="pl-3 list-disc space-y-0.8 mt-0.8">
+                    <li>浮亏≥30% → 加倍定投分批加仓</li>
+                    <li>-30%＜盈亏＜30% → 保持原定投，不减仓</li>
+                    <li>30%≤盈利＜50% → 正常定投，当月止盈20%总仓位；持续上涨可每月重复止盈</li>
+                    <li>盈利≥50% → 卖出80%仓位，留存20%底仓，暂停定投；收益率回落至30%以内再重启</li>
+                </ul>
+            </div>
+        </div>
+    </details>
+</div>
+
+<script>
+// 千分位格式化 修复极小值、负数显示Bug
+function formatMoney(num) {
+    const fixed = Number(num).toFixed(2);
+    if (fixed.startsWith('-')) {
+        return '-' + fixed.slice(1).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    return fixed.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+// 重置表单
+function resetForm(){
+    document.getElementById('holdMoney').value = '';
+    document.getElementById('totalProfit').value = '';
+    document.getElementById('removeValue').value = '0';
+    document.getElementById('resultBox').classList.add('hidden');
+}
+
+// 核心测算逻辑（全量容错修复）
+function calcAction(){
+    const holdInput = document.getElementById('holdMoney').value.trim();
+    const profitInput = document.getElementById('totalProfit').value.trim();
+    const removeInput = document.getElementById('removeValue').value.trim();
+    const box = document.getElementById('resultBox');
+    box.classList.remove('hidden');
+
+    // 空白输入拦截
+    if (!holdInput || !profitInput || !removeInput) {
+        box.className = 'p-4 rounded-lg bg-red-50 text-danger border border-red-100 trans-all';
+        box.innerHTML = `<div class="font-bold">❌ 输入错误</div><p class="mt-0.5">所有输入框不可为空，请填写有效金额</p>`;
+        return;
+    }
+
+    const holdMoney = parseFloat(holdInput);
+    const totalProfit = parseFloat(profitInput);
+    const removeValue = parseFloat(removeInput);
+
+    // 非数字拦截
+    if (isNaN(holdMoney) || isNaN(totalProfit) || isNaN(removeValue)) {
+        box.className = 'p-4 rounded-lg bg-red-50 text-danger border border-red-100 trans-all';
+        box.innerHTML = `<div class="font-bold">❌ 输入错误</div><p class="mt-0.5">请输入合法数字金额</p>`;
+        return;
+    }
+
+    // 金额范围校验
+    if (holdMoney <= 0) {
+        box.className = 'p-4 rounded-lg bg-red-50 text-danger border border-red-100 trans-all';
+        box.innerHTML = `<div class="font-bold">❌ 输入错误</div><p class="mt-0.5">总持仓市值必须大于0</p>`;
+        return;
+    }
+    if (removeValue < 0 || removeValue >= holdMoney) {
+        box.className = 'p-4 rounded-lg bg-red-50 text-danger border border-red-100 trans-all';
+        box.innerHTML = `<div class="font-bold">❌ 输入错误</div><p class="mt-0.5">剔除市值不能为负，且不可大于等于总持仓</p>`;
+        return;
+    }
+
+    // 基础计算
+    const totalCapital = holdMoney - totalProfit;
+    const removeRatio = removeValue / holdMoney;
+    const removeCapital = totalCapital * removeRatio;
+    const remainMarket = holdMoney - removeValue;
+    const remainCapital = totalCapital - removeCapital;
+    const remainProfit = totalProfit;
+
+    // 防除零容错（阈值0.01规避浮点误差）
+    if (Math.abs(remainCapital) < 0.01) {
+        box.className = 'p-4 rounded-lg bg-amber-50 text-amber-700 border border-amber-100 trans-all';
+        box.innerHTML = `<div class="font-bold">⚠️ 数据异常</div><p class="mt-0.5">剔除后剩余本金趋近于0，无法计算收益率</p>`;
+        return;
+    }
+
+    // 统一保留两位小数，消除浮点精度偏差
+    const rate = Number(((remainProfit / remainCapital) * 100).toFixed(2));
+    const rateText = rate.toFixed(2);
+
+    let tip = '';
+    let bgClass = '';
+    let rateColorClass = '';
+
+    // 剔除金额为0时不追加空行
+    if (removeValue > 0) {
+        tip += `🔴 剔除劣基市值 ${formatMoney(removeValue)} 元，仅剥离对应本金\n\n`;
+    }
+
+    // 分档位操作文案
+    if (rate <= -30) {
+        tip += `📉 当前浮亏${Math.abs(rateText)}%，月末复盘执行加倍定投，分批加仓摊薄成本`;
+        bgClass = 'bg-blue-50 text-blue-800 border border-blue-100 trans-all';
+        rateColorClass = 'text-loss';
+    } else if (rate > -30 && rate < 30) {
+        tip += `⚖️ 当前盈亏${rateText}%，震荡区间，维持原有定投额度，无减仓操作`;
+        bgClass = 'bg-slate-50 text-slate-800 border border-slate-100 trans-all';
+        rateColorClass = 'text-neutral';
+    } else if (rate >= 30 && rate < 50) {
+        tip += `📈 当前盈利${rateText}%，月末复盘：正常定投，止盈当前总仓位20%；下月仍在此区间可重复分批止盈`;
+        bgClass = 'bg-emerald-50 text-emerald-800 border border-emerald-100 trans-all';
+        rateColorClass = 'text-profit';
+    } else {
+        tip += `🏆 当前盈利${rateText}%，月末复盘：卖出80%仓位仅留20%底仓，暂停全部定投；收益率回落至30%以内再重启定投`;
+        bgClass = 'bg-orange-50 text-orange-800 border border-orange-100 trans-all';
+        rateColorClass = 'text-profit';
+    }
+
+    // 渲染结果面板，紧凑排版无多余空白
+    box.className = `p-4 rounded-lg ${bgClass}`;
+    box.innerHTML = `
+        <div class="font-bold border-b border-black/10 pb-1.5 mb-2">📋 组合测算明细</div>
+        <div class="grid grid-cols-2 gap-x-2 gap-y-1">
+            <p>总持仓市值：${formatMoney(holdMoney)}</p>
+            <p>原始总本金：${formatMoney(totalCapital)}</p>
+            <p>剔除市值：${formatMoney(removeValue)}</p>
+            <p>剔除对应本金：${formatMoney(removeCapital)}</p>
+            <p>剩余持仓市值：${formatMoney(remainMarket)}</p>
+            <p>剩余持仓本金：${formatMoney(remainCapital)}</p>
+        </div>
+        <p class="font-bold text-base mt-2 ${rateColorClass} text-center">剔除后盈亏比例：${rateText} %</p>
+        <hr class="my-2 border-black/10">
+        <p class="font-semibold whitespace-pre-line">${tip}</p>
+    `;
+}
+</script>
+</body>
+</html>
