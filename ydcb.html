@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>电车 vs 油车 成本对比</title>
+    <style>
+        /* ===== 全局重置 & 基础 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+            background: #f0f2f5;
+            padding: 12px;
+            padding-bottom: 40px;
+            color: #1e293b;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* ===== 头部 ===== */
+        .header {
+            text-align: center;
+            padding: 18px 0 14px;
+            background: linear-gradient(135deg, #1a2a6c, #2d4373);
+            border-radius: 16px 16px 0 0;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 50%;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 1;
+        }
+        .header p {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 4px;
+            position: relative;
+            z-index: 1;
+            font-weight: 400;
+        }
+
+        /* ===== 卡片通用 ===== */
+        .card {
+            background: #ffffff;
+            border-radius: 0 0 16px 16px;
+            padding: 16px 16px 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            margin-bottom: 14px;
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .card-title .badge {
+            font-size: 11px;
+            font-weight: 500;
+            background: #eef2ff;
+            color: #4f46e5;
+            padding: 0 10px;
+            border-radius: 12px;
+            line-height: 20px;
+        }
+
+        /* ===== 能源价格卡片 ===== */
+        .price-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        }
+        .price-card .card-title {
+            margin-bottom: 12px;
+        }
+        .price-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .price-group {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .price-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .price-group label .unit {
+            font-weight: 400;
+            color: #94a3b8;
+            font-size: 11px;
+        }
+        .price-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #0f172a;
+            background: #f8fafc;
+            transition: border-color 0.2s, background 0.2s;
+            outline: none;
+            height: 44px;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .price-group input:focus {
+            border-color: #4f46e5;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+        }
+        .price-group input.error {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+        .price-group .error-tip {
+            font-size: 11px;
+            color: #ef4444;
+            display: none;
+            padding: 2px 4px;
+            line-height: 1.4;
+        }
+
+        /* ===== 表单 ===== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        .form-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .form-group label .unit {
+            font-weight: 400;
+            color: #94a3b8;
+            font-size: 11px;
+        }
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 0 12px;
+            height: 44px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #0f172a;
+            background: #f8fafc;
+            transition: border-color 0.2s, background 0.2s;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+        .form-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 12px;
+        }
+        .form-group select:focus,
+        .form-group input:focus {
+            border-color: #4f46e5;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.10);
+        }
+        .form-group select option {
+            font-size: 14px;
+        }
+        .form-group input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+        .form-group input[type="number"]::-webkit-outer-spin-button,
+        .form-group input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* datalist 样式（移动端原生支持） */
+        .form-group input[list] {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 12px;
+        }
+
+        /* ===== 计算按钮 ===== */
+        .btn-calc {
+            width: 100%;
+            height: 52px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: #fff;
+            font-size: 17px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+            touch-action: manipulation;
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.30);
+            margin-top: 6px;
+        }
+        .btn-calc:active:not(:disabled) {
+            transform: scale(0.97);
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+        }
+        .btn-calc:disabled {
+            background: #94a3b8;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* ===== 结果区域 ===== */
+        .results {
+            display: none;
+            margin-top: 14px;
+            animation: fadeUp 0.4s ease;
+        }
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .result-item {
+            padding: 14px 14px 16px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            transition: border-color 0.2s;
+        }
+        .result-item.electric {
+            border-color: #60a5fa;
+            background: #eff6ff;
+        }
+        .result-item.gas {
+            border-color: #f87171;
+            background: #fef2f2;
+        }
+        .result-item .label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .result-item .label .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .result-item .label .dot.electric-dot {
+            background: #3b82f6;
+        }
+        .result-item .label .dot.gas-dot {
+            background: #ef4444;
+        }
+        .result-item .cost {
+            font-size: 22px;
+            font-weight: 700;
+            margin-top: 4px;
+            color: #0f172a;
+        }
+        .result-item .cost .currency {
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+        }
+        .result-item .cost.electric-cost {
+            color: #2563eb;
+        }
+        .result-item .cost.gas-cost {
+            color: #dc2626;
+        }
+        .result-item .sub {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        /* 明细折叠 */
+        .detail-toggle {
+            font-size: 12px;
+            color: #4f46e5;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 0;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            touch-action: manipulation;
+        }
+        .detail-toggle .arrow {
+            transition: transform 0.25s;
+            display: inline-block;
+        }
+        .detail-toggle .arrow.open {
+            transform: rotate(180deg);
+        }
+        .cost-details {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #475569;
+            line-height: 1.8;
+            display: none;
+            padding-top: 6px;
+            border-top: 1px dashed #e2e8f0;
+        }
+        .cost-details.open {
+            display: block;
+        }
+        .cost-details .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+        }
+        .cost-details .detail-item .val {
+            font-weight: 500;
+            color: #0f172a;
+        }
+
+        /* ===== 建议卡片 ===== */
+        .suggestion {
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: #f0fdf4;
+            border: 1.5px solid #86efac;
+            margin-bottom: 12px;
+        }
+        .suggestion .suggestion-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #15803d;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .suggestion .suggestion-title::before {
+            content: '💡';
+            font-size: 16px;
+        }
+        .suggestion p {
+            font-size: 13px;
+            line-height: 1.7;
+            color: #166534;
+            margin-top: 4px;
+        }
+
+        /* ===== 规则卡片 ===== */
+        .rule-box {
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 12px;
+        }
+        .rule-box .rule-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .rule-box .rule-title::before {
+            content: '📋';
+            font-size: 16px;
+        }
+        .rule-box .rule-list {
+            font-size: 12.5px;
+            line-height: 1.9;
+            color: #334155;
+            margin-top: 6px;
+            padding-left: 6px;
+        }
+        .rule-box .rule-list li {
+            list-style: none;
+            padding-left: 18px;
+            position: relative;
+        }
+        .rule-box .rule-list li::before {
+            content: '•';
+            position: absolute;
+            left: 2px;
+            color: #4f46e5;
+            font-weight: 700;
+        }
+
+        /* ===== 计算说明（折叠） ===== */
+        .guide-wrapper {
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            background: #ffffff;
+            margin-top: 6px;
+        }
+        .guide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            background: #f8fafc;
+            cursor: pointer;
+            touch-action: manipulation;
+            user-select: none;
+            transition: background 0.2s;
+        }
+        .guide-header:active {
+            background: #eef2f6;
+        }
+        .guide-header .guide-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .guide-header .guide-title::before {
+            content: '📖';
+            font-size: 16px;
+        }
+        .guide-header .guide-arrow {
+            font-size: 14px;
+            color: #94a3b8;
+            transition: transform 0.3s;
+        }
+        .guide-header .guide-arrow.open {
+            transform: rotate(180deg);
+        }
+        .guide-body {
+            padding: 0 16px 16px;
+            display: none;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+        .guide-body.open {
+            display: block;
+            max-height: 3000px;
+            padding: 0 16px 16px;
+        }
+        .guide-item {
+            margin-bottom: 14px;
+            font-size: 13px;
+            line-height: 1.7;
+            color: #334155;
+        }
+        .guide-item:last-child {
+            margin-bottom: 0;
+        }
+        .guide-item strong {
+            color: #0f172a;
+            display: block;
+            margin-bottom: 4px;
+            font-size: 13.5px;
+        }
+        .guide-item .guide-sub {
+            font-weight: 600;
+            color: #475569;
+            margin-top: 4px;
+            font-size: 12.5px;
+        }
+        .guide-item .guide-list {
+            padding-left: 16px;
+            font-size: 12.5px;
+            color: #475569;
+            line-height: 1.8;
+        }
+        .guide-item .guide-list li {
+            list-style: none;
+            padding-left: 14px;
+            position: relative;
+        }
+        .guide-item .guide-list li::before {
+            content: '−';
+            position: absolute;
+            left: 0;
+            color: #94a3b8;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 420px) {
+            .price-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .result-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .header h1 {
+                font-size: 18px;
+            }
+            .result-item .cost {
+                font-size: 19px;
+            }
+            .price-group input {
+                font-size: 14px;
+                height: 40px;
+                padding: 8px 10px;
+            }
+            .form-group select,
+            .form-group input {
+                height: 40px;
+                font-size: 13px;
+                padding: 0 10px;
+            }
+            .btn-calc {
+                height: 48px;
+                font-size: 16px;
+            }
+            body {
+                padding: 8px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .price-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 6px;
+            }
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 6px;
+            }
+            .result-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            .price-group label {
+                font-size: 11px;
+            }
+            .price-group input {
+                font-size: 13px;
+                height: 38px;
+                padding: 6px 8px;
+            }
+            .form-group select,
+            .form-group input {
+                height: 38px;
+                font-size: 12px;
+                padding: 0 8px;
+            }
+            .header h1 {
+                font-size: 16px;
+            }
+            .card {
+                padding: 12px;
+            }
+            .price-card {
+                padding: 12px;
+            }
+        }
+
+        @media (min-width: 640px) {
+            body {
+                padding: 24px;
+            }
+            .app {
+                max-width: 560px;
+            }
+            .price-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+            .form-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+            .result-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .mt-8 {
+            margin-top: 8px;
+        }
+        .mt-12 {
+            margin-top: 12px;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-muted {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app">
+
+        <!-- ===== 头部 ===== -->
+        <div class="header">
+            <h1>⚡ 电车 vs 油车</h1>
+            <p>真实成本对比 · 帮你做出更明智的选择</p>
+        </div>
+
+        <!-- ===== 能源价格 ===== -->
+        <div class="price-card">
+            <div class="card-title">
+                ⛽ 能源价格自定义
+                <span class="badge">实时调整</span>
+            </div>
+            <div class="price-grid" id="priceGrid">
+                <div class="price-group">
+                    <label>92# 汽油 <span class="unit">元/L</span></label>
+                    <input type="number" id="gas92-price" step="0.1" value="7.5" min="6.0" max="9.0">
+                    <div class="error-tip" id="tip-gas92">请输入 6.0 ~ 9.0</div>
+                </div>
+                <div class="price-group">
+                    <label>95# 汽油 <span class="unit">元/L</span></label>
+                    <input type="number" id="gas95-price" step="0.1" value="8.0" min="6.5" max="9.5">
+                    <div class="error-tip" id="tip-gas95">需 ≥ 92# 且 6.5~9.5</div>
+                </div>
+                <div class="price-group">
+                    <label>98# 汽油 <span class="unit">元/L</span></label>
+                    <input type="number" id="gas98-price" step="0.1" value="8.8" min="7.0" max="10.0">
+                    <div class="error-tip" id="tip-gas98">需 ≥ 95# 且 7.0~10.0</div>
+                </div>
+                <div class="price-group">
+                    <label>🏠 家充 <span class="unit">元/度</span></label>
+                    <input type="number" id="elec-home-price" step="0.05" value="0.55" min="0.4" max="0.8">
+                    <div class="error-tip" id="tip-elec-home">请输入 0.4 ~ 0.8</div>
+                </div>
+                <div class="price-group">
+                    <label>🔌 外充 <span class="unit">元/度</span></label>
+                    <input type="number" id="elec-public-price" step="0.05" value="1.2" min="1.0" max="1.5">
+                    <div class="error-tip" id="tip-elec-public">需 ≥ 家充 且 1.0~1.5</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 参数选择 ===== -->
+        <div class="card">
+            <div class="card-title">
+                📊 用车参数
+                <span class="badge">按需选择</span>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>购车预算</label>
+                    <select id="budget">
+                        <option value="5">5 万</option>
+                        <option value="10">10 万</option>
+                        <option value="15">15 万</option>
+                        <option value="20">20 万</option>
+                        <option value="25">25 万</option>
+                        <option value="30" selected>30 万</option>
+                        <option value="35">35 万</option>
+                        <option value="40">40 万</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>每年里程</label>
+                    <select id="annual-mileage">
+                        <option value="5000">5,000 km</option>
+                        <option value="8000">8,000 km</option>
+                        <option value="10000" selected>10,000 km</option>
+                        <option value="15000">15,000 km</option>
+                        <option value="20000">20,000 km</option>
+                        <option value="30000">30,000 km</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>用车年限</label>
+                    <select id="use-years">
+                        <option value="3">3 年</option>
+                        <option value="5">5 年</option>
+                        <option value="8">8 年</option>
+                        <option value="10" selected>10 年</option>
+                        <option value="15">15 年</option>
+                    </select>
+                </div>
+
+                <!-- 用车场景：四个选项 -->
+                <div class="form-group">
+                    <label>用车场景</label>
+                    <select id="drive-type">
+                        <option value="city_mixed" selected>🏙️ 市区为主</option>
+                        <option value="highway_mixed">🛣️ 高速为主</option>
+                        <option value="all_city">🏙️ 全市区</option>
+                        <option value="all_highway">🛣️ 全高速</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>充电方式</label>
+                    <select id="charge-type">
+                        <option value="home" selected>🏠 家充为主</option>
+                        <option value="public">🔌 外充为主</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>汽油标号</label>
+                    <select id="gas-type">
+                        <option value="92">92#</option>
+                        <option value="95" selected>95#</option>
+                        <option value="98">98#</option>
+                    </select>
+                </div>
+
+                <!-- 车型（占两列） -->
+                <div class="form-group full-width">
+                    <label>车型</label>
+                    <select id="car-type">
+                        <option value="compact">🚗 紧凑型</option>
+                        <option value="mid" selected>🚙 中型车</option>
+                        <option value="suv">🚘 SUV</option>
+                    </select>
+                </div>
+
+                <!-- 百公里油耗 -->
+                <div class="form-group">
+                    <label>百公里油耗 <span class="unit">L</span></label>
+                    <input type="number" id="fuel-consume" list="fuel-list" step="0.1" value="9.5" min="3" max="30">
+                    <datalist id="fuel-list">
+                        <option value="5.0">5.0</option>
+                        <option value="6.0">6.0</option>
+                        <option value="7.0">7.0</option>
+                        <option value="7.5">7.5</option>
+                        <option value="8.0">8.0</option>
+                        <option value="8.5">8.5</option>
+                        <option value="9.0">9.0</option>
+                        <option value="9.5">9.5</option>
+                        <option value="10.0">10.0</option>
+                        <option value="11.0">11.0</option>
+                        <option value="12.0">12.0</option>
+                        <option value="13.0">13.0</option>
+                    </datalist>
+                </div>
+
+                <!-- 百公里电耗 -->
+                <div class="form-group">
+                    <label>百公里电耗 <span class="unit">kWh</span></label>
+                    <input type="number" id="elec-consume" list="elec-list" step="0.5" value="14" min="5" max="40">
+                    <datalist id="elec-list">
+                        <option value="10.0">10.0</option>
+                        <option value="11.0">11.0</option>
+                        <option value="12.0">12.0</option>
+                        <option value="13.0">13.0</option>
+                        <option value="14.0">14.0</option>
+                        <option value="15.0">15.0</option>
+                        <option value="16.0">16.0</option>
+                        <option value="17.0">17.0</option>
+                        <option value="18.0">18.0</option>
+                        <option value="20.0">20.0</option>
+                        <option value="22.0">22.0</option>
+                    </datalist>
+                </div>
+            </div>
+
+            <button id="calcBtn" class="btn-calc">📊 计算用车成本</button>
+        </div>
+
+        <!-- ===== 结果区域 ===== -->
+        <div class="results" id="results">
+
+            <div class="result-grid">
+                <div class="result-item electric">
+                    <div class="label">
+                        <span class="dot electric-dot"></span> 纯电动车
+                    </div>
+                    <div class="cost electric-cost" id="electric-cost"><span class="currency">¥</span>0</div>
+                    <div class="sub">年均总成本</div>
+                    <button class="detail-toggle" data-target="electric-details">
+                        查看明细 <span class="arrow">▾</span>
+                    </button>
+                    <div class="cost-details" id="electric-details"></div>
+                </div>
+                <div class="result-item gas">
+                    <div class="label">
+                        <span class="dot gas-dot"></span> 燃油车
+                    </div>
+                    <div class="cost gas-cost" id="gas-cost"><span class="currency">¥</span>0</div>
+                    <div class="sub">年均总成本</div>
+                    <button class="detail-toggle" data-target="gas-details">
+                        查看明细 <span class="arrow">▾</span>
+                    </button>
+                    <div class="cost-details" id="gas-details"></div>
+                </div>
+            </div>
+
+            <div class="suggestion">
+                <div class="suggestion-title">购车建议</div>
+                <p id="suggestion-text"></p>
+            </div>
+
+            <div class="rule-box">
+                <div class="rule-title">通用选择规则</div>
+                <ul class="rule-list">
+                    <li>年里程 ≥ 2万 + 家充为主 + 用车 ≥ 5年 → 电车更划算</li>
+                    <li>年里程 ＜ 1.5万 或 车价 ≥ 25万 → 油车更划算</li>
+                    <li>高速为主 + 外充为主 → 优先油车</li>
+                    <li>油价每涨 0.5 元/L，油车年均成本 +400~500 元（1万km）</li>
+                    <li>最终以本工具实际计算为准，谁低选谁 ✅</li>
+                </ul>
+            </div>
+
+            <!-- ===== 计算说明（折叠） ===== -->
+            <div class="guide-wrapper">
+                <div class="guide-header" id="guideToggle">
+                    <span class="guide-title">参数计算说明</span>
+                    <span class="guide-arrow" id="guideArrow">▾</span>
+                </div>
+                <div class="guide-body" id="guideBody">
+
+                    <div class="guide-item">
+                        <strong>一、折旧费用（核心成本）</strong>
+                        <div class="guide-sub">计算逻辑</div>
+                        <div class="guide-list">
+                            <li>年折旧 = (购车总价 − 残值) ÷ 年限</li>
+                            <li>残值 = 购车总价 × 对应年限残值率</li>
+                        </div>
+                        <div class="guide-sub" style="margin-top:6px;">残值率标准</div>
+                        <div class="guide-list">
+                            <li>燃油车：3年70% · 5年60% · 8年45% · 10年30% · 15年15%</li>
+                            <li>纯电车：3年55% · 5年45% · 8年30% · 10年20% · 15年8%</li>
+                        </div>
+                    </div>
+
+                    <div class="guide-item">
+                        <strong>二、能源成本</strong>
+                        <div class="guide-sub">燃油车油费</div>
+                        <div class="guide-list">
+                            <li>年油费 = (里程 ÷ 100) × 百公里油耗 × 油价</li>
+                            <li>百公里油耗可自定义，切换车型/场景会自动填充参考值</li>
+                        </div>
+                        <div class="guide-sub" style="margin-top:6px;">纯电车电费</div>
+                        <div class="guide-list">
+                            <li>年电费 = (里程 ÷ 100) × 百公里电耗 × 电价</li>
+                            <li>百公里电耗可自定义，切换车型/场景会自动填充参考值</li>
+                        </div>
+                    </div>
+
+                    <div class="guide-item">
+                        <strong>三、保养费用</strong>
+                        <div class="guide-list">
+                            <li>年保养 = 基础费 + (里程 ÷ 10000) × 每万公里额外费</li>
+                            <li>燃油车：基础 1500 元/年 + 300 元/万km</li>
+                            <li>纯电车：基础 500 元/年 + 100 元/万km</li>
+                        </div>
+                    </div>
+
+                    <div class="guide-item">
+                        <strong>四、保险费用</strong>
+                        <div class="guide-list">
+                            <li>年保险 = 购车总价 × 费率</li>
+                            <li>燃油车：1.8% · 纯电车：2.2%</li>
+                        </div>
+                    </div>
+
+                    <div class="guide-item">
+                        <strong>五、税费成本</strong>
+                        <div class="guide-sub">购置税（仅燃油车）</div>
+                        <div class="guide-list">
+                            <li>总购置税 = 购车总价 ÷ 1.13 × 10%，分摊到年限</li>
+                            <li>纯电车免征购置税</li>
+                        </div>
+                        <div class="guide-sub" style="margin-top:6px;">车船税</div>
+                        <div class="guide-list">
+                            <li>燃油车：360 元/年 · 纯电车：免征</li>
+                        </div>
+                    </div>
+
+                    <div class="guide-item">
+                        <strong>六、电池更换（纯电车）</strong>
+                        <div class="guide-list">
+                            <li>年限 ≥ 8 年时计算，总成本 = 购车价 × 30%</li>
+                            <li>年电池成本 = 总成本 ÷ 年限</li>
+                        </div>
+                    </div>
+
+                    <div class="guide-item">
+                        <strong>七、总成本构成</strong>
+                        <div class="guide-list">
+                            <li>燃油车 = 折旧 + 油费 + 保养 + 保险 + 购置税分摊 + 车船税</li>
+                            <li>纯电车 = 折旧 + 电费 + 保养 + 保险 + 电池更换(8年+) + 车船税(0)</li>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div><!-- /results -->
+
+    </div><!-- /app -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // ===== DOM 引用 =====
+            const gas92Input = document.getElementById('gas92-price');
+            const gas95Input = document.getElementById('gas95-price');
+            const gas98Input = document.getElementById('gas98-price');
+            const elecHomeInput = document.getElementById('elec-home-price');
+            const elecPublicInput = document.getElementById('elec-public-price');
+
+            const tipGas92 = document.getElementById('tip-gas92');
+            const tipGas95 = document.getElementById('tip-gas95');
+            const tipGas98 = document.getElementById('tip-gas98');
+            const tipElecHome = document.getElementById('tip-elec-home');
+            const tipElecPublic = document.getElementById('tip-elec-public');
+
+            const calcBtn = document.getElementById('calcBtn');
+            const resultsEl = document.getElementById('results');
+
+            // 油耗电耗输入
+            const fuelConsumeInput = document.getElementById('fuel-consume');
+            const elecConsumeInput = document.getElementById('elec-consume');
+            const carTypeSelect = document.getElementById('car-type');
+            const driveTypeSelect = document.getElementById('drive-type');
+
+            // ===== 新配置：四种场景 =====
+            // 以中型车为基准，按比例推算紧凑型和SUV
+            // 中型车数值（用户指定）：
+            // all_city: 油耗14, 电耗14
+            // all_highway: 油耗7, 电耗28
+            // city_mixed: 油耗11.5, 电耗16.5
+            // highway_mixed: 油耗8.5, 电耗22.5
+            // 比例：紧凑型 vs 中型：油耗比例约0.896，电耗比例约0.805；SUV vs 中型：油耗比例约1.156，电耗比例约1.16
+            const config = {
+                compact: {
+                    all_city: { gas: 12.5, elec: 11.3 },
+                    all_highway: { gas: 6.3, elec: 22.5 },
+                    city_mixed: { gas: 10.3, elec: 13.3 },
+                    highway_mixed: { gas: 7.6, elec: 18.1 }
+                },
+                mid: {
+                    all_city: { gas: 14.0, elec: 14.0 },
+                    all_highway: { gas: 7.0, elec: 28.0 },
+                    city_mixed: { gas: 11.5, elec: 16.5 },
+                    highway_mixed: { gas: 8.5, elec: 22.5 }
+                },
+                suv: {
+                    all_city: { gas: 16.2, elec: 16.2 },
+                    all_highway: { gas: 8.1, elec: 32.5 },
+                    city_mixed: { gas: 13.3, elec: 19.1 },
+                    highway_mixed: { gas: 9.8, elec: 26.1 }
+                }
+            };
+
+            // ===== 更新油耗/电耗默认值（联动） =====
+            function updateConsumeDefaults() {
+                const car = carTypeSelect.value;
+                const drive = driveTypeSelect.value;
+                // 如果当前场景不在配置中（以防万一），默认使用 city_mixed
+                const driveKey = drive || 'city_mixed';
+                const vals = config[car] && config[car][driveKey] ? config[car][driveKey] : config[car]['city_mixed'];
+                if (vals) {
+                    fuelConsumeInput.value = vals.gas.toFixed(1);
+                    elecConsumeInput.value = vals.elec.toFixed(1);
+                }
+            }
+
+            // 监听车型和场景变化
+            carTypeSelect.addEventListener('change', updateConsumeDefaults);
+            driveTypeSelect.addEventListener('change', updateConsumeDefaults);
+
+            // 初始化填充
+            updateConsumeDefaults();
+
+            // ===== 价格验证 =====
+            function validatePrices() {
+                let isValid = true;
+                const gas92 = parseFloat(gas92Input.value);
+                const gas95 = parseFloat(gas95Input.value);
+                const gas98 = parseFloat(gas98Input.value);
+                const elecHome = parseFloat(elecHomeInput.value);
+                const elecPublic = parseFloat(elecPublicInput.value);
+
+                [gas92Input, gas95Input, gas98Input, elecHomeInput, elecPublicInput].forEach(el => el.classList.remove('error'));
+                [tipGas92, tipGas95, tipGas98, tipElecHome, tipElecPublic].forEach(el => el.style.display = 'none');
+
+                if (isNaN(gas92) || gas92 < 6.0 || gas92 > 9.0) {
+                    gas92Input.classList.add('error');
+                    tipGas92.style.display = 'block';
+                    isValid = false;
+                }
+                if (isNaN(gas95) || gas95 < 6.5 || gas95 > 9.5 || gas95 < gas92) {
+                    gas95Input.classList.add('error');
+                    tipGas95.style.display = 'block';
+                    isValid = false;
+                }
+                if (isNaN(gas98) || gas98 < 7.0 || gas98 > 10.0 || gas98 < gas95) {
+                    gas98Input.classList.add('error');
+                    tipGas98.style.display = 'block';
+                    isValid = false;
+                }
+                if (isNaN(elecHome) || elecHome < 0.4 || elecHome > 0.8) {
+                    elecHomeInput.classList.add('error');
+                    tipElecHome.style.display = 'block';
+                    isValid = false;
+                }
+                if (isNaN(elecPublic) || elecPublic < 1.0 || elecPublic > 1.5 || elecPublic < elecHome) {
+                    elecPublicInput.classList.add('error');
+                    tipElecPublic.style.display = 'block';
+                    isValid = false;
+                }
+
+                calcBtn.disabled = !isValid;
+                return isValid;
+            }
+
+            [gas92Input, gas95Input, gas98Input, elecHomeInput, elecPublicInput].forEach(el => {
+                el.addEventListener('input', validatePrices);
+            });
+            validatePrices();
+
+            // ===== 明细折叠 =====
+            document.querySelectorAll('.detail-toggle').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const targetId = this.dataset.target;
+                    const details = document.getElementById(targetId);
+                    const arrow = this.querySelector('.arrow');
+                    if (details) {
+                        details.classList.toggle('open');
+                        arrow.classList.toggle('open');
+                        this.innerHTML = details.classList.contains('open') ?
+                            '收起明细 <span class="arrow open">▾</span>' :
+                            '查看明细 <span class="arrow">▾</span>';
+                    }
+                });
+            });
+
+            // ===== 计算说明折叠 =====
+            const guideToggle = document.getElementById('guideToggle');
+            const guideBody = document.getElementById('guideBody');
+            const guideArrow = document.getElementById('guideArrow');
+            guideToggle.addEventListener('click', function() {
+                guideBody.classList.toggle('open');
+                guideArrow.classList.toggle('open');
+            });
+
+            // ===== 计算函数 =====
+            function calc() {
+                // 验证油耗电耗
+                const fuel = parseFloat(fuelConsumeInput.value);
+                const elec = parseFloat(elecConsumeInput.value);
+                if (isNaN(fuel) || fuel <= 0) {
+                    alert('请输入有效的百公里油耗（正数）');
+                    fuelConsumeInput.focus();
+                    return;
+                }
+                if (isNaN(elec) || elec <= 0) {
+                    alert('请输入有效的百公里电耗（正数）');
+                    elecConsumeInput.focus();
+                    return;
+                }
+
+                try {
+                    const gasPriceCustom = {
+                        92: parseFloat(gas92Input.value),
+                        95: parseFloat(gas95Input.value),
+                        98: parseFloat(gas98Input.value)
+                    };
+                    const elecPriceCustom = {
+                        home: parseFloat(elecHomeInput.value),
+                        public: parseFloat(elecPublicInput.value)
+                    };
+
+                    const budget = +document.getElementById('budget').value * 10000;
+                    const budgetWan = +document.getElementById('budget').value;
+                    const mile = +document.getElementById('annual-mileage').value;
+                    const years = +document.getElementById('use-years').value;
+                    const drive = document.getElementById('drive-type').value;
+                    const driveTextMap = {
+                        'city_mixed': '市区为主',
+                        'highway_mixed': '高速为主',
+                        'all_city': '全市区',
+                        'all_highway': '全高速'
+                    };
+                    const driveText = driveTextMap[drive] || drive;
+                    const charge = document.getElementById('charge-type').value;
+                    const chargeText = charge === 'home' ? '家充为主' : '外面充电为主';
+                    const gasType = document.getElementById('gas-type').value;
+                    const gasTypeText = gasType + '号汽油';
+                    const car = document.getElementById('car-type').value;
+                    let carText = { compact: '紧凑型车', mid: '中型车', suv: 'SUV' } [car] || '';
+
+                    // 使用自定义油耗电耗（用户可覆盖）
+                    const gasConsume = fuel;
+                    const elecConsume = elec;
+
+                    const gasPrice = gasPriceCustom[gasType];
+                    const elecPrice = elecPriceCustom[charge];
+
+                    const gasFee = (mile / 100) * gasConsume * gasPrice;
+                    const elecFee = (mile / 100) * elecConsume * elecPrice;
+
+                    const dep = {
+                        gas: { 3: 0.7, 5: 0.6, 8: 0.45, 10: 0.3, 15: 0.15 },
+                        elec: { 3: 0.55, 5: 0.45, 8: 0.3, 10: 0.2, 15: 0.08 }
+                    };
+                    const gasDep = (budget - budget * dep.gas[years]) / years;
+                    const elecDep = (budget - budget * dep.elec[years]) / years;
+
+                    const gasMaintain = 1500 + (mile / 10000) * 300;
+                    const elecMaintain = 500 + (mile / 10000) * 100;
+
+                    const gasIns = budget * 0.018;
+                    const elecIns = budget * 0.022;
+
+                    const purchaseTax = (budget / 1.13 * 0.1) / years;
+                    const gasTax = 360;
+                    const elecTax = 0;
+
+                    const battery = years >= 8 ? (budget * 0.3) / years : 0;
+
+                    const totalGas = gasDep + gasFee + gasMaintain + gasIns + purchaseTax + gasTax;
+                    const totalEle = elecDep + elecFee + elecMaintain + elecIns + battery + elecTax;
+                    const diff = Math.abs(totalGas - totalEle);
+
+                    // 显示结果
+                    resultsEl.style.display = 'block';
+                    document.getElementById('electric-cost').innerHTML = '<span class="currency">¥</span>' + totalEle.toFixed(0);
+                    document.getElementById('gas-cost').innerHTML = '<span class="currency">¥</span>' + totalGas.toFixed(0);
+
+                    // 电车明细
+                    document.getElementById('electric-details').innerHTML = `
+                        <div class="detail-item"><span>折旧费用</span><span class="val">¥${elecDep.toFixed(0)}</span></div>
+                        <div class="detail-item"><span>电费</span><span class="val">¥${elecFee.toFixed(0)}</span></div>
+                        <div class="detail-item"><span>保养费用</span><span class="val">¥${elecMaintain.toFixed(0)}</span></div>
+                        <div class="detail-item"><span>保险费用</span><span class="val">¥${elecIns.toFixed(0)}</span></div>
+                        <div class="detail-item"><span>电池更换</span><span class="val">¥${battery.toFixed(0)}</span></div>
+                        <div class="detail-item"><span>车船税</span><span class="val">¥${elecTax.toFixed(0)}</span></div>
+                    `;
+
+                    // 油车明细
+                    document.getElementById('gas-details').innerHTML = `
+                        <div class="detail-item"><span>折旧费用</span><span class="val">¥${gasDep.toFixed(0)}</span></div>
+                        <div class="detail-item"><span>油费</span><span class="val">¥${gasFee.toFixed(0)}</span></div>
+                        <div class="detail-item"><span>保养费用</span><span class="val">¥${gasMaintain.toFixed(0)}</span></div>
+                        <div class="detail-item"><span>保险费用</span><span class="val">¥${gasIns.toFixed(0)}</span></div>
+                        <div class="detail-item"><span>购置税分摊</span><span class="val">¥${purchaseTax.toFixed(0)}</span></div>
+                        <div class="detail-item"><span>车船税</span><span class="val">¥${gasTax.toFixed(0)}</span></div>
+                    `;
+
+                    // 建议
+                    let suggest = '';
+                    const priceInfo = `家充 ${elecPriceCustom.home} 元/度 · 外充 ${elecPriceCustom.public} 元/度`;
+                    if (totalEle < totalGas) {
+                        suggest =
+                            `根据你的选择：预算 ${budgetWan} 万 · 年行 ${mile} km · ${years} 年 · ${driveText} · ${chargeText} · ${gasTypeText}（${gasPrice} 元/L）· ${carText}（油耗 ${fuel} L/100km，电耗 ${elec} kWh/100km，${priceInfo}）。<br><strong>纯电车</strong>年均成本 <strong>¥${totalEle.toFixed(0)}</strong>，<strong>燃油车</strong>年均成本 <strong>¥${totalGas.toFixed(0)}</strong>，电车每年节省 <strong>¥${diff.toFixed(0)}</strong>，✅ 建议选择 <strong>纯电动车</strong>。`;
+                    } else {
+                        suggest =
+                            `根据你的选择：预算 ${budgetWan} 万 · 年行 ${mile} km · ${years} 年 · ${driveText} · ${chargeText} · ${gasTypeText}（${gasPrice} 元/L）· ${carText}（油耗 ${fuel} L/100km，电耗 ${elec} kWh/100km，${priceInfo}）。<br><strong>燃油车</strong>年均成本 <strong>¥${totalGas.toFixed(0)}</strong>，<strong>纯电车</strong>年均成本 <strong>¥${totalEle.toFixed(0)}</strong>，油车每年节省 <strong>¥${diff.toFixed(0)}</strong>，✅ 建议选择 <strong>燃油车</strong>。`;
+                    }
+                    document.getElementById('suggestion-text').innerHTML = suggest;
+
+                    // 滚动到结果
+                    setTimeout(() => {
+                        resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+
+                } catch (e) {
+                    alert('计算出错，请检查选项（油价/电价请输入合理数值）');
+                    console.error(e);
+                }
+            }
+
+            // ===== 绑定计算事件 =====
+            calcBtn.addEventListener('click', calc);
+            calcBtn.addEventListener('touchstart', function(e) {
+                if (!this.disabled) {
+                    e.preventDefault();
+                    calc();
+                }
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const active = document.activeElement;
+                    if (active && (active.tagName === 'INPUT' || active.tagName === 'SELECT')) {
+                        if (!calcBtn.disabled) calc();
+                    }
+                }
+            });
+
+        });
+    </script>
+
+</body>
+</html>
