@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>财务管理系统</title>
+    <!-- Bootstrap 5 & Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background: #f5f7fa;
+            padding: 10px 0 70px 0;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 640px;
+            padding: 0 10px;
+            margin: 0 auto;
+        }
+        /* 顶部导航 */
+        .app-header {
+            background: #fff;
+            border-radius: 12px;
+            padding: 10px 16px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .app-header .brand {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #0d6efd;
+        }
+        .app-header .brand i { margin-right: 8px; }
+        .app-header .badge {
+            font-size: 0.7rem;
+            background: #e9ecef;
+            color: #495057;
+        }
+        /* Tab 切换 */
+        .nav-pills .nav-link {
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .nav-pills .nav-link.active {
+            background: #0d6efd;
+            color: #fff;
+        }
+        .tab-content { margin-top: 10px; }
+
+        /* 卡片风格列表 */
+        .list-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        .list-item {
+            padding: 10px 14px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .list-item:last-child { border-bottom: none; }
+        .list-item .info {
+            flex: 1;
+            min-width: 0;
+        }
+        .list-item .info .title {
+            font-weight: 500;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+        .list-item .info .title .amount {
+            font-weight: 700;
+            color: #0d6efd;
+            font-size: 1rem;
+        }
+        .list-item .info .meta {
+            font-size: 0.75rem;
+            color: #6c757d;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 12px;
+            margin-top: 2px;
+        }
+        .list-item .info .meta .badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+        }
+        .list-item .actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+        .list-item .actions .btn-icon {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            border: 1px solid #dee2e6;
+            background: #fff;
+            color: #495057;
+        }
+        .list-item .actions .btn-icon:hover {
+            background: #f1f3f5;
+        }
+        .list-item .actions .btn-icon.danger:hover {
+            background: #fee;
+            border-color: #fcc;
+            color: #dc3545;
+        }
+        .list-item .actions .btn-icon.primary:hover {
+            background: #e7f1ff;
+            border-color: #b6d4fe;
+            color: #0d6efd;
+        }
+
+        /* 搜索区 */
+        .search-area {
+            background: #fff;
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .search-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .search-row .form-control,
+        .search-row .form-select {
+            font-size: 0.85rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .search-row .form-control:focus,
+        .search-row .form-select:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.15rem rgba(13,110,253,0.15);
+        }
+        .search-row .btn {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.7rem;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+        .filter-row .form-select,
+        .filter-row .form-control {
+            flex: 1 1 auto;
+            min-width: 70px;
+            font-size: 0.8rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        .filter-row .form-control[type="number"] {
+            max-width: 80px;
+        }
+        .filter-row .btn-sm {
+            font-size: 0.75rem;
+            padding: 0.15rem 0.5rem;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+        .toolbar .btn-outline-secondary {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.5rem;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            color: #adb5bd;
+            padding: 30px 10px;
+        }
+        .empty-state i { font-size: 2.5rem; margin-bottom: 8px; }
+
+        /* modal 优化 */
+        .modal-content { border-radius: 16px; }
+        .modal-body { padding: 16px 20px; }
+        .modal-body .form-label { font-weight: 500; font-size: 0.85rem; margin-bottom: 2px; }
+        .modal-body .form-control,
+        .modal-body .form-select {
+            font-size: 0.9rem;
+            border-radius: 8px;
+        }
+        .modal-footer .btn {
+            border-radius: 20px;
+            padding: 0.3rem 1.2rem;
+        }
+
+        /* 辅助 */
+        .text-muted-light { color: #868e96; }
+        .gap-1 { gap: 4px; }
+        .gap-2 { gap: 8px; }
+
+        /* 响应式微调 */
+        @media (max-width: 480px) {
+            .list-item { padding: 8px 10px; }
+            .list-item .info .title { font-size: 0.85rem; }
+            .list-item .info .meta { font-size: 0.7rem; gap: 4px 8px; }
+            .search-row .form-control { font-size: 0.8rem; }
+            .filter-row .form-select { min-width: 60px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="app">
+    <!-- 顶部 -->
+    <div class="app-header">
+        <span class="brand"><i class="fas fa-coins"></i>财务系统</span>
+        <span class="badge" id="dataStatus">已就绪</span>
+    </div>
+
+    <!-- Tab -->
+    <ul class="nav nav-pills nav-fill" id="mainTab" role="tablist">
+        <li class="nav-item"><button class="nav-link active" id="supplier-tab" data-bs-toggle="tab" data-bs-target="#suppliers" type="button" role="tab"><i class="fas fa-building me-1"></i>供应商</button></li>
+        <li class="nav-item"><button class="nav-link" id="bill-tab" data-bs-toggle="tab" data-bs-target="#bills" type="button" role="tab"><i class="fas fa-file-invoice me-1"></i>账单</button></li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- 供应商 -->
+        <div class="tab-pane fade show active" id="suppliers" role="tabpanel">
+            <div class="search-area">
+                <div class="search-row">
+                    <input type="text" class="form-control" id="supplierSearch" placeholder="🔍 搜索（所有字段）">
+                    <button class="btn btn-primary" id="addSupplierBtn"><i class="fas fa-plus"></i> 添加</button>
+                </div>
+                <div class="toolbar">
+                    <button class="btn btn-outline-secondary" id="exportSuppliersBtn"><i class="fas fa-file-export"></i> 导出</button>
+                    <button class="btn btn-outline-secondary" id="importSuppliersBtn"><i class="fas fa-file-import"></i> 导入</button>
+                    <button class="btn btn-outline-secondary" id="downloadSupplierTemplateBtn"><i class="fas fa-download"></i> 模板</button>
+                </div>
+            </div>
+            <div class="list-card" id="supplierList">
+                <!-- 动态渲染 -->
+            </div>
+        </div>
+
+        <!-- 账单 -->
+        <div class="tab-pane fade" id="bills" role="tabpanel">
+            <div class="search-area">
+                <!-- 搜索 + 添加 -->
+                <div class="search-row">
+                    <input type="text" class="form-control" id="billGlobalSearch" placeholder="🔍 全局搜索（所有字段）">
+                    <button class="btn btn-primary" id="addBillBtn"><i class="fas fa-plus"></i> 添加</button>
+                </div>
+                <!-- 筛选行 -->
+                <div class="filter-row">
+                    <select class="form-select" id="billLocationFilter"><option value="">📍地点</option></select>
+                    <select class="form-select" id="billSupplierFilter"><option value="">🏢供应商</option></select>
+                    <select class="form-select" id="billInvoiceFilter"><option value="">📄发票</option></select>
+                    <select class="form-select" id="billAccountTimeFilter"><option value="">📅报账时间</option></select>
+                </div>
+                <div class="filter-row">
+                    <input type="number" class="form-control" id="billAmountMin" placeholder="金额≥" step="0.01" min="0">
+                    <span style="color:#6c757d;">~</span>
+                    <input type="number" class="form-control" id="billAmountMax" placeholder="≤" step="0.01" min="0">
+                    <button class="btn btn-outline-secondary btn-sm" id="resetBillFilters"><i class="fas fa-undo"></i> 重置</button>
+                </div>
+                <div class="toolbar">
+                    <button class="btn btn-outline-secondary" id="exportBillsBtn"><i class="fas fa-file-export"></i> 导出</button>
+                    <button class="btn btn-outline-secondary" id="importBillsBtn"><i class="fas fa-file-import"></i> 导入</button>
+                    <button class="btn btn-outline-secondary" id="downloadBillTemplateBtn"><i class="fas fa-download"></i> 模板</button>
+                </div>
+            </div>
+            <div class="list-card" id="billList">
+                <!-- 动态渲染 -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="formModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="formModalLabel">标题</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="formModalBody"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button class="btn btn-primary" id="formSaveBtn">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 隐藏文件输入 -->
+<input type="file" id="fileInput" accept=".csv,.xlsx" style="display:none">
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ======== 数据层 ========
+const STORAGE_KEY_SUPPLIERS = 'fm_suppliers';
+const STORAGE_KEY_BILLS = 'fm_bills';
+let suppliers = [], bills = [];
+let editingId = null;
+
+function loadData() {
+    try {
+        const s = localStorage.getItem(STORAGE_KEY_SUPPLIERS);
+        suppliers = s ? JSON.parse(s) : [];
+        const b = localStorage.getItem(STORAGE_KEY_BILLS);
+        bills = b ? JSON.parse(b) : [];
+    } catch(e) { suppliers = []; bills = []; }
+    // 确保id
+    let maxId = 0;
+    suppliers.forEach(item => { if (!item.id) item.id = ++maxId; else if (item.id > maxId) maxId = item.id; });
+    bills.forEach(item => { if (!item.id) item.id = ++maxId; else if (item.id > maxId) maxId = item.id; });
+    saveData();
+}
+function saveData() {
+    localStorage.setItem(STORAGE_KEY_SUPPLIERS, JSON.stringify(suppliers));
+    localStorage.setItem(STORAGE_KEY_BILLS, JSON.stringify(bills));
+}
+function generateId() {
+    const all = [...suppliers, ...bills];
+    let max = 0;
+    all.forEach(item => { if (item.id && item.id > max) max = item.id; });
+    return max + 1;
+}
+
+// ======== 辅助 ========
+function getLocations() { return [...new Set(suppliers.map(s => s.location).filter(Boolean))]; }
+function getSupplierNames() { return [...new Set(suppliers.map(s => s.supplier_name).filter(Boolean))]; }
+function getInvoiceTypes() { return [...new Set(suppliers.map(s => s.invoice_type).filter(Boolean))]; }
+function getAccountTimes() { return [...new Set(bills.map(b => b.accounting_time).filter(Boolean))]; }
+function getSuppliersByLocation(loc) { return suppliers.filter(s => s.location === loc); }
+
+// ======== 渲染供应商 ========
+function renderSuppliers() {
+    const keyword = document.getElementById('supplierSearch').value.trim().toLowerCase();
+    let filtered = suppliers;
+    if (keyword) {
+        filtered = suppliers.filter(s => {
+            const fields = [s.location, s.supplier_name, s.invoice_type, s.bank_account, s.expense_type];
+            return fields.some(f => f && f.toLowerCase().includes(keyword));
+        });
+    }
+    const container = document.getElementById('supplierList');
+    if (!filtered.length) {
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-building"></i><p>暂无供应商</p></div>`;
+        return;
+    }
+    let html = '';
+    filtered.forEach(s => {
+        html += `
+            <div class="list-item">
+                <div class="info">
+                    <div class="title">${s.supplier_name || '未命名'}</div>
+                    <div class="meta">
+                        <span><i class="fas fa-map-pin"></i> ${s.location || '未知'}</span>
+                        ${s.invoice_type ? `<span class="badge bg-info">${s.invoice_type}</span>` : ''}
+                        ${s.bank_account ? `<span class="badge bg-secondary">${s.bank_account}</span>` : ''}
+                        ${s.expense_type ? `<span class="badge bg-warning text-dark">${s.expense_type}</span>` : ''}
+                    </div>
+                </div>
+                <div class="actions">
+                    <button class="btn-icon primary edit-supplier" data-id="${s.id}"><i class="fas fa-pen"></i></button>
+                    <button class="btn-icon danger delete-supplier" data-id="${s.id}"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+    // 事件
+    container.querySelectorAll('.edit-supplier').forEach(btn => {
+        btn.addEventListener('click', () => openSupplierForm(parseInt(btn.dataset.id)));
+    });
+    container.querySelectorAll('.delete-supplier').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (confirm('确定删除该供应商？')) {
+                suppliers = suppliers.filter(s => s.id !== parseInt(btn.dataset.id));
+                saveData();
+                renderSuppliers();
+                updateFilterOptions();
+                renderBills();
+            }
+        });
+    });
+}
+
+// ======== 渲染账单（严格按报账时间降序） ========
+function renderBills() {
+    const location = document.getElementById('billLocationFilter').value;
+    const supplier = document.getElementById('billSupplierFilter').value;
+    const invoice = document.getElementById('billInvoiceFilter').value;
+    const accountTime = document.getElementById('billAccountTimeFilter').value;
+    const minAmt = parseFloat(document.getElementById('billAmountMin').value) || 0;
+    const maxAmt = parseFloat(document.getElementById('billAmountMax').value) || Infinity;
+    const keyword = document.getElementById('billGlobalSearch').value.trim().toLowerCase();
+
+    let filtered = bills.filter(b => {
+        if (location && b.location !== location) return false;
+        if (supplier && b.supplier_name !== supplier) return false;
+        if (invoice && b.invoice_type !== invoice) return false;
+        if (accountTime && b.accounting_time !== accountTime) return false;
+        if (b.amount < minAmt || b.amount > maxAmt) return false;
+        if (keyword) {
+            const fields = [b.location, b.supplier_name, b.invoice_type, b.bank_account, b.expense_type, b.note1, b.note2, b.start_date, b.end_date, b.accounting_time];
+            return fields.some(f => f && f.toLowerCase().includes(keyword));
+        }
+        return true;
+    });
+
+    // 按报账时间降序（字符串比较 YYYY-MM-DD 可直接比较）
+    filtered.sort((a, b) => (b.accounting_time || '').localeCompare(a.accounting_time || ''));
+
+    const container = document.getElementById('billList');
+    if (!filtered.length) {
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-file-invoice"></i><p>暂无账单</p></div>`;
+        return;
+    }
+    let html = '';
+    filtered.forEach(b => {
+        html += `
+            <div class="list-item">
+                <div class="info">
+                    <div class="title">
+                        <span>${b.supplier_name || '未知'}</span>
+                        <span class="amount">¥${b.amount.toFixed(2)}</span>
+                        <span style="font-size:0.7rem;color:#6c757d;font-weight:400;">${b.accounting_time || ''}</span>
+                    </div>
+                    <div class="meta">
+                        <span><i class="fas fa-map-pin"></i> ${b.location || ''}</span>
+                        ${b.invoice_type ? `<span class="badge bg-info">${b.invoice_type}</span>` : ''}
+                        ${b.bank_account ? `<span class="badge bg-secondary">${b.bank_account}</span>` : ''}
+                        ${b.expense_type ? `<span class="badge bg-warning text-dark">${b.expense_type}</span>` : ''}
+                        <span><i class="far fa-calendar-alt"></i> ${b.start_date || ''} ~ ${b.end_date || ''}</span>
+                        ${b.note1 ? `<span class="text-muted-light">📝${b.note1}</span>` : ''}
+                        ${b.note2 ? `<span class="text-muted-light">${b.note2}</span>` : ''}
+                    </div>
+                </div>
+                <div class="actions">
+                    <button class="btn-icon primary edit-bill" data-id="${b.id}"><i class="fas fa-pen"></i></button>
+                    <button class="btn-icon danger delete-bill" data-id="${b.id}"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+
+    container.querySelectorAll('.edit-bill').forEach(btn => {
+        btn.addEventListener('click', () => openBillForm(parseInt(btn.dataset.id)));
+    });
+    container.querySelectorAll('.delete-bill').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (confirm('确定删除该账单？')) {
+                bills = bills.filter(b => b.id !== parseInt(btn.dataset.id));
+                saveData();
+                renderBills();
+                updateFilterOptions();
+            }
+        });
+    });
+}
+
+// ======== 更新筛选下拉 ========
+function updateFilterOptions() {
+    populateSelect('billLocationFilter', getLocations(), '📍地点');
+    populateSelect('billSupplierFilter', getSupplierNames(), '🏢供应商');
+    populateSelect('billInvoiceFilter', getInvoiceTypes(), '📄发票');
+    populateSelect('billAccountTimeFilter', getAccountTimes(), '📅报账时间');
+}
+function populateSelect(id, options, placeholder) {
+    const select = document.getElementById(id);
+    const current = select.value;
+    select.innerHTML = `<option value="">${placeholder || '全部'}</option>`;
+    options.forEach(opt => {
+        const op = document.createElement('option');
+        op.value = opt;
+        op.textContent = opt;
+        select.appendChild(op);
+    });
+    if (current && options.includes(current)) select.value = current;
+}
+
+// ======== 供应商表单 ========
+function openSupplierForm(id) {
+    const modal = new bootstrap.Modal(document.getElementById('formModal'));
+    const title = document.getElementById('formModalLabel');
+    const body = document.getElementById('formModalBody');
+    if (id) {
+        editingId = id;
+        const s = suppliers.find(item => item.id === id);
+        if (!s) return;
+        title.textContent = '编辑供应商';
+        body.innerHTML = `
+            <form id="supplierForm">
+                <div class="mb-2"><label class="form-label">地点 *</label><input class="form-control" id="s_loc" value="${s.location||''}" required></div>
+                <div class="mb-2"><label class="form-label">供应商名称 *</label><input class="form-control" id="s_name" value="${s.supplier_name||''}" required></div>
+                <div class="mb-2"><label class="form-label">发票类型</label><input class="form-control" id="s_inv" value="${s.invoice_type||''}"></div>
+                <div class="mb-2"><label class="form-label">银行账号</label><input class="form-control" id="s_bank" value="${s.bank_account||''}"></div>
+                <div class="mb-2"><label class="form-label">耗用类型</label><input class="form-control" id="s_exp" value="${s.expense_type||''}"></div>
+            </form>
+        `;
+    } else {
+        editingId = null;
+        title.textContent = '添加供应商';
+        body.innerHTML = `
+            <form id="supplierForm">
+                <div class="mb-2"><label class="form-label">地点 *</label><input class="form-control" id="s_loc" placeholder="如：北京" required></div>
+                <div class="mb-2"><label class="form-label">供应商名称 *</label><input class="form-control" id="s_name" placeholder="如：华为" required></div>
+                <div class="mb-2"><label class="form-label">发票类型</label><input class="form-control" id="s_inv" placeholder="增值税专用发票"></div>
+                <div class="mb-2"><label class="form-label">银行账号</label><input class="form-control" id="s_bank" placeholder="银行账号"></div>
+                <div class="mb-2"><label class="form-label">耗用类型</label><input class="form-control" id="s_exp" placeholder="办公用品"></div>
+            </form>
+        `;
+    }
+    modal.show();
+    document.getElementById('formSaveBtn').onclick = function() {
+        const loc = document.getElementById('s_loc').value.trim();
+        const name = document.getElementById('s_name').value.trim();
+        if (!loc || !name) { alert('地点和供应商名称不能为空'); return; }
+        const data = { location: loc, supplier_name: name, invoice_type: document.getElementById('s_inv').value.trim(), bank_account: document.getElementById('s_bank').value.trim(), expense_type: document.getElementById('s_exp').value.trim() };
+        if (editingId) {
+            const idx = suppliers.findIndex(s => s.id === editingId);
+            if (idx !== -1) suppliers[idx] = { ...suppliers[idx], ...data };
+        } else {
+            data.id = generateId();
+            suppliers.push(data);
+        }
+        saveData();
+        renderSuppliers();
+        updateFilterOptions();
+        renderBills();
+        modal.hide();
+    };
+}
+
+// ======== 账单表单 ========
+function openBillForm(id) {
+    const modal = new bootstrap.Modal(document.getElementById('formModal'));
+    const title = document.getElementById('formModalLabel');
+    const body = document.getElementById('formModalBody');
+    const locs = getLocations();
+    let locationOptions = '<option value="">选择地点</option>';
+    locs.forEach(l => locationOptions += `<option value="${l}">${l}</option>`);
+    let selectedLocation = '', selectedSupplier = '', invoice_type='', bank_account='', expense_type='', start_date='', end_date='', accounting_time='', amount=0, note1='', note2='';
+    let suppliersByLoc = [];
+
+    if (id) {
+        const b = bills.find(item => item.id === id);
+        if (!b) return;
+        editingId = id;
+        title.textContent = '编辑账单';
+        selectedLocation = b.location || '';
+        selectedSupplier = b.supplier_name || '';
+        invoice_type = b.invoice_type || '';
+        bank_account = b.bank_account || '';
+        expense_type = b.expense_type || '';
+        start_date = b.start_date || '';
+        end_date = b.end_date || '';
+        accounting_time = b.accounting_time || '';
+        amount = b.amount || 0;
+        note1 = b.note1 || '';
+        note2 = b.note2 || '';
+        if (selectedLocation) suppliersByLoc = getSuppliersByLocation(selectedLocation);
+    } else {
+        editingId = null;
+        title.textContent = '添加账单';
+        const today = new Date().toISOString().slice(0,10);
+        accounting_time = today;
+        start_date = today;
+        end_date = today;
+    }
+    let supplierOptions = '<option value="">选择供应商</option>';
+    suppliersByLoc.forEach(s => {
+        supplierOptions += `<option value="${s.supplier_name}" ${s.supplier_name === selectedSupplier ? 'selected' : ''}>${s.supplier_name}</option>`;
+    });
+
+    body.innerHTML = `
+        <form id="billForm">
+            <div class="mb-2"><label class="form-label">地点 *</label>
+                <select class="form-select" id="b_loc" required>${locationOptions}</select>
+                <small class="text-muted">若地点不在列表，请先在供应商中添加</small>
+            </div>
+            <div class="mb-2"><label class="form-label">供应商 *</label>
+                <select class="form-select" id="b_supplier" required>${supplierOptions}</select>
+                <small class="text-muted">若供应商不在列表，请先在供应商中添加</small>
+            </div>
+            <div class="row g-2">
+                <div class="col-6"><label class="form-label">报账范围(起)</label><input type="date" class="form-control" id="b_start" value="${start_date}"></div>
+                <div class="col-6"><label class="form-label">报账范围(止)</label><input type="date" class="form-control" id="b_end" value="${end_date}"></div>
+            </div>
+            <div class="mb-2"><label class="form-label">报账时间</label><input type="date" class="form-control" id="b_account" value="${accounting_time}"></div>
+            <div class="mb-2"><label class="form-label">金额 *</label><input type="number" step="0.01" class="form-control" id="b_amount" value="${amount}" required></div>
+            <div class="mb-2"><label class="form-label">发票类型</label><input class="form-control" id="b_inv" value="${invoice_type}" placeholder="自动填充或手动"></div>
+            <div class="mb-2"><label class="form-label">银行账号</label><input class="form-control" id="b_bank" value="${bank_account}" placeholder="自动填充或手动"></div>
+            <div class="mb-2"><label class="form-label">耗用类型</label><input class="form-control" id="b_exp" value="${expense_type}" placeholder="自动填充或手动"></div>
+            <div class="mb-2"><label class="form-label">备注1</label><input class="form-control" id="b_note1" value="${note1}"></div>
+            <div class="mb-2"><label class="form-label">备注2</label><input class="form-control" id="b_note2" value="${note2}"></div>
+        </form>
+    `;
+
+    const locSelect = document.getElementById('b_loc');
+    const supSelect = document.getElementById('b_supplier');
+    locSelect.value = selectedLocation;
+    locSelect.addEventListener('change', function() {
+        const loc = this.value;
+        let opts = '<option value="">选择供应商</option>';
+        if (loc) {
+            getSuppliersByLocation(loc).forEach(s => {
+                opts += `<option value="${s.supplier_name}" data-inv="${s.invoice_type||''}" data-bank="${s.bank_account||''}" data-exp="${s.expense_type||''}">${s.supplier_name}</option>`;
+            });
+        }
+        supSelect.innerHTML = opts;
+        document.getElementById('b_inv').value = '';
+        document.getElementById('b_bank').value = '';
+        document.getElementById('b_exp').value = '';
+    });
+    supSelect.addEventListener('change', function() {
+        const opt = this.options[this.selectedIndex];
+        document.getElementById('b_inv').value = opt.dataset.inv || '';
+        document.getElementById('b_bank').value = opt.dataset.bank || '';
+        document.getElementById('b_exp').value = opt.dataset.exp || '';
+    });
+    if (selectedLocation) {
+        const evt = new Event('change');
+        locSelect.dispatchEvent(evt);
+        if (selectedSupplier) {
+            for (let i=0; i<supSelect.options.length; i++) {
+                if (supSelect.options[i].value === selectedSupplier) {
+                    supSelect.selectedIndex = i;
+                    break;
+                }
+            }
+            const evt2 = new Event('change');
+            supSelect.dispatchEvent(evt2);
+        }
+    }
+
+    modal.show();
+    document.getElementById('formSaveBtn').onclick = function() {
+        const location = document.getElementById('b_loc').value;
+        const supplier = document.getElementById('b_supplier').value;
+        const start = document.getElementById('b_start').value;
+        const end = document.getElementById('b_end').value;
+        const account = document.getElementById('b_account').value;
+        const amount = parseFloat(document.getElementById('b_amount').value);
+        if (!location || !supplier || isNaN(amount) || amount <= 0) {
+            alert('地点、供应商、金额（>0）必须填写');
+            return;
+        }
+        if (start && end && start > end) { alert('报账范围起始日期不能晚于终止日期'); return; }
+        const data = {
+            location, supplier_name: supplier,
+            start_date: start, end_date: end,
+            accounting_time: account,
+            amount,
+            invoice_type: document.getElementById('b_inv').value.trim(),
+            bank_account: document.getElementById('b_bank').value.trim(),
+            expense_type: document.getElementById('b_exp').value.trim(),
+            note1: document.getElementById('b_note1').value.trim(),
+            note2: document.getElementById('b_note2').value.trim()
+        };
+        if (editingId) {
+            const idx = bills.findIndex(b => b.id === editingId);
+            if (idx !== -1) bills[idx] = { ...bills[idx], ...data };
+        } else {
+            data.id = generateId();
+            bills.push(data);
+        }
+        saveData();
+        renderBills();
+        updateFilterOptions();
+        modal.hide();
+    };
+}
+
+// ======== 导入导出 ========
+function exportSuppliers() {
+    if (!suppliers.length) { alert('没有数据'); return; }
+    const headers = ['location','supplier_name','invoice_type','bank_account','expense_type'];
+    let csv = headers.join(',') + '\n';
+    suppliers.forEach(s => csv += headers.map(h => s[h] || '').join(',') + '\n');
+    downloadFile(csv, '供应商数据.csv');
+}
+function exportBills() {
+    if (!bills.length) { alert('没有数据'); return; }
+    const headers = ['location','start_date','end_date','accounting_time','amount','supplier_name','invoice_type','bank_account','expense_type','note1','note2'];
+    let csv = headers.join(',') + '\n';
+    bills.forEach(b => csv += headers.map(h => b[h] || '').join(',') + '\n');
+    downloadFile(csv, '账单数据.csv');
+}
+function downloadFile(content, filename) {
+    const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+}
+
+function importData(type) {
+    document.getElementById('fileInput').click();
+    document.getElementById('fileInput').onchange = function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            try {
+                let rows;
+                if (file.name.endsWith('.csv')) rows = parseCSV(ev.target.result);
+                else if (file.name.endsWith('.xlsx')) {
+                    const wb = XLSX.read(ev.target.result, { type: 'array' });
+                    rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                } else { alert('仅支持 .csv 或 .xlsx'); return; }
+                if (!rows.length) { alert('文件为空'); return; }
+                if (type === 'supplier') {
+                    if (!('location' in rows[0]) || !('supplier_name' in rows[0])) { alert('缺少 location, supplier_name'); return; }
+                    let count = 0;
+                    rows.forEach(row => {
+                        const loc = (row.location || '').toString().trim();
+                        const name = (row.supplier_name || '').toString().trim();
+                        if (loc && name) {
+                            const exists = suppliers.some(s => s.location === loc && s.supplier_name === name);
+                            if (!exists) {
+                                suppliers.push({ id: generateId(), location: loc, supplier_name: name, invoice_type: (row.invoice_type||'').toString().trim(), bank_account: (row.bank_account||'').toString().trim(), expense_type: (row.expense_type||'').toString().trim() });
+                                count++;
+                            }
+                        }
+                    });
+                    saveData(); renderSuppliers(); updateFilterOptions(); renderBills();
+                    alert(`成功导入 ${count} 条供应商（重复跳过）`);
+                } else if (type === 'bill') {
+                    if (!('location' in rows[0]) || !('supplier_name' in rows[0]) || !('amount' in rows[0])) { alert('缺少 location, supplier_name, amount'); return; }
+                    let count = 0;
+                    rows.forEach(row => {
+                        const loc = (row.location || '').toString().trim();
+                        const sup = (row.supplier_name || '').toString().trim();
+                        const amt = parseFloat(row.amount);
+                        if (loc && sup && !isNaN(amt) && amt > 0) {
+                            bills.push({ id: generateId(), location: loc, supplier_name: sup, start_date: (row.start_date||'').toString().trim(), end_date: (row.end_date||'').toString().trim(), accounting_time: (row.accounting_time||'').toString().trim(), amount: amt, invoice_type: (row.invoice_type||'').toString().trim(), bank_account: (row.bank_account||'').toString().trim(), expense_type: (row.expense_type||'').toString().trim(), note1: (row.note1||'').toString().trim(), note2: (row.note2||'').toString().trim() });
+                            count++;
+                        }
+                    });
+                    saveData(); renderBills(); updateFilterOptions();
+                    alert(`成功导入 ${count} 条账单`);
+                }
+            } catch(err) { alert('导入失败: ' + err.message); }
+        };
+        if (file.name.endsWith('.csv')) reader.readAsText(file);
+        else reader.readAsArrayBuffer(file);
+        this.value = '';
+    };
+}
+function parseCSV(text) {
+    const lines = text.split('\n').filter(l => l.trim());
+    if (lines.length < 2) return [];
+    const headers = lines[0].split(',').map(h => h.trim());
+    const result = [];
+    for (let i = 1; i < lines.length; i++) {
+        const vals = lines[i].split(',').map(v => v.trim());
+        const obj = {};
+        headers.forEach((h, idx) => { obj[h] = vals[idx] || ''; });
+        result.push(obj);
+    }
+    return result;
+}
+function downloadTemplate(type) {
+    if (type === 'supplier') {
+        const headers = ['location','supplier_name','invoice_type','bank_account','expense_type'];
+        downloadFile(headers.join(',') + '\n地点1,供应商A,增值税专用发票,123456,办公用品', '供应商导入模板.csv');
+    } else {
+        const today = new Date().toISOString().slice(0,10);
+        const headers = ['location','start_date','end_date','accounting_time','amount','supplier_name','invoice_type','bank_account','expense_type','note1','note2'];
+        downloadFile(headers.join(',') + `\n地点1,${today},${today},${today},100.00,供应商A,增值税专用发票,123456,办公用品,备注1,备注2`, '账单导入模板.csv');
+    }
+}
+
+// ======== 事件绑定 ========
+document.addEventListener('DOMContentLoaded', function() {
+    loadData();
+    renderSuppliers();
+    renderBills();
+    updateFilterOptions();
+
+    // 搜索/筛选事件
+    document.getElementById('supplierSearch').addEventListener('input', renderSuppliers);
+    document.getElementById('billGlobalSearch').addEventListener('input', renderBills);
+    document.getElementById('billLocationFilter').addEventListener('change', renderBills);
+    document.getElementById('billSupplierFilter').addEventListener('change', renderBills);
+    document.getElementById('billInvoiceFilter').addEventListener('change', renderBills);
+    document.getElementById('billAccountTimeFilter').addEventListener('change', renderBills);
+    document.getElementById('billAmountMin').addEventListener('input', renderBills);
+    document.getElementById('billAmountMax').addEventListener('input', renderBills);
+    document.getElementById('resetBillFilters').addEventListener('click', function() {
+        ['billLocationFilter','billSupplierFilter','billInvoiceFilter','billAccountTimeFilter'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('billAmountMin').value = '';
+        document.getElementById('billAmountMax').value = '';
+        renderBills();
+    });
+    document.getElementById('addSupplierBtn').addEventListener('click', () => openSupplierForm(null));
+    document.getElementById('addBillBtn').addEventListener('click', () => openBillForm(null));
+    document.getElementById('exportSuppliersBtn').addEventListener('click', exportSuppliers);
+    document.getElementById('exportBillsBtn').addEventListener('click', exportBills);
+    document.getElementById('importSuppliersBtn').addEventListener('click', () => importData('supplier'));
+    document.getElementById('importBillsBtn').addEventListener('click', () => importData('bill'));
+    document.getElementById('downloadSupplierTemplateBtn').addEventListener('click', () => downloadTemplate('supplier'));
+    document.getElementById('downloadBillTemplateBtn').addEventListener('click', () => downloadTemplate('bill'));
+});
+</script>
+</body>
+</html>
