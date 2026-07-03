@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPG转PDF | 单机版</title>
+
+    <!-- ================================================================
+         网络模式说明：
+         - 有网络模式：从 CDN 加载 jsPDF
+           https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js
+         - 无网络模式：从本地加载 jsPDF
+           请将上述 js 文件下载到本页面同目录，并命名为 jspdf.umd.min.js
+         ================================================================ -->
+
+    <style>
+        /* ----- 重置 & 基础 ----- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f0f4f8;
+            color: #161616;
+            padding: 24px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+            padding: 32px 36px;
+        }
+
+        /* ----- 头部 ----- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eaeef2;
+            padding-bottom: 18px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .brand {
+            font-size: 26px;
+            font-weight: 700;
+            color: #e5322d;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        .brand svg {
+            width: 32px;
+            height: 32px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+        .brand span {
+            font-weight: 400;
+            font-size: 16px;
+            color: #6b7a8f;
+        }
+
+        /* ----- 网络切换控件 ----- */
+        .network-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f8fafc;
+            padding: 6px 14px 6px 18px;
+            border-radius: 40px;
+            border: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+        }
+        .network-controls .label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        .btn-sm {
+            padding: 4px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 2px solid #dce3eb;
+            background: #fff;
+            color: #6b7a8f;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-sm:hover {
+            border-color: #b0c0d0;
+        }
+        .btn-sm.active {
+            border-color: #e5322d;
+            background: #e5322d;
+            color: #fff;
+        }
+        .btn-sm.active:hover {
+            background: #c62828;
+            border-color: #c62828;
+        }
+        #networkStatus {
+            font-size: 13px;
+            color: #2e7d32;
+            font-weight: 500;
+            margin-left: 4px;
+        }
+        #offlineHint {
+            margin-top: 10px;
+            padding: 12px 18px;
+            background: #fff8e1;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #6d4c00;
+            border-left: 4px solid #ffb300;
+            display: none;
+            word-break: break-all;
+        }
+        #offlineHint a {
+            color: #e5322d;
+            font-weight: 600;
+        }
+        #offlineHint code {
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        /* ----- 按钮通用样式 ----- */
+        .btn {
+            display: inline-block;
+            padding: 8px 22px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            background: #e5322d;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            text-decoration: none;
+        }
+        .btn:hover {
+            background: #c62828;
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+        .btn-secondary {
+            background: #2c3e50;
+        }
+        .btn-secondary:hover {
+            background: #1a252f;
+        }
+
+        /* ----- 主体标题 ----- */
+        .tool-header {
+            margin-bottom: 24px;
+        }
+        .tool-header h1 {
+            font-size: 30px;
+            font-weight: 600;
+        }
+        .tool-header p {
+            color: #6b7a8f;
+            font-size: 16px;
+            margin-top: 4px;
+        }
+
+        /* ----- 上传区域 ----- */
+        .upload-area {
+            border: 2px dashed #ccd7e4;
+            border-radius: 20px;
+            padding: 48px 20px;
+            text-align: center;
+            background: #fafcfe;
+            transition: border-color 0.25s, background 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+        .upload-area:hover {
+            border-color: #e5322d;
+            background: #fef6f5;
+        }
+        .upload-area.dragover {
+            border-color: #e5322d;
+            background: #fef0ee;
+        }
+        .upload-area .icon-big {
+            font-size: 52px;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        .upload-area p {
+            font-size: 18px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        .upload-area .hint {
+            font-size: 14px;
+            color: #8a9aa8;
+            margin-top: 4px;
+        }
+        .upload-area input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* ----- 文件列表 ----- */
+        .file-list {
+            margin-top: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .file-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f0f4f8;
+            border-radius: 30px;
+            padding: 6px 14px 6px 18px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .file-item .remove {
+            cursor: pointer;
+            color: #999;
+            font-weight: 700;
+            font-size: 18px;
+            line-height: 1;
+            transition: color 0.2s;
+            background: none;
+            border: none;
+            padding: 0 4px;
+        }
+        .file-item .remove:hover {
+            color: #e5322d;
+        }
+        .file-item .thumb {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #ddd;
+            flex-shrink: 0;
+        }
+
+        /* ----- 选项面板（两栏布局） ----- */
+        .options-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px 48px;
+            margin: 28px 0 20px;
+            padding: 20px 24px;
+            background: #f8fafc;
+            border-radius: 16px;
+            align-items: flex-start;
+        }
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 140px;
+        }
+        .option-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+        .option-group .radio-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .option-group .radio-group label {
+            font-weight: 400;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            background: #fff;
+            padding: 4px 14px;
+            border-radius: 30px;
+            border: 1px solid #dce3eb;
+            transition: all 0.15s;
+        }
+        .option-group .radio-group label.active {
+            border-color: #e5322d;
+            background: #fef0ee;
+            color: #e5322d;
+        }
+        .option-group .radio-group input[type="radio"] {
+            display: none;
+        }
+        .option-group select {
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid #dce3eb;
+            background: #fff;
+            font-size: 14px;
+            min-width: 160px;
+        }
+        .option-group .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        .option-group .checkbox-group input {
+            width: 18px;
+            height: 18px;
+            accent-color: #e5322d;
+        }
+
+        /* ----- 操作按钮 ----- */
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-top: 8px;
+        }
+        .actions .btn {
+            padding: 12px 40px;
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .actions .btn svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        /* ----- 状态信息 ----- */
+        .status {
+            margin-top: 16px;
+            font-size: 15px;
+            color: #2e7d32;
+            min-height: 28px;
+        }
+        .status.error {
+            color: #c62828;
+        }
+
+        /* ----- 底部 ----- */
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eaeef2;
+            text-align: center;
+            font-size: 13px;
+            color: #8a9aa8;
+        }
+        .footer a {
+            color: #e5322d;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* ----- 响应式 ----- */
+        @media (max-width: 700px) {
+            .container { padding: 18px 16px; }
+            .header { flex-direction: column; align-items: stretch; gap: 8px; }
+            .network-controls { justify-content: center; }
+            .options-row { flex-direction: column; gap: 16px; }
+            .actions { flex-direction: column; }
+            .actions .btn { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- ==================== 头部（含网络切换） ==================== -->
+    <header class="header">
+        <a href="#" class="brand">
+            <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8v1.5H8V8zM8 11.5h6V13H8v-1.5zM8 15h4v1.5H8V15z"/></svg>
+            iLovePDF <span>单机版</span>
+        </a>
+
+        <!-- 网络切换区域 -->
+        <div class="network-controls">
+            <span class="label">🌐 网络模式</span>
+            <button class="btn-sm active" id="onlineBtn">有网络</button>
+            <button class="btn-sm" id="offlineBtn">无网络</button>
+            <span id="networkStatus">✅ 使用 CDN</span>
+        </div>
+    </header>
+
+    <!-- 离线提示区域（默认隐藏） -->
+    <div id="offlineHint">
+        📥 <strong>请下载 jsPDF 库文件并放置于本页面同目录：</strong><br>
+        <a href="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" target="_blank">点击下载 jspdf.umd.min.js</a><br>
+        存放路径：<code>./jspdf.umd.min.js</code>（与当前 HTML 文件在同一文件夹内）
+    </div>
+
+    <!-- ==================== 工具主体 ==================== -->
+    <div class="tool-header">
+        <h1>JPG 转 PDF</h1>
+        <p>将你的图片转换为 PDF 文件，还可以调整方向、页面大小和边距。</p>
+    </div>
+
+    <!-- 上传区域 -->
+    <div class="upload-area" id="dropArea">
+        <div class="icon-big">🖼️</div>
+        <p>选择 JPG / PNG 图片</p>
+        <div class="hint">或将图片拖放到此处</div>
+        <input type="file" id="fileInput" accept="image/*" multiple>
+    </div>
+
+    <!-- 文件列表 -->
+    <div class="file-list" id="fileList"></div>
+
+    <!-- 选项 -->
+    <div class="options-row">
+        <!-- 方向 -->
+        <div class="option-group">
+            <label>页面方向</label>
+            <div class="radio-group" id="orientationGroup">
+                <label class="active" data-value="portrait">
+                    <input type="radio" name="orientation" value="portrait" checked> 纵向
+                </label>
+                <label data-value="landscape">
+                    <input type="radio" name="orientation" value="landscape"> 横向
+                </label>
+            </div>
+        </div>
+
+        <!-- 页面大小 -->
+        <div class="option-group">
+            <label>页面大小</label>
+            <select id="pageSize">
+                <option value="fit">匹配图片尺寸</option>
+                <option value="A4" selected>A4 (297×210 mm)</option>
+                <option value="letter">美国信纸 (215×279 mm)</option>
+            </select>
+        </div>
+
+        <!-- 边距 -->
+        <div class="option-group">
+            <label>页边距</label>
+            <div class="radio-group" id="marginGroup">
+                <label class="active" data-value="0">
+                    <input type="radio" name="margin" value="0" checked> 无
+                </label>
+                <label data-value="10">
+                    <input type="radio" name="margin" value="10"> 小
+                </label>
+                <label data-value="20">
+                    <input type="radio" name="margin" value="20"> 大
+                </label>
+            </div>
+        </div>
+
+        <!-- 合并 -->
+        <div class="option-group">
+            <label>合并选项</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="mergeCheck" checked>
+                <label for="mergeCheck">将所有图片合并为一个 PDF</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="actions">
+        <button class="btn" id="convertBtn">
+            <svg viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24z"/></svg>
+            转换为 PDF
+        </button>
+        <button class="btn btn-secondary" id="clearBtn">清空所有</button>
+    </div>
+
+    <!-- 状态 -->
+    <div class="status" id="status"></div>
+
+    <!-- ==================== 底部 ==================== -->
+    <div class="footer">
+        &copy; 2026 单机版 JPG 转 PDF — 基于 <a href="https://github.com/parallax/jsPDF" target="_blank">jsPDF</a> 构建
+    </div>
+</div>
+
+<script>
+    (function() {
+        'use strict';
+
+        // ----- 网络模式配置 -----
+        const CDN_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        const LOCAL_URL = './jspdf.umd.min.js';
+        let currentMode = 'online'; // 'online' 或 'offline'
+
+        // ----- DOM 引用 -----
+        const fileInput = document.getElementById('fileInput');
+        const dropArea = document.getElementById('dropArea');
+        const fileList = document.getElementById('fileList');
+        const statusEl = document.getElementById('status');
+        const convertBtn = document.getElementById('convertBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const mergeCheck = document.getElementById('mergeCheck');
+        const onlineBtn = document.getElementById('onlineBtn');
+        const offlineBtn = document.getElementById('offlineBtn');
+        const networkStatus = document.getElementById('networkStatus');
+        const offlineHint = document.getElementById('offlineHint');
+
+        // ----- 动态加载 jsPDF -----
+        function loadScript(src, callback) {
+            // 移除已有 jsPDF 脚本（如果有）
+            const oldScript = document.querySelector('script[data-jspdf]');
+            if (oldScript) oldScript.remove();
+
+            const script = document.createElement('script');
+            script.src = src;
+            script.dataset.jspdf = 'true';
+            script.onload = function() {
+                if (callback) callback();
+                // 更新转换按钮状态
+                updateStatus('✅ jsPDF 库已就绪，可以转换。', false);
+            };
+            script.onerror = function() {
+                const isOnline = (src === CDN_URL);
+                if (isOnline) {
+                    updateStatus('❌ CDN 加载失败，请检查网络连接。', true);
+                } else {
+                    updateStatus('❌ 本地文件加载失败，请确认 ' + LOCAL_URL + ' 是否存在。', true);
+                }
+            };
+            document.head.appendChild(script);
+        }
+
+        // ----- 切换网络模式 -----
+        function switchMode(mode) {
+            currentMode = mode;
+            if (mode === 'online') {
+                onlineBtn.classList.add('active');
+                offlineBtn.classList.remove('active');
+                networkStatus.textContent = '🌐 使用 CDN (有网络)';
+                offlineHint.style.display = 'none';
+                loadScript(CDN_URL);
+                updateStatus('已切换至有网络模式，正在加载 CDN 库...', false);
+            } else {
+                offlineBtn.classList.add('active');
+                onlineBtn.classList.remove('active');
+                networkStatus.textContent = '📁 使用本地文件 (无网络)';
+                offlineHint.style.display = 'block';
+                loadScript(LOCAL_URL);
+                updateStatus('已切换至无网络模式，正在加载本地库...', false);
+            }
+        }
+
+        // ----- 选项值获取 -----
+        function getOrientation() {
+            const el = document.querySelector('#orientationGroup label.active');
+            return el ? el.dataset.value : 'portrait';
+        }
+        function getMargin() {
+            const el = document.querySelector('#marginGroup label.active');
+            return el ? parseInt(el.dataset.value, 10) : 0;
+        }
+        function getPageSize() {
+            return document.getElementById('pageSize').value;
+        }
+
+        // 存储图片文件
+        let imageFiles = [];
+
+        // ----- 更新文件列表 UI -----
+        function renderFileList() {
+            fileList.innerHTML = '';
+            if (imageFiles.length === 0) {
+                fileList.innerHTML = '<span style="color:#8a9aa8; font-size:14px;">尚未添加图片</span>';
+                return;
+            }
+            imageFiles.forEach((file, index) => {
+                const div = document.createElement('div');
+                div.className = 'file-item';
+
+                const thumb = document.createElement('img');
+                thumb.className = 'thumb';
+                thumb.alt = file.name;
+                const url = URL.createObjectURL(file);
+                thumb.src = url;
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = file.name.length > 28 ? file.name.slice(0, 26) + '…' : file.name;
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove';
+                removeBtn.textContent = '×';
+                removeBtn.title = '移除';
+                removeBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    imageFiles.splice(index, 1);
+                    renderFileList();
+                    updateStatus('已移除 1 个文件', false);
+                    if (imageFiles.length === 0) updateStatus('', false);
+                });
+
+                div.appendChild(thumb);
+                div.appendChild(nameSpan);
+                div.appendChild(removeBtn);
+                fileList.appendChild(div);
+            });
+        }
+
+        // ----- 状态信息 -----
+        function updateStatus(msg, isError) {
+            statusEl.textContent = msg;
+            statusEl.className = 'status' + (isError ? ' error' : '');
+        }
+
+        // ----- 添加文件 -----
+        function addFiles(files) {
+            if (!files || files.length === 0) return;
+            let added = 0;
+            for (const f of files) {
+                if (!f.type.startsWith('image/')) {
+                    updateStatus('跳过非图片文件: ' + f.name, true);
+                    continue;
+                }
+                const exists = imageFiles.some(ex => ex.name === f.name && ex.size === f.size);
+                if (!exists) {
+                    imageFiles.push(f);
+                    added++;
+                }
+            }
+            if (added > 0) {
+                renderFileList();
+                updateStatus(`已添加 ${added} 个文件，共 ${imageFiles.length} 个`, false);
+            } else if (files.length > 0) {
+                updateStatus('没有新文件被添加（可能重复或格式不支持）', true);
+            }
+        }
+
+        // ----- 清空 -----
+        function clearAll() {
+            imageFiles = [];
+            renderFileList();
+            updateStatus('已清空所有文件', false);
+        }
+
+        // ----- 检查 jsPDF 是否可用 -----
+        function isJSPDFReady() {
+            return (typeof window.jspdf !== 'undefined' || typeof jspdf !== 'undefined');
+        }
+
+        // ----- 转换核心 -----
+        function convertToPDF() {
+            if (imageFiles.length === 0) {
+                updateStatus('⚠️ 请先添加图片！', true);
+                return;
+            }
+
+            if (!isJSPDFReady()) {
+                updateStatus('❌ jsPDF 库尚未加载完成，请稍候再试。', true);
+                return;
+            }
+            const { jsPDF } = window.jspdf || window;
+
+            const orientation = getOrientation();
+            const margin = getMargin();
+            const pageSize = getPageSize();
+            const merge = mergeCheck.checked;
+
+            let pageWidth, pageHeight;
+            if (pageSize === 'fit') {
+                pageWidth = 0;
+                pageHeight = 0;
+            } else if (pageSize === 'A4') {
+                pageWidth = 210;
+                pageHeight = 297;
+            } else if (pageSize === 'letter') {
+                pageWidth = 215.9;
+                pageHeight = 279.4;
+            } else {
+                pageWidth = 210;
+                pageHeight = 297;
+            }
+
+            const isLandscape = (orientation === 'landscape');
+            let finalW = pageWidth;
+            let finalH = pageHeight;
+            if (isLandscape && pageSize !== 'fit') {
+                finalW = pageHeight;
+                finalH = pageWidth;
+            }
+
+            function imageToPDF(file, pdfDoc, isFirstPage) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const imgData = e.target.result;
+                            const img = new Image();
+                            img.onload = function() {
+                                const imgW = img.width;
+                                const imgH = img.height;
+
+                                let pw, ph;
+                                if (pageSize === 'fit') {
+                                    const mmPerPx = 25.4 / 96;
+                                    pw = imgW * mmPerPx;
+                                    ph = imgH * mmPerPx;
+                                    if (isLandscape) {
+                                        [pw, ph] = [ph, pw];
+                                    }
+                                } else {
+                                    pw = finalW;
+                                    ph = finalH;
+                                }
+
+                                if (!isFirstPage) {
+                                    pdfDoc.addPage([pw, ph]);
+                                } else {
+                                    pdfDoc.internal.pageSize.width = pw;
+                                    pdfDoc.internal.pageSize.height = ph;
+                                }
+
+                                const marginMm = margin;
+                                const availW = pw - 2 * marginMm;
+                                const availH = ph - 2 * marginMm;
+
+                                const scaleX = availW / imgW;
+                                const scaleY = availH / imgH;
+                                const scale = Math.min(scaleX, scaleY, 1);
+
+                                const drawW = imgW * scale;
+                                const drawH = imgH * scale;
+                                const x = (pw - drawW) / 2;
+                                const y = (ph - drawH) / 2;
+
+                                pdfDoc.addImage(imgData, 'JPEG', x, y, drawW, drawH);
+                                resolve(pdfDoc);
+                            };
+                            img.onerror = function() {
+                                reject(new Error('图片加载失败: ' + file.name));
+                            };
+                            img.src = imgData;
+                        } catch (err) {
+                            reject(err);
+                        }
+                    };
+                    reader.onerror = function() {
+                        reject(new Error('读取文件失败: ' + file.name));
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            updateStatus('⏳ 正在转换，请稍候…', false);
+
+            if (merge) {
+                const pdf = new jsPDF({
+                    orientation: isLandscape ? 'landscape' : 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                let promiseChain = Promise.resolve(pdf);
+                imageFiles.forEach((file, idx) => {
+                    promiseChain = promiseChain.then((doc) => {
+                        return imageToPDF(file, doc, idx === 0);
+                    });
+                });
+
+                promiseChain.then((finalDoc) => {
+                    finalDoc.save('converted.pdf');
+                    updateStatus(`✅ 转换完成！已下载 converted.pdf (${imageFiles.length} 张图片)`, false);
+                }).catch((err) => {
+                    updateStatus('❌ 转换出错: ' + err.message, true);
+                    console.error(err);
+                });
+
+            } else {
+                let idx = 0;
+                function downloadNext() {
+                    if (idx >= imageFiles.length) {
+                        updateStatus(`✅ 全部转换完成！共 ${imageFiles.length} 个 PDF 文件`, false);
+                        return;
+                    }
+                    const file = imageFiles[idx];
+                    const pdf = new jsPDF({
+                        orientation: isLandscape ? 'landscape' : 'portrait',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+                    imageToPDF(file, pdf, true).then((doc) => {
+                        const baseName = file.name.replace(/\.[^.]+$/, '') || 'image';
+                        doc.save(`${baseName}.pdf`);
+                        idx++;
+                        updateStatus(`⏳ 已下载 ${idx}/${imageFiles.length} ...`, false);
+                        setTimeout(downloadNext, 400);
+                    }).catch((err) => {
+                        updateStatus('❌ 转换出错: ' + err.message, true);
+                        console.error(err);
+                    });
+                }
+                downloadNext();
+            }
+        }
+
+        // ----- 事件绑定 -----
+
+        // 文件选择
+        fileInput.addEventListener('change', function(e) {
+            addFiles(e.target.files);
+            e.target.value = '';
+        });
+
+        // 拖拽
+        dropArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropArea.classList.add('dragover');
+        });
+        dropArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            dropArea.classList.remove('dragover');
+        });
+        dropArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropArea.classList.remove('dragover');
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                addFiles(e.dataTransfer.files);
+            }
+        });
+
+        dropArea.addEventListener('click', function(e) {
+            if (e.target.tagName !== 'INPUT') {
+                fileInput.click();
+            }
+        });
+
+        // 选项切换高亮
+        document.querySelectorAll('.radio-group').forEach(group => {
+            group.addEventListener('click', function(e) {
+                const label = e.target.closest('label');
+                if (!label) return;
+                group.querySelectorAll('label').forEach(l => l.classList.remove('active'));
+                label.classList.add('active');
+                const radio = label.querySelector('input[type="radio"]');
+                if (radio) radio.checked = true;
+            });
+        });
+
+        // 按钮事件
+        convertBtn.addEventListener('click', convertToPDF);
+        clearBtn.addEventListener('click', clearAll);
+
+        // 网络切换事件
+        onlineBtn.addEventListener('click', function() {
+            if (currentMode === 'online') return;
+            switchMode('online');
+        });
+        offlineBtn.addEventListener('click', function() {
+            if (currentMode === 'offline') return;
+            switchMode('offline');
+        });
+
+        // ----- 初始化 -----
+        renderFileList();
+        updateStatus('💡 添加图片后点击“转换为 PDF”', false);
+
+        // 默认加载在线 CDN 库
+        switchMode('online');
+
+    })();
+</script>
+
+</body>
+</html>
