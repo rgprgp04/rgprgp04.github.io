@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>组合再平衡 · 比例计算器</title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        danger: '#dc2626',
+                        success: '#16a34a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        .trans-all {
+            transition: all 0.2s ease;
+        }
+        .asset-row {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 6px 8px;
+            padding: 6px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .asset-row:last-child {
+            border-bottom: none;
+        }
+        .asset-name {
+            min-width: 52px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #1e293b;
+            flex-shrink: 0;
+        }
+        .asset-ratio-badge {
+            font-size: 12px;
+            background: #e0e7ff;
+            color: #4f46e5;
+            padding: 1px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            white-space: nowrap;
+            min-width: 38px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .asset-input {
+            width: 72px;
+            flex: 1 1 60px;
+            min-width: 50px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 4px 6px;
+            font-size: 13px;
+            background: white;
+            outline: none;
+            transition: border 0.15s;
+            height: 30px;
+        }
+        .asset-input:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+        .btn-icon {
+            border: none;
+            border-radius: 6px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            white-space: nowrap;
+            height: 30px;
+            line-height: 1;
+        }
+        .btn-icon:active {
+            transform: scale(0.95);
+        }
+        .btn-edit {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+        .btn-edit:hover {
+            background: #c7d2fe;
+        }
+        .btn-delete {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .btn-delete:hover {
+            background: #fecaca;
+        }
+        .btn-action {
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            height: 40px;
+        }
+        .add-row input {
+            font-size: 13px;
+            padding: 6px 10px;
+            height: 34px;
+        }
+        .result-item {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px 6px;
+            padding: 4px 0;
+            border-bottom: 1px dashed #e2e8f0;
+            font-size: 13px;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        @media (max-width: 480px) {
+            .asset-row {
+                gap: 4px 6px;
+                padding: 5px 0;
+            }
+            .asset-name {
+                min-width: 44px;
+                font-size: 13px;
+            }
+            .asset-input {
+                width: 60px;
+                flex: 1 1 50px;
+                min-width: 40px;
+                padding: 3px 4px;
+                font-size: 12px;
+                height: 28px;
+            }
+            .btn-icon {
+                padding: 3px 8px;
+                font-size: 11px;
+                height: 26px;
+            }
+            .asset-ratio-badge {
+                font-size: 11px;
+                padding: 1px 6px;
+                min-width: 32px;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-3 flex items-start justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-3 border border-white/50">
+
+        <!-- 头部 -->
+        <header class="mb-3 pb-1 border-b border-indigo-100">
+            <h1 class="text-lg font-bold text-center text-indigo-700">📊 组合再平衡</h1>
+            <p class="text-[11px] text-center text-slate-400 mt-0">输入总金额和各品种持仓 · 一键计算</p>
+        </header>
+
+        <!-- 总金额输入 -->
+        <div class="bg-slate-50/90 rounded-xl p-3 border border-indigo-100/60 mb-2">
+            <label class="block text-sm font-semibold text-slate-700 mb-0.5">💰 组合总金额 (元)</label>
+            <input id="totalMoney" type="number" step="0.01" placeholder="例如 100000"
+            class="w-full border border-indigo-200 rounded-lg px-3 py-1.5 text-sm bg-white focus:ring-2 focus:ring-indigo-300 outline-none">
+            <p id="totalError" class="text-xs text-red-500 mt-0.5 hidden">⚠️ 总金额不能小于各品种持仓之和</p>
+        </div>
+
+        <!-- 品种列表 -->
+        <div class="bg-slate-50/90 rounded-xl p-3 border border-indigo-100/60 mb-2">
+            <div class="flex items-center justify-between mb-1">
+                <h2 class="text-sm font-semibold text-slate-700">📋 持仓品种</h2>
+                <span id="assetCount" class="text-xs text-slate-400 bg-white px-2 py-0.5 rounded-full">(0)</span>
+            </div>
+            <div id="assetList" class="divide-y divide-slate-200">
+                <!-- 由 JS 动态渲染 -->
+            </div>
+
+            <!-- 添加新品种行 -->
+            <div class="add-row flex flex-wrap items-center gap-1.5 pt-2 mt-1 border-t border-slate-200">
+                <div class="flex-1 min-w-[70px]">
+                    <input id="newName" type="text" placeholder="新名称" 
+                    class="w-full border border-slate-300 rounded-lg px-2 py-1 text-sm bg-white focus:ring-2 focus:ring-indigo-300 outline-none">
+                </div>
+                <div class="w-16">
+                    <input id="newRatio" type="number" step="0.1" placeholder="比例" 
+                    class="w-full border border-slate-300 rounded-lg px-2 py-1 text-sm bg-white focus:ring-2 focus:ring-indigo-300 outline-none">
+                </div>
+                <button onclick="addNewAsset()"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg text-sm font-medium trans-all active:scale-95 whitespace-nowrap">
+                    ➕ 添加
+                </button>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-0.5">💡 点击 ✏️ 编辑名称/比例，点击 🗑️ 删除</div>
+        </div>
+
+        <!-- 操作按钮组 -->
+        <div class="grid grid-cols-3 gap-2 mt-1">
+            <button onclick="calcAction()"
+            class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:scale-[1.02] text-white py-2 rounded-xl font-semibold text-sm shadow-md active:scale-[0.97] trans-all">
+                🔄 计算
+            </button>
+            <button onclick="saveAssets()"
+            class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:scale-[1.02] text-white py-2 rounded-xl font-semibold text-sm shadow-md active:scale-[0.97] trans-all">
+                💾 保存
+            </button>
+            <button onclick="resetAll()"
+            class="bg-gradient-to-r from-slate-500 to-slate-600 hover:scale-[1.02] text-white py-2 rounded-xl font-semibold text-sm shadow-md active:scale-[0.97] trans-all">
+                🔄 重置
+            </button>
+        </div>
+
+        <!-- 结果面板 -->
+        <section id="resultBox" class="mt-3 p-3 rounded-xl hidden border trans-all result-card"></section>
+
+    </div>
+
+    <script>
+        // ============================================================
+        //  数据
+        // ============================================================
+        const DEFAULT_ASSETS = [
+            { id: 'a1', name: '国债', ratio: 20 },
+            { id: 'a2', name: '黄金', ratio: 15 },
+            { id: 'a3', name: '纳指', ratio: 15 },
+            { id: 'a4', name: '德指', ratio: 10 },
+            { id: 'a5', name: '日指', ratio: 10 },
+            { id: 'a6', name: '恒药', ratio: 10 },
+            { id: 'a7', name: '中韩半导体', ratio: 20 }
+        ];
+
+        const STORAGE_KEY = 'portfolio_assets_v3';
+
+        let assets = [];
+        let nextId = 100;
+
+        // ============================================================
+        //  存储操作
+        // ============================================================
+        function loadAssets() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed) && parsed.length) {
+                        assets = parsed.filter(a => a.name && a.ratio !== undefined);
+                        if (assets.length) {
+                            let maxId = 0;
+                            assets.forEach(a => {
+                                const num = parseInt(a.id.replace(/\D/g, '')) || 0;
+                                if (num > maxId) maxId = num;
+                            });
+                            nextId = maxId + 1;
+                            return;
+                        }
+                    }
+                } catch (e) {}
+            }
+            resetToDefault();
+        }
+
+        function resetToDefault() {
+            nextId = 100;
+            assets = DEFAULT_ASSETS.map((a, idx) => ({ ...a, id: String(nextId + idx) }));
+            nextId += DEFAULT_ASSETS.length;
+            saveToStorage();
+        }
+
+        function saveToStorage() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(assets));
+        }
+
+        function saveAssets() {
+            saveToStorage();
+            const btn = document.querySelector('button[onclick="saveAssets()"]');
+            const orig = btn.textContent;
+            btn.textContent = '✅ 已保存';
+            setTimeout(() => btn.textContent = orig, 1500);
+        }
+
+        function resetAll() {
+            if (!confirm('确定重置为默认品种列表吗？当前修改将丢失。')) return;
+            resetToDefault();
+            renderAssets();
+            document.getElementById('totalMoney').value = '';
+            document.getElementById('totalError').classList.add('hidden');
+            clearResult();
+            autoCalc();
+        }
+
+        // ============================================================
+        //  渲染
+        // ============================================================
+        function renderAssets() {
+            const container = document.getElementById('assetList');
+            if (!container) return;
+
+            if (assets.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-slate-400 text-sm py-3">暂无品种，请添加</div>
+                `;
+                document.getElementById('assetCount').textContent = '(0)';
+                return;
+            }
+
+            let html = '';
+            assets.forEach((item) => {
+                const ratio = item.ratio !== undefined && item.ratio !== null ? item.ratio : 0;
+                html += `
+                    <div class="asset-row" data-id="${item.id}">
+                        <span class="asset-name">${item.name}</span>
+                        <span class="asset-ratio-badge">${ratio}%</span>
+                        <input type="number" step="0.01" placeholder="持仓" 
+                               class="asset-input" id="hold_${item.id}" 
+                               oninput="autoCalc()">
+                        <div class="flex items-center gap-0.5 ml-auto flex-shrink-0">
+                            <button onclick="editAsset('${item.id}')" class="btn-icon btn-edit" title="编辑名称/比例">✏️ 编辑</button>
+                            <button onclick="deleteAsset('${item.id}')" class="btn-icon btn-delete" title="删除品种">🗑️ 删除</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            document.getElementById('assetCount').textContent = `(${assets.length})`;
+        }
+
+        // ============================================================
+        //  品种 CRUD
+        // ============================================================
+        function addNewAsset() {
+            const nameInput = document.getElementById('newName');
+            const ratioInput = document.getElementById('newRatio');
+            const name = nameInput.value.trim();
+            const ratio = parseFloat(ratioInput.value.trim());
+            if (!name) {
+                alert('请输入品种名称');
+                return;
+            }
+            if (isNaN(ratio) || ratio < 0 || ratio > 100) {
+                alert('请输入有效的比例 (0~100)');
+                return;
+            }
+            if (assets.some(a => a.name === name)) {
+                alert('该品种已存在，请勿重复添加');
+                return;
+            }
+            const newAsset = { id: String(nextId++), name: name, ratio: ratio };
+            assets.push(newAsset);
+            renderAssets();
+            nameInput.value = '';
+            ratioInput.value = '';
+            autoCalc();
+        }
+
+        function deleteAsset(id) {
+            if (assets.length <= 1) {
+                alert('至少保留一个品种');
+                return;
+            }
+            const item = assets.find(a => a.id === id);
+            if (!item) return;
+            if (!confirm(`确定删除「${item.name}」吗？`)) return;
+            assets = assets.filter(a => a.id !== id);
+            renderAssets();
+            clearResult();
+            autoCalc();
+        }
+
+        function editAsset(id) {
+            const asset = assets.find(a => a.id === id);
+            if (!asset) return;
+            const newName = prompt('修改品种名称：', asset.name);
+            if (newName === null) return;
+            const trimmedName = newName.trim();
+            if (trimmedName === '') {
+                alert('名称不能为空');
+                return;
+            }
+            if (assets.some(a => a.name === trimmedName && a.id !== asset.id)) {
+                alert('该名称已被其他品种使用，请换一个');
+                return;
+            }
+            const ratioStr = prompt('修改目标比例（%）：', asset.ratio);
+            if (ratioStr === null) return;
+            const newRatio = parseFloat(ratioStr.trim());
+            if (isNaN(newRatio) || newRatio < 0 || newRatio > 100) {
+                alert('请输入 0~100 之间的有效数字');
+                return;
+            }
+            asset.name = trimmedName;
+            asset.ratio = newRatio;
+            renderAssets();
+            autoCalc();
+        }
+
+        // ============================================================
+        //  计算逻辑（再平衡）
+        // ============================================================
+        function calcAction() {
+            const totalInput = document.getElementById('totalMoney');
+            const box = document.getElementById('resultBox');
+            const errorEl = document.getElementById('totalError');
+
+            const totalVal = parseFloat(totalInput.value.trim());
+            if (isNaN(totalVal) || totalVal <= 0) {
+                box.classList.remove('hidden');
+                box.className = 'p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-sm';
+                box.innerHTML = '⚠️ 请输入有效的组合总金额（>0）';
+                errorEl.classList.add('hidden');
+                return;
+            }
+
+            let holdings = {};
+            let totalHold = 0;
+            let hasError = false;
+            assets.forEach(a => {
+                const input = document.getElementById('hold_' + a.id);
+                let val = 0;
+                if (input) {
+                    const raw = input.value.trim();
+                    if (raw === '') {
+                        val = 0;
+                    } else {
+                        const parsed = parseFloat(raw);
+                        if (isNaN(parsed) || parsed < 0) {
+                            hasError = true;
+                            val = 0;
+                        } else {
+                            val = parsed;
+                        }
+                    }
+                }
+                holdings[a.id] = val;
+                totalHold += val;
+            });
+
+            if (totalHold > totalVal) {
+                errorEl.classList.remove('hidden');
+                box.classList.remove('hidden');
+                box.className = 'p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-sm';
+                box.innerHTML = `⚠️ 各品种持仓之和 (${formatMoney(totalHold)}) 大于总金额 (${formatMoney(totalVal)})，请调整。`;
+                return;
+            } else {
+                errorEl.classList.add('hidden');
+            }
+
+            const results = assets.map(a => {
+                const ratio = a.ratio || 0;
+                const target = totalVal * (ratio / 100);
+                const current = holdings[a.id] || 0;
+                const diff = target - current;
+                return {
+                    ...a,
+                    current,
+                    target,
+                    diff,
+                    action: Math.abs(diff) < 0.01 ? '持平' : (diff > 0 ? '买入' : '卖出'),
+                    diffAbs: Math.abs(diff)
+                };
+            });
+
+            const totalRatio = assets.reduce((sum, a) => sum + (a.ratio || 0), 0);
+
+            box.classList.remove('hidden');
+            box.className = 'p-3 rounded-xl border result-card text-sm';
+
+            let rowsHtml = results.map(r => {
+                const color = r.diff > 0 ? 'text-emerald-600' : (r.diff < 0 ? 'text-rose-600' : 'text-slate-400');
+                const actionText = r.action;
+                return `
+                    <div class="result-item">
+                        <span class="font-medium w-14">${r.name}</span>
+                        <span class="text-slate-500 bg-slate-200 px-1.5 rounded text-xs">${r.ratio}%</span>
+                        <span class="ml-auto text-slate-600">目标 ${formatMoney(r.target)}</span>
+                        <span class="text-slate-400">/ 持仓 ${formatMoney(r.current)}</span>
+                        <span class="font-semibold ${color} ml-0.5">${actionText} ${formatMoney(r.diffAbs)}</span>
+                    </div>
+                `;
+            }).join('');
+
+            box.innerHTML = `
+                <div class="font-semibold border-b border-black/10 pb-1.5 mb-1.5 flex justify-between">
+                    <span>📋 再平衡建议</span>
+                    <span class="text-xs bg-white/60 px-2 py-0.5 rounded-full">总比例 ${totalRatio.toFixed(1)}%</span>
+                </div>
+                <div class="space-y-0.5">
+                    ${rowsHtml}
+                </div>
+                <div class="mt-1.5 text-[10px] text-slate-400 border-t border-black/5 pt-1">
+                    💡 正数买入，负数卖出 · 已自动计算每个品种
+                </div>
+            `;
+        }
+
+        // ============================================================
+        //  辅助函数
+        // ============================================================
+        function formatMoney(num) {
+            if (!num && num !== 0) return '0.00';
+            const fixed = Number(num).toFixed(2);
+            if (fixed.startsWith('-')) return '-' + fixed.slice(1).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            return fixed.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function clearResult() {
+            const box = document.getElementById('resultBox');
+            box.classList.add('hidden');
+        }
+
+        let calcTimer = null;
+
+        function autoCalc() {
+            clearTimeout(calcTimer);
+            calcTimer = setTimeout(() => {
+                calcAction();
+            }, 400);
+        }
+
+        // ============================================================
+        //  初始化
+        // ============================================================
+        function init() {
+            loadAssets();
+            renderAssets();
+            document.getElementById('totalMoney').addEventListener('input', autoCalc);
+            const box = document.getElementById('resultBox');
+            box.classList.remove('hidden');
+            box.className = 'p-3 rounded-xl bg-slate-100 text-slate-500 border border-slate-200 text-center text-sm';
+            box.innerHTML = '📝 输入总金额和各品种持仓，自动计算再平衡';
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
