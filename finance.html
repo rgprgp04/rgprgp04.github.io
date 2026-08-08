@@ -1,0 +1,2590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家庭财务分析系统</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root {
+  --primary: #4f46e5;
+  --primary-light: #818cf8;
+  --primary-dark: #3730a3;
+  --bg: #f0f2f5;
+  --card-bg: #ffffff;
+  --text: #1f2937;
+  --text-secondary: #6b7280;
+  --border: #e5e7eb;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+  --radius: 10px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding: 20px;
+  min-height: 100vh;
+}
+
+/* ===== 登录页 ===== */
+.login-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 90vh;
+}
+.login-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  padding: 40px;
+  width: 400px;
+  max-width: 90vw;
+}
+.login-card h1 {
+  text-align: center;
+  font-size: 1.6rem;
+  margin-bottom: 8px;
+  color: var(--primary-dark);
+}
+.login-card .subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 28px;
+}
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+  background: var(--card-bg);
+  color: var(--text);
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+}
+.btn-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary {
+  background: var(--border);
+  color: var(--text);
+}
+.btn-secondary:hover { background: #d1d5db; }
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+.btn-danger:hover { background: #dc2626; }
+.btn-success {
+  background: var(--success);
+  color: #fff;
+}
+.btn-success:hover { background: #059669; }
+.btn-sm { padding: 6px 14px; font-size: 0.85rem; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ===== 主应用 ===== */
+.app-wrapper { display: none; }
+.app-wrapper.active { display: block; }
+
+.app-header {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 24px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.app-header h2 {
+  font-size: 1.2rem;
+  color: var(--primary-dark);
+}
+.app-header .user-info {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--bg);
+  color: var(--primary-dark);
+}
+
+/* 表单网格 */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px 16px;
+  align-items: end;
+}
+.form-field { display: flex; flex-direction: column; gap: 4px; }
+.form-field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.form-field input, .form-field select {
+  padding: 8px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: #fff;
+  color: var(--text);
+  transition: border-color 0.2s;
+}
+.form-field input:focus, .form-field select:focus {
+  outline: none;
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+}
+
+.btn-grid {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+/* ===== Modal ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  width: 95%;
+  max-width: 1100px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.modal.modal-sm { max-width: 420px; }
+.modal.modal-md { max-width: 650px; }
+.modal-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.modal-header h3 {
+  font-size: 1.1rem;
+  color: var(--primary-dark);
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  line-height: 1;
+  padding: 0 4px;
+}
+.modal-close:hover { color: var(--danger); }
+.modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+.modal-footer {
+  padding: 12px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+/* ===== Table ===== */
+.table-wrapper {
+  overflow: auto;
+  max-height: 480px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+table.data-table thead th {
+  background: #f8fafc;
+  padding: 10px 12px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  white-space: nowrap;
+}
+table.data-table tbody td {
+  padding: 8px 12px;
+  text-align: center;
+  border-bottom: 1px solid #f3f4f6;
+}
+table.data-table tbody tr:hover { background: #f9fafb; }
+table.data-table tbody tr.row-total { background: #fef9c3; font-weight: 700; }
+table.data-table tbody tr.row-category-total { background: #dbeafe; font-weight: 700; }
+table.data-table tbody tr.row-selected { background: #e0e7ff; }
+
+/* ===== 查询页面控件 ===== */
+.search-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px 12px;
+  margin-bottom: 16px;
+}
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+.pagination-bar select { padding: 4px 8px; font-size: 0.85rem; }
+.pagination-bar input { width: 60px; padding: 4px 8px; font-size: 0.85rem; }
+
+.info-text {
+  color: #2563eb;
+  font-size: 0.85rem;
+  margin-top: 10px;
+}
+
+/* ===== 通用 ===== */
+.checkbox-group {
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+}
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.checkbox-group label:hover { background: var(--bg); }
+.radio-row { display: flex; gap: 16px; margin-bottom: 12px; }
+.radio-row label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.hidden { display: none !important; }
+
+/* 右键菜单 */
+.context-menu {
+  display: none;
+  position: fixed;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  z-index: 2000;
+  padding: 4px 0;
+  min-width: 140px;
+}
+.context-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 8px 16px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  color: var(--text);
+}
+.context-menu button:hover { background: var(--bg); }
+.context-menu button.danger { color: var(--danger); }
+
+/* 滚动条美化 */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* 提示消息 */
+.toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  background: #1f2937;
+  color: #fff;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  z-index: 3000;
+  transition: transform 0.3s ease;
+  box-shadow: var(--shadow-lg);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.success { background: var(--success); }
+.toast.error { background: var(--danger); }
+
+/* ===== 概览面板 ===== */
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.overview-card {
+  background: linear-gradient(135deg, #f8fafc, #eef2ff);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  text-align: center;
+}
+.overview-card .ov-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.overview-card .ov-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary-dark);
+}
+.overview-card.ov-income .ov-value { color: var(--success); }
+.overview-card.ov-expense .ov-value { color: var(--danger); }
+.overview-card.ov-balance .ov-value { color: var(--primary); }
+
+/* ===== 首列冻结 ===== */
+table.data-table.freeze-first thead th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: #f8fafc;
+  box-shadow: 2px 0 3px rgba(0,0,0,0.06);
+}
+table.data-table.freeze-first tbody td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #fff;
+  box-shadow: 2px 0 3px rgba(0,0,0,0.04);
+}
+table.data-table.freeze-first tbody tr.row-category-total td:first-child,
+table.data-table.freeze-first tbody tr.row-total td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+/* ===== 列头排序 ===== */
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable:hover { background: #e2e8f0; }
+th.sort-asc::after { content: " \25B2"; font-size: 0.7rem; color: var(--primary); }
+th.sort-desc::after { content: " \25BC"; font-size: 0.7rem; color: var(--primary); }
+
+/* ===== 密码切换按钮 ===== */
+.pw-wrapper { position: relative; }
+.pw-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  padding: 2px 4px;
+}
+.pw-toggle:hover { color: var(--primary); }
+
+/* ===== 深色模式 ===== */
+body.dark-mode {
+  --primary: #818cf8;
+  --primary-light: #a5b4fc;
+  --primary-dark: #6366f1;
+  --bg: #1e1e2e;
+  --card-bg: #2a2a3c;
+  --text: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --border: #3f3f5f;
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.4);
+}
+body.dark-mode table.data-table thead th { background: #363650; color: #cbd5e1; }
+body.dark-mode table.data-table tbody td { border-bottom-color: #363650; }
+body.dark-mode table.data-table tbody tr:hover { background: #313150; }
+body.dark-mode .overview-card { background: linear-gradient(135deg, #2a2a3c, #313150); border-color: var(--border); }
+body.dark-mode table.data-table.freeze-first thead th:first-child { background: #363650; }
+body.dark-mode table.data-table.freeze-first tbody td:first-child { background: #2a2a3c; }
+body.dark-mode .form-field input, body.dark-mode .form-field select,
+body.dark-mode .form-group input, body.dark-mode .form-group select { background: #363650; color: var(--text); }
+body.dark-mode .context-menu { background: #2a2a3c; border-color: var(--border); }
+body.dark-mode .context-menu button { color: var(--text); }
+body.dark-mode .context-menu button:hover { background: #363650; }
+
+/* 主题切换按钮 */
+.theme-toggle {
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: all 0.2s;
+}
+.theme-toggle:hover { border-color: var(--primary-light); }
+
+/* 确认弹窗按钮 */
+.confirm-modal-btn { min-width: 80px; justify-content: center; }
+</style>
+</head>
+<body>
+
+<!-- ===== 登录页 ===== -->
+<div id="loginPage" class="login-wrapper">
+  <div class="login-card">
+    <h1>家庭财务分析系统</h1>
+    <p class="subtitle">请登录或注册以管理您的财务记录</p>
+    <div class="form-group">
+      <label>用户名</label>
+      <input type="text" id="loginUsername" placeholder="请输入用户名">
+    </div>
+    <div class="form-group">
+      <label>密码</label>
+      <div class="pw-wrapper">
+        <input type="password" id="loginPassword" placeholder="请输入密码（至少6位）">
+        <button class="pw-toggle" type="button" onclick="togglePasswordVisibility('loginPassword', this)" title="显示/隐藏密码">&#128065;</button>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" style="flex:1" id="loginBtn" onclick="handleLogin(this)">登录</button>
+      <button class="btn btn-secondary" style="flex:1" id="registerBtn" onclick="handleRegister(this)">注册</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 主应用 ===== -->
+<div id="appPage" class="app-wrapper">
+  <div class="app-header">
+    <h2>家庭财务分析系统</h2>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="theme-toggle" onclick="toggleDarkMode()" title="切换深色/浅色模式" id="themeToggleBtn">&#9790;</button>
+      <span class="user-info" id="userInfo"></span>
+      <button class="btn btn-secondary btn-sm" style="margin-left:12px" onclick="logout()">退出</button>
+    </div>
+  </div>
+
+  <!-- 数据概览面板 -->
+  <div class="card" id="overviewCard" style="display:none;">
+    <h3>数据概览</h3>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <!-- 新增记录 -->
+  <div class="card">
+    <h3>新增记录</h3>
+    <div class="form-grid">
+      <div class="form-field">
+        <label>金额</label>
+        <input type="number" id="inpAmount" step="0.01" min="0" placeholder="请输入金额">
+      </div>
+      <div class="form-field">
+        <label>类型</label>
+        <select id="inpType" onchange="updateCategoryOptions()">
+          <option value="收入">收入</option>
+          <option value="支出">支出</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>分类</label>
+        <select id="inpCategory"></select>
+      </div>
+      <div class="form-field">
+        <label>日期</label>
+        <input type="date" id="inpDate">
+      </div>
+      <div class="form-field" style="grid-column: span 2">
+        <label>描述</label>
+        <input type="text" id="inpDescription" placeholder="可选描述">
+      </div>
+    </div>
+    <div class="btn-grid">
+      <button class="btn btn-primary" id="addRecordBtn" onclick="addTransaction(this)">添加记录</button>
+      <button class="btn btn-secondary" onclick="importRecords()">导入记录</button>
+      <button class="btn btn-secondary" onclick="exportRecords()">导出记录</button>
+      <button class="btn btn-secondary" onclick="downloadTemplate()">下载模板</button>
+      <input type="file" id="importFile" accept=".xlsx,.csv" style="display:none" onchange="handleImportFile(event)">
+    </div>
+  </div>
+
+  <!-- 统计分析 -->
+  <div class="card">
+    <h3>统计分析</h3>
+    <div class="btn-grid">
+      <button class="btn btn-success" onclick="openMonthlyStats()">月度统计</button>
+      <button class="btn btn-success" onclick="openYearlyStats()">年度统计</button>
+      <button class="btn btn-success" onclick="openSearchRecords()">搜索记录</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal 容器 ===== -->
+<div id="modalOverlay" class="modal-overlay">
+  <div id="modalBox" class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle"></h3>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ===== 子 Modal（选择年份/分类等，不覆盖主弹窗） ===== -->
+<div id="subModalOverlay" class="modal-overlay">
+  <div id="subModalBox" class="modal modal-sm">
+    <div class="modal-header">
+      <h3 id="subModalTitle"></h3>
+      <button class="modal-close" onclick="closeSubModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="subModalBody"></div>
+  </div>
+</div>
+
+<!-- ===== 编辑记录 Modal ===== -->
+<div id="editModalOverlay" class="modal-overlay">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <h3>编辑记录</h3>
+      <button class="modal-close" onclick="closeEditModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="editModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="saveEditedRecord()">保存</button>
+      <button class="btn btn-secondary" onclick="closeEditModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 右键菜单 ===== -->
+<div id="contextMenu" class="context-menu">
+  <button onclick="editSelectedRecord()">编辑记录</button>
+  <button class="danger" onclick="deleteSelectedRecords()">删除记录</button>
+</div>
+
+<!-- ===== 确认弹窗 Modal ===== -->
+<div id="confirmOverlay" class="modal-overlay">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 id="confirmTitle">确认</h3>
+    </div>
+    <div class="modal-body">
+      <p id="confirmMessage" style="font-size:0.95rem;line-height:1.6;"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger confirm-modal-btn" id="confirmYesBtn">确定删除</button>
+      <button class="btn btn-secondary confirm-modal-btn" onclick="closeConfirmModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 提示 ===== -->
+<div id="toast" class="toast"></div>
+
+<script>
+// ============================================================
+//  常量与配置
+// ============================================================
+const INCOME_CATEGORIES = ["工资", "补贴", "投资"];
+const EXPENSE_CATEGORIES = ["投资", "衣食", "住房", "出行", "娱乐", "教育", "医疗", "其他"];
+const ALL_CATEGORIES = [...new Set([...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES])];
+
+let db = null;
+let currentUser = null;
+
+// 分页状态
+let currentPage = 1;
+let pageSize = 20;
+let totalRecords = 0;
+let totalPages = 1;
+
+// 年度统计状态
+let showOnlyTotalsMode = false;
+let selectedCategories = [];
+let multiYearMode = false;
+let selectedYears = [];
+let searchResults = []; // 当前查询结果缓存
+
+// 编辑记录状态
+let editingRecordId = null;
+
+// 搜索排序状态
+let searchSortField = 'date';
+let searchSortAsc = false;
+let allFilteredResults = []; // 全部筛选结果缓存（用于排序）
+
+// 确认弹窗回调
+let confirmCallback = null;
+
+// Shift范围选择起点
+let shiftSelectStart = null;
+
+// 编辑弹窗脏标记
+let editModalDirty = false;
+
+// ============================================================
+//  IndexedDB 封装 — 表结构与 Python SQLite 完全一致
+//  users(id, username, password) | transactions(id, amount, type, category, date, description, user_id)
+// ============================================================
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('family_finance_db', 1);
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('users')) {
+        const s = d.createObjectStore('users', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('username', 'username', { unique: true });
+      }
+      if (!d.objectStoreNames.contains('transactions')) {
+        const st = d.createObjectStore('transactions', { keyPath: 'id', autoIncrement: true });
+        st.createIndex('user_id', 'user_id', { unique: false });
+      }
+    };
+    req.onsuccess = (e) => resolve(e.target.result);
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function dbAdd(store, obj) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const r = tx.objectStore(store).add(obj);
+    r.onsuccess = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+  });
+}
+
+function dbGetByKey(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const r = tx.objectStore(store).get(key);
+    r.onsuccess = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+  });
+}
+
+function dbGetByIndex(store, indexName, value) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const r = tx.objectStore(store).index(indexName).get(value);
+    r.onsuccess = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+  });
+}
+
+function dbGetAll(store) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const r = tx.objectStore(store).getAll();
+    r.onsuccess = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+  });
+}
+
+function dbUpdate(store, obj) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const r = tx.objectStore(store).put(obj);
+    r.onsuccess = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+  });
+}
+
+function dbDelete(store, id) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const r = tx.objectStore(store).delete(id);
+    r.onsuccess = () => resolve();
+    r.onerror = () => reject(r.error);
+  });
+}
+
+function dbCursor(store, callback) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const os = tx.objectStore(store);
+    const req = os.openCursor();
+    req.onsuccess = (e) => {
+      const cursor = e.target.result;
+      if (cursor) {
+        callback(cursor);
+        cursor.continue();
+      } else {
+        resolve();
+      }
+    };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// 获取用户所有交易记录
+async function getUserTransactions(userId) {
+  const all = await dbGetAll('transactions');
+  return all.filter(t => t.user_id === userId);
+}
+
+// ============================================================
+//  密码哈希 — 使用 Web Crypto API (PBKDF2-SHA512)
+//  存储格式：pbkdf2:sha512$<iterations>$<salt_b64>$<hash_b64>
+//  兼容 werkzeug 格式前缀，验证时自行解析
+// ============================================================
+async function hashPassword(password) {
+  const enc = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: salt, iterations: 200000, hash: 'SHA-512' },
+    keyMaterial, 512
+  );
+  const saltB64 = btoa(String.fromCharCode(...salt));
+  const hashB64 = btoa(String.fromCharCode(...new Uint8Array(bits)));
+  return `pbkdf2:sha512$200000$${saltB64}$${hashB64}`;
+}
+
+async function verifyPassword(password, stored) {
+  try {
+    const parts = stored.split('$');
+    if (parts.length !== 4) return false;
+    const method = parts[0];
+    const saltB64 = parts[2];
+    const hashB64 = parts[3];
+    if (!method.startsWith('pbkdf2:sha512')) return false;
+    let iterations = parseInt(parts[1]);
+    if (isNaN(iterations)) iterations = 200000;
+
+    const salt = Uint8Array.from(atob(saltB64), c => c.charCodeAt(0));
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits(
+      { name: 'PBKDF2', salt: salt, iterations: iterations, hash: 'SHA-512' },
+      keyMaterial, 512
+    );
+    const computedB64 = btoa(String.fromCharCode(...new Uint8Array(bits)));
+    return computedB64 === hashB64;
+  } catch (e) {
+    return false;
+  }
+}
+
+// ============================================================
+//  Toast 提示
+// ============================================================
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ============================================================
+//  密码显示/隐藏
+// ============================================================
+function togglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.innerHTML = '&#128064;';
+  } else {
+    input.type = 'password';
+    btn.innerHTML = '&#128065;';
+  }
+}
+
+// ============================================================
+//  深色模式
+// ============================================================
+function toggleDarkMode() {
+  document.body.classList.toggle('dark-mode');
+  const isDark = document.body.classList.contains('dark-mode');
+  document.getElementById('themeToggleBtn').innerHTML = isDark ? '&#9728;' : '&#9790;';
+  localStorage.setItem('finance_dark_mode', isDark ? '1' : '0');
+}
+
+function initDarkMode() {
+  if (localStorage.getItem('finance_dark_mode') === '1') {
+    document.body.classList.add('dark-mode');
+    const btn = document.getElementById('themeToggleBtn');
+    if (btn) btn.innerHTML = '&#9728;';
+  }
+}
+
+// ============================================================
+//  确认弹窗
+// ============================================================
+function showConfirm(title, message, callback, opts) {
+  document.getElementById('confirmTitle').textContent = title;
+  const msgEl = document.getElementById('confirmMessage');
+  // 支持 string 或 HTML 字符串
+  if (typeof message === 'string') {
+    if (message.includes('<')) {
+      msgEl.innerHTML = message;
+    } else {
+      msgEl.textContent = message;
+    }
+  }
+  confirmCallback = callback;
+  const yesBtn = document.getElementById('confirmYesBtn');
+  // 恢复默认样式
+  yesBtn.textContent = '确定删除';
+  yesBtn.className = 'btn btn-danger confirm-modal-btn';
+  // 自定义按钮文本和样式
+  if (opts) {
+    if (opts.yesText) yesBtn.textContent = opts.yesText;
+    if (opts.yesClass) yesBtn.className = 'btn ' + opts.yesClass + ' confirm-modal-btn';
+  }
+  document.getElementById('confirmOverlay').classList.add('active');
+}
+
+function closeConfirmModal() {
+  document.getElementById('confirmOverlay').classList.remove('active');
+  confirmCallback = null;
+}
+
+// 防重复点击工具
+function withLoading(btn, asyncFn) {
+  if (btn.disabled) return;
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '处理中...';
+  asyncFn().finally(() => {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  });
+}
+
+// ============================================================
+//  Modal 通用方法
+// ============================================================
+function openModal(title, bodyHTML, size) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = bodyHTML;
+  document.getElementById('modalFooter').style.display = 'none';
+  const box = document.getElementById('modalBox');
+  box.className = 'modal';
+  if (size === 'sm') box.classList.add('modal-sm');
+  else if (size === 'md') box.classList.add('modal-md');
+  document.getElementById('modalOverlay').classList.add('active');
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+
+function openSubModal(title, bodyHTML) {
+  document.getElementById('subModalTitle').textContent = title;
+  document.getElementById('subModalBody').innerHTML = bodyHTML;
+  document.getElementById('subModalOverlay').classList.add('active');
+}
+function closeSubModal() {
+  document.getElementById('subModalOverlay').classList.remove('active');
+}
+function closeEditModal() {
+  const overlay = document.getElementById('editModalOverlay');
+  if (overlay.classList.contains('active') && editModalDirty) {
+    showConfirm('确认关闭', '您有未保存的修改，确定要关闭吗？', () => {
+      document.getElementById('editModalOverlay').classList.remove('active');
+      editingRecordId = null;
+      editModalDirty = false;
+    }, { yesText: '确认关闭', yesClass: 'btn-primary' });
+    return;
+  }
+  overlay.classList.remove('active');
+  editingRecordId = null;
+  editModalDirty = false;
+}
+
+// ============================================================
+//  主应用初始化
+// ============================================================
+async function init() {
+  try {
+    db = await openDB();
+  } catch (e) {
+    showToast('数据库初始化失败: ' + e.message, 'error');
+  }
+  updateCategoryOptions();
+  document.getElementById('inpDate').value = new Date().toISOString().slice(0, 10);
+  initDarkMode();
+  // 确认弹窗按钮事件
+  document.getElementById('confirmYesBtn').onclick = () => {
+    const cb = confirmCallback;
+    closeConfirmModal();
+    if (cb) cb();
+  };
+}
+
+// ============================================================
+//  登录 / 注册
+// ============================================================
+async function handleLogin(btn) {
+  const fn = async () => {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!username || !password) {
+      showToast('请输入用户名和密码', 'error');
+      return;
+    }
+    try {
+      const user = await dbGetByIndex('users', 'username', username);
+      if (!user) {
+        showToast('用户名或密码错误', 'error');
+        return;
+      }
+      const ok = await verifyPassword(password, user.password);
+      if (!ok) {
+        showToast('用户名或密码错误', 'error');
+        return;
+      }
+      currentUser = { id: user.id, username: user.username };
+      showApp();
+    } catch (e) {
+      showToast('登录失败: ' + e.message, 'error');
+    }
+  };
+  if (btn) withLoading(btn, fn); else fn();
+}
+
+async function handleRegister(btn) {
+  const fn = async () => {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!username) {
+      showToast('请输入用户名', 'error');
+      return;
+    }
+    if (password.length < 6) {
+      showToast('密码至少需要6位', 'error');
+      return;
+    }
+    try {
+      const existing = await dbGetByIndex('users', 'username', username);
+      if (existing) {
+        showToast('用户名已存在', 'error');
+        return;
+      }
+      const hashed = await hashPassword(password);
+      await dbAdd('users', { username: username, password: hashed });
+      showToast('注册成功，请登录', 'success');
+    } catch (e) {
+      showToast('注册失败: ' + e.message, 'error');
+    }
+  };
+  if (btn) withLoading(btn, fn); else fn();
+}
+
+function showApp() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('appPage').classList.add('active');
+  document.getElementById('userInfo').textContent = '用户: ' + currentUser.username;
+  initDarkMode();
+  renderOverview();
+}
+
+function logout() {
+  currentUser = null;
+  document.getElementById('appPage').classList.remove('active');
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('loginUsername').value = '';
+  document.getElementById('loginPassword').value = '';
+}
+
+// ============================================================
+//  分类联动
+// ============================================================
+function updateCategoryOptions() {
+  const type = document.getElementById('inpType').value;
+  const sel = document.getElementById('inpCategory');
+  const cats = type === '收入' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  sel.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+// ============================================================
+//  数据概览面板
+// ============================================================
+async function renderOverview() {
+  if (!currentUser) return;
+  const transactions = await getUserTransactions(currentUser.id);
+  const card = document.getElementById('overviewCard');
+  const grid = document.getElementById('overviewGrid');
+  if (transactions.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = '';
+
+  let totalIncome = 0, totalExpense = 0;
+  let thisMonthIncome = 0, thisMonthExpense = 0;
+  const now = new Date();
+  const ym = now.toISOString().slice(0, 7);
+  for (const t of transactions) {
+    if (t.type === '收入') totalIncome += t.amount;
+    else totalExpense += t.amount;
+    if (t.date.slice(0, 7) === ym) {
+      if (t.type === '收入') thisMonthIncome += t.amount;
+      else thisMonthExpense += t.amount;
+    }
+  }
+  const balance = totalIncome - totalExpense;
+  const recordCount = transactions.length;
+
+  grid.innerHTML = `
+    <div class="overview-card ov-income">
+      <div class="ov-label">总收入</div>
+      <div class="ov-value">¥${totalIncome.toFixed(2)}</div>
+    </div>
+    <div class="overview-card ov-expense">
+      <div class="ov-label">总支出</div>
+      <div class="ov-value">¥${totalExpense.toFixed(2)}</div>
+    </div>
+    <div class="overview-card ov-balance">
+      <div class="ov-label">总结余</div>
+      <div class="ov-value">¥${balance.toFixed(2)}</div>
+    </div>
+    <div class="overview-card">
+      <div class="ov-label">本月收入</div>
+      <div class="ov-value" style="color:var(--success)">¥${thisMonthIncome.toFixed(2)}</div>
+    </div>
+    <div class="overview-card">
+      <div class="ov-label">本月支出</div>
+      <div class="ov-value" style="color:var(--danger)">¥${thisMonthExpense.toFixed(2)}</div>
+    </div>
+    <div class="overview-card">
+      <div class="ov-label">记录总数</div>
+      <div class="ov-value">${recordCount}</div>
+    </div>
+  `;
+}
+
+// ============================================================
+//  新增记录
+// ============================================================
+async function addTransaction(btn) {
+  const fn = async () => {
+    try {
+      const amount = parseFloat(document.getElementById('inpAmount').value);
+      if (isNaN(amount) || amount <= 0) {
+        showToast('金额必须为正数', 'error');
+        return;
+      }
+      const type = document.getElementById('inpType').value;
+      if (!['收入', '支出'].includes(type)) {
+        showToast('请选择有效的类型', 'error');
+        return;
+      }
+      const category = document.getElementById('inpCategory').value;
+      const validCats = type === '收入' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+      if (!validCats.includes(category)) {
+        showToast('分类与类型不匹配', 'error');
+        return;
+      }
+      const date = document.getElementById('inpDate').value;
+      if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        showToast('请输入有效日期 (YYYY-MM-DD)', 'error');
+        return;
+      }
+      const description = document.getElementById('inpDescription').value.trim();
+
+      await dbAdd('transactions', {
+        amount: amount,
+        type: type,
+        category: category,
+        date: date,
+        description: description,
+        user_id: currentUser.id
+      });
+      showToast('记录添加成功！', 'success');
+      document.getElementById('inpAmount').value = '';
+      document.getElementById('inpDescription').value = '';
+      renderOverview();
+    } catch (e) {
+      showToast('系统错误: ' + e.message, 'error');
+    }
+  };
+  if (btn) withLoading(btn, fn); else fn();
+}
+
+// ============================================================
+//  导入 / 导出 / 模板
+// ============================================================
+function downloadTemplate() {
+  const ws = XLSX.utils.json_to_sheet([], {
+    header: ['amount', 'type', 'category', 'date', 'description']
+  });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+  XLSX.writeFile(wb, 'template.xlsx');
+  showToast('模板下载完成', 'success');
+}
+
+function exportRecords() {
+  getUserTransactions(currentUser.id).then(transactions => {
+    const data = transactions.map(t => ({
+      amount: parseFloat(t.amount).toFixed(2),
+      type: t.type,
+      category: t.category,
+      date: t.date,
+      description: t.description || ''
+    }));
+    const ws = XLSX.utils.json_to_sheet(data, {
+      header: ['amount', 'type', 'category', 'date', 'description']
+    });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    XLSX.writeFile(wb, 'transactions_export.xlsx');
+    showToast('数据已导出', 'success');
+  }).catch(e => showToast('导出失败: ' + e.message, 'error'));
+}
+
+function importRecords() {
+  document.getElementById('importFile').click();
+}
+
+function handleImportFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+      const required = ['amount', 'type', 'category', 'date'];
+      const missing = required.filter(c => !rows[0] || !(c in rows[0]));
+      if (missing.length > 0) {
+        showToast('缺少必要列: ' + missing.join(', '), 'error');
+        return;
+      }
+
+      let validCount = 0;
+      let skipCount = 0;
+      let skipReasons = [];
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        try {
+          // 跳过空行
+          if (!row['type'] && !row['amount'] && !row['category'] && !row['date']) {
+            continue;
+          }
+          if (!['收入', '支出'].includes(row['type'])) {
+            throw new Error(`第${i + 2}行类型无效`);
+          }
+          const validCats = row['type'] === '收入' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+          if (!validCats.includes(row['category'])) {
+            throw new Error(`第${i + 2}行分类不匹配`);
+          }
+          const amount = parseFloat(row['amount']);
+          if (isNaN(amount) || amount <= 0) {
+            throw new Error(`第${i + 2}行金额无效`);
+          }
+          let dateStr = String(row['date']).trim();
+          // 处理 Excel 日期数字序列号
+          if (/^\d{5}$/.test(dateStr) || (/^\d+\.\d+$/.test(dateStr) && parseFloat(dateStr) > 30000)) {
+            const d = XLSX.SSF.parse_date_code(parseFloat(dateStr));
+            dateStr = `${d.y}-${String(d.m).padStart(2, '0')}-${String(d.d).padStart(2, '0')}`;
+          }
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+            throw new Error(`第${i + 2}行日期格式无效: ${dateStr}`);
+          }
+          await dbAdd('transactions', {
+            amount: amount,
+            type: row['type'],
+            category: row['category'],
+            date: dateStr,
+            description: String(row['description'] || '').trim(),
+            user_id: currentUser.id
+          });
+          validCount++;
+        } catch (rowErr) {
+          skipCount++;
+          skipReasons.push(rowErr.message);
+        }
+      }
+      if (validCount > 0) {
+        let msg = `成功导入${validCount}条有效记录`;
+        if (skipCount > 0) {
+          msg += `，跳过${skipCount}条`;
+          // 展示跳过原因
+          if (skipReasons.length > 0) {
+            const reasonHTML = skipReasons.map(r => `<li>${r}</li>`).join('');
+            const msgHTML = `成功导入<b>${validCount}</b>条，跳过<b>${skipCount}</b>条。<br>跳过原因：<ul style="margin-top:6px;padding-left:20px;">${reasonHTML}</ul>`;
+            setTimeout(() => {
+              showConfirm('导入跳过详情', msgHTML, () => {}, { yesText: '知道了', yesClass: 'btn-primary' });
+            }, 100);
+          }
+        }
+        showToast(msg, 'success');
+        renderOverview();
+      } else {
+        showToast('没有有效记录可导入', 'error');
+      }
+    } catch (err) {
+      showToast('文件处理错误: ' + err.message, 'error');
+    }
+    event.target.value = ''; // Reset
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ============================================================
+//  月度统计
+// ============================================================
+function getPreviousMonth(year, month) {
+  const y = parseInt(year);
+  const m = parseInt(month);
+  if (m === 1) return { year: String(y - 1), month: '12' };
+  return { year: String(y), month: String(m - 1).padStart(2, '0') };
+}
+
+function getAvailableYears() {
+  return getUserTransactions(currentUser.id).then(transactions => {
+    const years = [...new Set(transactions.map(t => t.date.slice(0, 4)))];
+    return years.sort((a, b) => b.localeCompare(a));
+  });
+}
+
+async function openMonthlyStats() {
+  const years = await getAvailableYears();
+  if (years.length === 0) {
+    showToast('暂无数据', 'error');
+    return;
+  }
+  const now = new Date();
+  const defaultMonth = String(now.getMonth() + 1).padStart(2, '0');
+
+  const bodyHTML = `
+    <div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:16px;">
+      <div class="form-field">
+        <label>选择年份</label>
+        <select id="msYear" onchange="showMonthlyStats()">${years.map(y => `<option value="${y}">${y}</option>`).join('')}</select>
+      </div>
+      <div class="form-field">
+        <label>选择月份</label>
+        <select id="msMonth" onchange="showMonthlyStats()">
+          ${Array.from({length:12}, (_,i) => { const m = String(i+1).padStart(2,'0'); return `<option value="${m}" ${m===defaultMonth?'selected':''}>${m}月</option>`; }).join('')}
+        </select>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="showMonthlyStats()">查询</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportMonthlyStats()">导出数据</button>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table" id="msTable">
+        <thead><tr id="msTableHead"></tr></thead>
+        <tbody id="msTableBody"></tbody>
+      </table>
+    </div>
+  `;
+  openModal('月度统计分析', bodyHTML);
+  // 默认显示
+  showMonthlyStats();
+}
+
+async function showMonthlyStats() {
+  const year = document.getElementById('msYear').value;
+  const month = document.getElementById('msMonth').value;
+  if (!year || !month) {
+    showToast('请选择年份和月份', 'error');
+    return;
+  }
+
+  const transactions = await getUserTransactions(currentUser.id);
+
+  // 当前月数据
+  const currentData = {};
+  transactions.filter(t => t.date.slice(0,4) === year && t.date.slice(5,7) === month).forEach(t => {
+    if (!currentData[t.category]) currentData[t.category] = { income: 0, expense: 0 };
+    if (t.type === '收入') currentData[t.category].income += t.amount;
+    else currentData[t.category].expense += t.amount;
+  });
+
+  // 上月数据（环比）
+  const prev = getPreviousMonth(year, month);
+  const prevData = {};
+  transactions.filter(t => t.date.slice(0,4) === prev.year && t.date.slice(5,7) === prev.month).forEach(t => {
+    if (!prevData[t.category]) prevData[t.category] = { income: 0, expense: 0 };
+    if (t.type === '收入') prevData[t.category].income += t.amount;
+    else prevData[t.category].expense += t.amount;
+  });
+
+  // 去年同月（同比）
+  const lastYear = String(parseInt(year) - 1);
+  const yearAgoData = {};
+  transactions.filter(t => t.date.slice(0,4) === lastYear && t.date.slice(5,7) === month).forEach(t => {
+    if (!yearAgoData[t.category]) yearAgoData[t.category] = { income: 0, expense: 0 };
+    if (t.type === '收入') yearAgoData[t.category].income += t.amount;
+    else yearAgoData[t.category].expense += t.amount;
+  });
+
+  // 合并所有分类
+  const allCats = [...new Set([...Object.keys(currentData), ...Object.keys(prevData), ...Object.keys(yearAgoData)])].sort();
+
+  const columns = ['分类', '收入', '支出', '结余', '收入环比', '支出环比', '收入同比', '支出同比'];
+  const head = document.getElementById('msTableHead');
+  const body = document.getElementById('msTableBody');
+  head.innerHTML = columns.map(c => `<th>${c}</th>`).join('');
+  body.innerHTML = '';
+
+  let totalIncome = 0, totalExpense = 0;
+  for (const cat of allCats) {
+    const curr = currentData[cat] || { income: 0, expense: 0 };
+    const p = prevData[cat] || { income: 0, expense: 0 };
+    const yago = yearAgoData[cat] || { income: 0, expense: 0 };
+    const income = curr.income;
+    const expense = curr.expense;
+    const balance = income - expense;
+    totalIncome += income;
+    totalExpense += expense;
+
+    const incChain = p.income !== 0 ? ((income - p.income) / p.income * 100) : 0;
+    const expChain = p.expense !== 0 ? ((expense - p.expense) / p.expense * 100) : 0;
+    const incYear = yago.income !== 0 ? ((income - yago.income) / yago.income * 100) : 0;
+    const expYear = yago.expense !== 0 ? ((expense - yago.expense) / yago.expense * 100) : 0;
+
+    body.insertAdjacentHTML('beforeend', `<tr>
+      <td>${cat}</td>
+      <td>${income.toFixed(2)}</td>
+      <td>${expense.toFixed(2)}</td>
+      <td>${balance.toFixed(2)}</td>
+      <td>${p.income !== 0 ? (incChain >= 0 ? '+' : '') + incChain.toFixed(1) + '%' : 'N/A'}</td>
+      <td>${p.expense !== 0 ? (expChain >= 0 ? '+' : '') + expChain.toFixed(1) + '%' : 'N/A'}</td>
+      <td>${yago.income !== 0 ? (incYear >= 0 ? '+' : '') + incYear.toFixed(1) + '%' : 'N/A'}</td>
+      <td>${yago.expense !== 0 ? (expYear >= 0 ? '+' : '') + expYear.toFixed(1) + '%' : 'N/A'}</td>
+    </tr>`);
+  }
+  const totalBalance = totalIncome - totalExpense;
+  body.insertAdjacentHTML('beforeend', `<tr class="row-total">
+    <td>总计</td>
+    <td>${totalIncome.toFixed(2)}</td>
+    <td>${totalExpense.toFixed(2)}</td>
+    <td>${totalBalance.toFixed(2)}</td>
+    <td></td><td></td><td></td><td></td>
+  </tr>`);
+}
+
+async function exportMonthlyStats() {
+  const year = document.getElementById('msYear').value;
+  const month = document.getElementById('msMonth').value;
+  if (!year || !month) {
+    showToast('请先选择年份和月份', 'error');
+    return;
+  }
+
+  try {
+    const transactions = await getUserTransactions(currentUser.id);
+
+    // 当前月
+    const currentData = {};
+    transactions.filter(t => t.date.slice(0,4) === year && t.date.slice(5,7) === month).forEach(t => {
+      if (!currentData[t.category]) currentData[t.category] = { income: 0, expense: 0 };
+      if (t.type === '收入') currentData[t.category].income += t.amount;
+      else currentData[t.category].expense += t.amount;
+    });
+
+    // 上月
+    const prev = getPreviousMonth(year, month);
+    const prevData = {};
+    transactions.filter(t => t.date.slice(0,4) === prev.year && t.date.slice(5,7) === prev.month).forEach(t => {
+      if (!prevData[t.category]) prevData[t.category] = { income: 0, expense: 0 };
+      if (t.type === '收入') prevData[t.category].income += t.amount;
+      else prevData[t.category].expense += t.amount;
+    });
+
+    // 去年同月
+    const lastYear = String(parseInt(year) - 1);
+    const yearAgoData = {};
+    transactions.filter(t => t.date.slice(0,4) === lastYear && t.date.slice(5,7) === month).forEach(t => {
+      if (!yearAgoData[t.category]) yearAgoData[t.category] = { income: 0, expense: 0 };
+      if (t.type === '收入') yearAgoData[t.category].income += t.amount;
+      else yearAgoData[t.category].expense += t.amount;
+    });
+
+    const allCats = [...new Set([...Object.keys(currentData), ...Object.keys(prevData), ...Object.keys(yearAgoData)])].sort();
+
+    const rows = allCats.map(cat => {
+      const curr = currentData[cat] || { income: 0, expense: 0 };
+      const p = prevData[cat] || { income: 0, expense: 0 };
+      const yago = yearAgoData[cat] || { income: 0, expense: 0 };
+      const income = curr.income, expense = curr.expense, balance = income - expense;
+      const incChain = p.income !== 0 ? ((income - p.income) / p.income * 100) : 0;
+      const expChain = p.expense !== 0 ? ((expense - p.expense) / p.expense * 100) : 0;
+      const incYear = yago.income !== 0 ? ((income - yago.income) / yago.income * 100) : 0;
+      const expYear = yago.expense !== 0 ? ((expense - yago.expense) / yago.expense * 100) : 0;
+      return {
+        '分类': cat,
+        '收入': income.toFixed(2),
+        '支出': expense.toFixed(2),
+        '结余': balance.toFixed(2),
+        '收入环比': p.income !== 0 ? (incChain >= 0 ? '+' : '') + incChain.toFixed(1) + '%' : 'N/A',
+        '支出环比': p.expense !== 0 ? (expChain >= 0 ? '+' : '') + expChain.toFixed(1) + '%' : 'N/A',
+        '收入同比': yago.income !== 0 ? (incYear >= 0 ? '+' : '') + incYear.toFixed(1) + '%' : 'N/A',
+        '支出同比': yago.expense !== 0 ? (expYear >= 0 ? '+' : '') + expYear.toFixed(1) + '%' : 'N/A'
+      };
+    });
+
+    const totalIncome = allCats.reduce((s, c) => s + (currentData[c]?.income || 0), 0);
+    const totalExpense = allCats.reduce((s, c) => s + (currentData[c]?.expense || 0), 0);
+    rows.push({
+      '分类': '总计',
+      '收入': totalIncome.toFixed(2),
+      '支出': totalExpense.toFixed(2),
+      '结余': (totalIncome - totalExpense).toFixed(2),
+      '收入环比': '', '支出环比': '', '收入同比': '', '支出同比': ''
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    XLSX.writeFile(wb, `月度统计_${year}年${month}月.xlsx`);
+    showToast('月度统计数据已导出', 'success');
+  } catch (e) {
+    showToast('导出失败: ' + e.message, 'error');
+  }
+}
+
+// ============================================================
+//  年度统计
+// ============================================================
+async function openYearlyStats() {
+  const allYears = await getAvailableYears();
+  if (allYears.length === 0) {
+    showToast('暂无数据', 'error');
+    return;
+  }
+
+  // 重置状态
+  showOnlyTotalsMode = false;
+  multiYearMode = false;
+  selectedYears = [];
+  selectedCategories = [];
+
+  const bodyHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:center;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+      <div class="radio-row" style="margin:0">
+        <label><input type="radio" name="yearMode" value="single" checked onchange="toggleYearMode()"> 单一年份</label>
+        <label><input type="radio" name="yearMode" value="multi" onchange="toggleYearMode()"> 多选年份</label>
+      </div>
+      <div class="form-field" style="min-width:120px">
+        <label>选择年份</label>
+        <select id="ysYear">${allYears.map(y => `<option value="${y}">${y}</option>`).join('')}</select>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="ysMultiBtn" onclick="selectMultipleYears()" style="display:none;">选择多个年份</button>
+      <button class="btn btn-secondary btn-sm" onclick="selectCategories()">选择分类</button>
+      <button class="btn btn-secondary btn-sm" id="ysTotalsBtn" onclick="toggleTotalsOnly()">仅显示总计</button>
+      <button class="btn btn-primary btn-sm" onclick="showYearlyStats()">查询</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportYearlyStats()">导出数据</button>
+      <button class="btn btn-secondary btn-sm" onclick="refreshYearlyStats()">刷新</button>
+    </div>
+    <div class="table-wrapper" style="max-height:400px">
+      <table class="data-table freeze-first" id="ysTable">
+        <thead><tr id="ysTableHead"></tr></thead>
+        <tbody id="ysTableBody"></tbody>
+      </table>
+    </div>
+    <div id="ysInfo"></div>
+  `;
+  openModal('年度统计分析', bodyHTML);
+  showYearlyStats();
+}
+
+function toggleYearMode() {
+  const mode = document.querySelector('input[name="yearMode"]:checked').value;
+  multiYearMode = (mode === 'multi');
+  document.getElementById('ysYear').disabled = multiYearMode;
+  document.getElementById('ysMultiBtn').style.display = multiYearMode ? '' : 'none';
+  if (!multiYearMode) {
+    selectedYears = [];
+  }
+}
+
+function selectMultipleYears() {
+  getAvailableYears().then(allYears => {
+    const bodyHTML = `
+      <p style="margin-bottom:10px;font-weight:600;">请选择要统计的年份：</p>
+      <div style="margin-bottom:10px;display:flex;gap:8px;">
+        <button class="btn btn-secondary btn-sm" onclick="selectAllYearsCheckbox(true)">全选</button>
+        <button class="btn btn-secondary btn-sm" onclick="selectAllYearsCheckbox(false)">全不选</button>
+      </div>
+      <div class="checkbox-group" id="yearCheckGroup">
+        ${allYears.map((y, i) => `<label><input type="checkbox" class="year-cb" value="${y}" ${selectedYears.includes(y) ? 'checked' : (selectedYears.length === 0 ? 'checked' : '')}> ${y}</label>`).join('')}
+      </div>
+      <div style="text-align:right;margin-top:10px;">
+        <button class="btn btn-primary btn-sm" onclick="applyYearSelection()">确定</button>
+        <button class="btn btn-secondary btn-sm" onclick="closeSubModal()">取消</button>
+      </div>
+    `;
+    openSubModal('选择多个年份', bodyHTML);
+  });
+}
+
+function selectAllYearsCheckbox(selectAll) {
+  document.querySelectorAll('.year-cb').forEach(cb => cb.checked = selectAll);
+}
+
+function applyYearSelection() {
+  const selected = [...document.querySelectorAll('.year-cb:checked')].map(cb => cb.value);
+  if (selected.length === 0) {
+    showToast('请至少选择一个年份', 'error');
+    return;
+  }
+  selectedYears = selected.sort((a, b) => b.localeCompare(a));
+  closeSubModal();
+  if (showOnlyTotalsMode) {
+    showYearlyStatsTotalsOnly();
+  } else {
+    showYearlyStats();
+  }
+}
+
+function selectCategories() {
+  // 确定当前年份
+  let years;
+  if (multiYearMode) {
+    years = selectedYears;
+  } else {
+    const y = document.getElementById('ysYear')?.value;
+    years = y ? [y] : [];
+  }
+  if (years.length === 0) {
+    showToast('请先选择年份', 'error');
+    return;
+  }
+
+  getUserTransactions(currentUser.id).then(transactions => {
+    const cats = [...new Set(
+      transactions.filter(t => years.includes(t.date.slice(0, 4)))
+                  .map(t => t.category)
+    )].sort();
+
+    if (cats.length === 0) {
+      showToast('选中年份没有数据', 'error');
+      return;
+    }
+
+    const bodyHTML = `
+      <div style="margin-bottom:10px;display:flex;gap:8px;justify-content:space-between;align-items:center;">
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-secondary btn-sm" onclick="selectAllCategoriesCheckbox(true)">全选</button>
+          <button class="btn btn-secondary btn-sm" onclick="selectAllCategoriesCheckbox(false)">全不选</button>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="applyCategorySelection()">确定</button>
+      </div>
+      <div class="checkbox-group" id="catCheckGroup">
+        ${cats.map(c => `<label><input type="checkbox" class="cat-cb" value="${c}" ${selectedCategories.length === 0 || selectedCategories.includes(c) ? 'checked' : ''}> ${c}</label>`).join('')}
+      </div>
+    `;
+    openSubModal('选择要显示的分类', bodyHTML);
+  });
+}
+
+function selectAllCategoriesCheckbox(selectAll) {
+  document.querySelectorAll('.cat-cb').forEach(cb => cb.checked = selectAll);
+}
+
+function applyCategorySelection() {
+  const selected = [...document.querySelectorAll('.cat-cb:checked')].map(cb => cb.value);
+  if (selected.length === 0) {
+    showToast('请至少选择一个分类', 'error');
+    return;
+  }
+  selectedCategories = selected;
+  closeSubModal();
+  if (showOnlyTotalsMode) {
+    showYearlyStatsTotalsOnly();
+  } else {
+    showYearlyStats();
+  }
+}
+
+function toggleTotalsOnly() {
+  // 验证年份选择
+  if ((multiYearMode && selectedYears.length === 0) ||
+      (!multiYearMode && !document.getElementById('ysYear')?.value)) {
+    showToast('请先选择年份', 'error');
+    return;
+  }
+  showOnlyTotalsMode = !showOnlyTotalsMode;
+  const btn = document.getElementById('ysTotalsBtn');
+  if (showOnlyTotalsMode) {
+    btn.textContent = '显示全部';
+    showYearlyStatsTotalsOnly();
+  } else {
+    btn.textContent = '仅显示总计';
+    showYearlyStats();
+  }
+}
+
+function getYearlyQueryData() {
+  let years, yearConditions, yearText;
+  if (multiYearMode) {
+    years = selectedYears;
+    yearText = `${selectedYears.length}年合并(${selectedYears.join(',')})`;
+  } else {
+    const y = document.getElementById('ysYear').value;
+    years = [y];
+    yearText = y;
+  }
+  return { years, yearText };
+}
+
+async function showYearlyStats() {
+  const { years, yearText } = getYearlyQueryData();
+  if (years.length === 0 || !years[0]) {
+    showToast('请选择年份', 'error');
+    return;
+  }
+
+  const transactions = await getUserTransactions(currentUser.id);
+
+  // 当前年数据
+  const currentData = {};
+  transactions.filter(t => years.includes(t.date.slice(0, 4))).forEach(t => {
+    const month = t.date.slice(5, 7);
+    if (!currentData[month]) currentData[month] = {};
+    if (!currentData[month][t.category]) currentData[month][t.category] = { income: 0, expense: 0 };
+    if (t.type === '收入') currentData[month][t.category].income += t.amount;
+    else currentData[month][t.category].expense += t.amount;
+  });
+
+  // 去年数据（只有单年份才有同比）
+  const isSingleYear = years.length === 1 && !multiYearMode;
+  const yearAgoData = {};
+  if (isSingleYear) {
+    const lastYear = String(parseInt(years[0]) - 1);
+    transactions.filter(t => t.date.slice(0, 4) === lastYear).forEach(t => {
+      const month = t.date.slice(5, 7);
+      if (!yearAgoData[month]) yearAgoData[month] = {};
+      if (!yearAgoData[month][t.category]) yearAgoData[month][t.category] = { income: 0, expense: 0 };
+      if (t.type === '收入') yearAgoData[month][t.category].income += t.amount;
+      else yearAgoData[month][t.category].expense += t.amount;
+    });
+  }
+
+  // 所有月份和分类
+  const allMonths = [...new Set([...Object.keys(currentData), ...Object.keys(yearAgoData)])].sort();
+  let allCategories = new Set();
+  for (const m of allMonths) {
+    Object.keys(currentData[m] || {}).forEach(c => allCategories.add(c));
+    Object.keys(yearAgoData[m] || {}).forEach(c => allCategories.add(c));
+  }
+
+  if (selectedCategories.length > 0) {
+    allCategories = [...allCategories].filter(c => selectedCategories.includes(c)).sort();
+  } else {
+    allCategories = [...allCategories].sort();
+  }
+
+  // 分类年度总计
+  const categoryTotals = {};
+  for (const cat of allCategories) {
+    categoryTotals[cat] = { income: 0, expense: 0 };
+    for (const m of allMonths) {
+      const md = (currentData[m] || {})[cat] || { income: 0, expense: 0 };
+      categoryTotals[cat].income += md.income;
+      categoryTotals[cat].expense += md.expense;
+    }
+  }
+
+  // 构建表格列
+  let columns = ['月份', ...allCategories];
+  if (isSingleYear) {
+    columns = columns.concat(['月度收入', '月度支出', '月度结余', '收入同比', '支出同比']);
+  } else {
+    columns = columns.concat(['月度收入', '月度支出', '月度结余']);
+  }
+
+  const head = document.getElementById('ysTableHead');
+  const body = document.getElementById('ysTableBody');
+  head.innerHTML = columns.map(c => `<th ${c !== '月份' && allCategories.includes(c) ? `title="${c}"` : ''}>${c.length > 6 && allCategories.includes(c) ? c.slice(0, 6) : c}</th>`).join('');
+  body.innerHTML = '';
+
+  const monthlyTotals = {};
+  for (const month of allMonths) {
+    const monthName = multiYearMode ? `${month}月(合并)` : `${yearText}-${month}`;
+    const monthData = currentData[month] || {};
+    const lastYearData = yearAgoData[month] || {};
+
+    const monthIncomeTotal = Object.values(monthData).reduce((s, item) => s + item.income, 0);
+    const monthExpenseTotal = Object.values(monthData).reduce((s, item) => s + item.expense, 0);
+    const monthBalanceTotal = monthIncomeTotal - monthExpenseTotal;
+
+    let rowValues = [monthName];
+    for (const cat of allCategories) {
+      const cd = (monthData[cat] || { income: 0, expense: 0 });
+      if (cd.income === 0 && cd.expense === 0) {
+        rowValues.push('');
+      } else {
+        rowValues.push(`${cd.income.toFixed(0)}/${cd.expense.toFixed(0)}`);
+      }
+    }
+
+    if (isSingleYear) {
+      const lymIncome = Object.values(lastYearData).reduce((s, item) => s + item.income, 0);
+      const lymExpense = Object.values(lastYearData).reduce((s, item) => s + item.expense, 0);
+      const incYearRate = lymIncome !== 0 ? ((monthIncomeTotal - lymIncome) / lymIncome * 100) : 0;
+      const expYearRate = lymExpense !== 0 ? ((monthExpenseTotal - lymExpense) / lymExpense * 100) : 0;
+      rowValues = rowValues.concat([
+        monthIncomeTotal.toFixed(0),
+        monthExpenseTotal.toFixed(0),
+        monthBalanceTotal.toFixed(0),
+        lymIncome !== 0 ? (incYearRate >= 0 ? '+' : '') + incYearRate.toFixed(0) + '%' : 'N/A',
+        lymExpense !== 0 ? (expYearRate >= 0 ? '+' : '') + expYearRate.toFixed(0) + '%' : 'N/A'
+      ]);
+    } else {
+      rowValues = rowValues.concat([
+        monthIncomeTotal.toFixed(0),
+        monthExpenseTotal.toFixed(0),
+        monthBalanceTotal.toFixed(0)
+      ]);
+    }
+
+    body.insertAdjacentHTML('beforeend', `<tr>${rowValues.map(v => `<td>${v}</td>`).join('')}</tr>`);
+    monthlyTotals[month] = { income: monthIncomeTotal, expense: monthExpenseTotal, balance: monthBalanceTotal };
+  }
+
+  // 分类年度总计行
+  const annualIncome = Object.values(monthlyTotals).reduce((s, d) => s + d.income, 0);
+  const annualExpense = Object.values(monthlyTotals).reduce((s, d) => s + d.expense, 0);
+  const annualBalance = annualIncome - annualExpense;
+
+  let catTotalRow = ['分类年度总计'];
+  for (const cat of allCategories) {
+    const ct = categoryTotals[cat];
+    catTotalRow.push(ct.income === 0 && ct.expense === 0 ? '' : `${ct.income.toFixed(0)}/${ct.expense.toFixed(0)}`);
+  }
+  catTotalRow = catTotalRow.concat(isSingleYear ? ['', '', '', '', ''] : ['', '', '']);
+  body.insertAdjacentHTML('beforeend', `<tr class="row-category-total">${catTotalRow.map(v => `<td>${v}</td>`).join('')}</tr>`);
+
+  // 整体总计行
+  let grandTotalRow = [`${yearText}总计`];
+  for (const _ of allCategories) grandTotalRow.push('');
+  grandTotalRow = grandTotalRow.concat(isSingleYear
+    ? [annualIncome.toFixed(0), annualExpense.toFixed(0), annualBalance.toFixed(0), '', '']
+    : [annualIncome.toFixed(0), annualExpense.toFixed(0), annualBalance.toFixed(0)]);
+  body.insertAdjacentHTML('beforeend', `<tr class="row-total">${grandTotalRow.map(v => `<td>${v}</td>`).join('')}</tr>`);
+
+  // 提示标签
+  const yearInfo = multiYearMode
+    ? `${selectedYears.length}个年份合并统计(${selectedYears.join(',')})`
+    : `${years[0]}年统计`;
+  let infoText = `提示：${yearInfo}，共${allCategories.length}个分类，使用横向滚动条查看全部数据`;
+  if (selectedCategories.length > 0) infoText += `，已选择${selectedCategories.length}个分类`;
+  document.getElementById('ysInfo').innerHTML = `<p class="info-text">${infoText}</p>`;
+}
+
+async function showYearlyStatsTotalsOnly() {
+  const { years, yearText } = getYearlyQueryData();
+  if (years.length === 0 || !years[0]) {
+    showToast('请选择年份', 'error');
+    return;
+  }
+
+  const transactions = await getUserTransactions(currentUser.id);
+  const currentData = {};
+  transactions.filter(t => years.includes(t.date.slice(0, 4))).forEach(t => {
+    const month = t.date.slice(5, 7);
+    if (!currentData[month]) currentData[month] = {};
+    if (!currentData[month][t.category]) currentData[month][t.category] = { income: 0, expense: 0 };
+    if (t.type === '收入') currentData[month][t.category].income += t.amount;
+    else currentData[month][t.category].expense += t.amount;
+  });
+
+  const allMonths = Object.keys(currentData).sort();
+  let allCategories = new Set();
+  for (const m of allMonths) {
+    Object.keys(currentData[m] || {}).forEach(c => allCategories.add(c));
+  }
+  if (selectedCategories.length > 0) {
+    allCategories = [...allCategories].filter(c => selectedCategories.includes(c)).sort();
+  } else {
+    allCategories = [...allCategories].sort();
+  }
+
+  // 分类年度总计
+  const categoryTotals = {};
+  for (const cat of allCategories) {
+    categoryTotals[cat] = { income: 0, expense: 0 };
+    for (const m of allMonths) {
+      const md = (currentData[m] || {})[cat] || { income: 0, expense: 0 };
+      categoryTotals[cat].income += md.income;
+      categoryTotals[cat].expense += md.expense;
+    }
+  }
+
+  const columns = ['月份', ...allCategories, '月度收入', '月度支出', '月度结余', '收入同比', '支出同比'];
+  const head = document.getElementById('ysTableHead');
+  const body = document.getElementById('ysTableBody');
+  head.innerHTML = columns.map(c => `<th ${c !== '月份' && allCategories.includes(c) ? `title="${c}"` : ''}>${c.length > 6 && allCategories.includes(c) ? c.slice(0, 6) : c}</th>`).join('');
+  body.innerHTML = '';
+
+  // 分类年度总计行
+  let catTotalRow = ['分类年度总计'];
+  for (const cat of allCategories) {
+    const ct = categoryTotals[cat];
+    catTotalRow.push(ct.income === 0 && ct.expense === 0 ? '' : `${ct.income.toFixed(0)}/${ct.expense.toFixed(0)}`);
+  }
+  catTotalRow = catTotalRow.concat(['', '', '', '', '']);
+  body.insertAdjacentHTML('beforeend', `<tr class="row-category-total">${catTotalRow.map(v => `<td>${v}</td>`).join('')}</tr>`);
+
+  // 整体总计行
+  const annualIncome = Object.values(categoryTotals).reduce((s, d) => s + d.income, 0);
+  const annualExpense = Object.values(categoryTotals).reduce((s, d) => s + d.expense, 0);
+  const annualBalance = annualIncome - annualExpense;
+  let grandTotalRow = ['整体年度总计'];
+  for (const _ of allCategories) grandTotalRow.push('');
+  grandTotalRow = grandTotalRow.concat([annualIncome.toFixed(0), annualExpense.toFixed(0), annualBalance.toFixed(0), '', '']);
+  body.insertAdjacentHTML('beforeend', `<tr class="row-total">${grandTotalRow.map(v => `<td>${v}</td>`).join('')}</tr>`);
+
+  // 提示
+  const yearInfo = multiYearMode
+    ? `${selectedYears.length}个年份合并(${selectedYears.join(',')})`
+    : yearText;
+  let infoText = `提示：当前仅显示${yearInfo}的总计行，点击"显示全部"按钮查看所有月份数据`;
+  if (selectedCategories.length > 0) infoText += `，已选择${selectedCategories.length}个分类`;
+  document.getElementById('ysInfo').innerHTML = `<p class="info-text">${infoText}</p>`;
+}
+
+function refreshYearlyStats() {
+  if (showOnlyTotalsMode) {
+    showYearlyStatsTotalsOnly();
+  } else {
+    showYearlyStats();
+  }
+}
+
+async function exportYearlyStats() {
+  const { years, yearText } = getYearlyQueryData();
+  if (years.length === 0 || !years[0]) {
+    showToast('请选择年份', 'error');
+    return;
+  }
+
+  try {
+    const transactions = await getUserTransactions(currentUser.id);
+    const isSingleYear = years.length === 1 && !multiYearMode;
+
+    // 当前年数据
+    const currentData = {};
+    transactions.filter(t => years.includes(t.date.slice(0, 4))).forEach(t => {
+      const month = t.date.slice(5, 7);
+      if (!currentData[month]) currentData[month] = {};
+      if (!currentData[month][t.category]) currentData[month][t.category] = { income: 0, expense: 0 };
+      if (t.type === '收入') currentData[month][t.category].income += t.amount;
+      else currentData[month][t.category].expense += t.amount;
+    });
+
+    // 去年同月（单年份才有）
+    const yearAgoData = {};
+    if (isSingleYear) {
+      const lastYear = String(parseInt(years[0]) - 1);
+      transactions.filter(t => t.date.slice(0, 4) === lastYear).forEach(t => {
+        const month = t.date.slice(5, 7);
+        if (!yearAgoData[month]) yearAgoData[month] = {};
+        if (!yearAgoData[month][t.category]) yearAgoData[month][t.category] = { income: 0, expense: 0 };
+        if (t.type === '收入') yearAgoData[month][t.category].income += t.amount;
+        else yearAgoData[month][t.category].expense += t.amount;
+      });
+    }
+
+    // 所有月份和分类
+    const allMonths = [...new Set([...Object.keys(currentData), ...Object.keys(yearAgoData)])].sort();
+    let allCategories = [...new Set()];
+    for (const m of allMonths) {
+      Object.keys(currentData[m] || {}).forEach(c => allCategories.add(c));
+      Object.keys(yearAgoData[m] || {}).forEach(c => allCategories.add(c));
+    }
+    allCategories = [...allCategories].sort();
+
+    // 构建导出行数据
+    const dfList = [];
+    for (const month of allMonths) {
+      const monthName = multiYearMode ? `${month}月(合并)` : `${years[0]}-${month}`;
+      const monthData = currentData[month] || {};
+      const lastYearData = yearAgoData[month] || {};
+      const monthIncomeTotal = Object.values(monthData).reduce((s, item) => s + item.income, 0);
+      const monthExpenseTotal = Object.values(monthData).reduce((s, item) => s + item.expense, 0);
+      const rowData = { '月份': monthName };
+      for (const cat of allCategories) {
+        const cd = (monthData[cat] || { income: 0, expense: 0 });
+        rowData[cat] = cd.income === 0 && cd.expense === 0 ? '' : `${cd.income.toFixed(2)}/${cd.expense.toFixed(2)}`;
+      }
+      rowData['月度收入'] = monthIncomeTotal.toFixed(2);
+      rowData['月度支出'] = monthExpenseTotal.toFixed(2);
+      rowData['月度结余'] = (monthIncomeTotal - monthExpenseTotal).toFixed(2);
+      if (isSingleYear) {
+        const lymIncome = Object.values(lastYearData).reduce((s, item) => s + item.income, 0);
+        const lymExpense = Object.values(lastYearData).reduce((s, item) => s + item.expense, 0);
+        const incRate = lymIncome !== 0 ? ((monthIncomeTotal - lymIncome) / lymIncome * 100) : 0;
+        const expRate = lymExpense !== 0 ? ((monthExpenseTotal - lymExpense) / lymExpense * 100) : 0;
+        rowData['收入同比'] = lymIncome !== 0 ? (incRate >= 0 ? '+' : '') + incRate.toFixed(1) + '%' : 'N/A';
+        rowData['支出同比'] = lymExpense !== 0 ? (expRate >= 0 ? '+' : '') + expRate.toFixed(1) + '%' : 'N/A';
+      }
+      dfList.push(rowData);
+    }
+
+    // 分类年度总计行
+    const categoryTotals = {};
+    for (const cat of allCategories) {
+      categoryTotals[cat] = { income: 0, expense: 0 };
+      for (const m of allMonths) {
+        const md = (currentData[m] || {})[cat] || { income: 0, expense: 0 };
+        categoryTotals[cat].income += md.income;
+        categoryTotals[cat].expense += md.expense;
+      }
+    }
+    const catTotalData = { '月份': '分类年度总计' };
+    for (const cat of allCategories) {
+      const ct = categoryTotals[cat];
+      catTotalData[cat] = ct.income === 0 && ct.expense === 0 ? '' : `${ct.income.toFixed(2)}/${ct.expense.toFixed(2)}`;
+    }
+    if (isSingleYear) {
+      catTotalData['月度收入'] = ''; catTotalData['月度支出'] = ''; catTotalData['月度结余'] = '';
+      catTotalData['收入同比'] = ''; catTotalData['支出同比'] = '';
+    } else {
+      catTotalData['月度收入'] = ''; catTotalData['月度支出'] = ''; catTotalData['月度结余'] = '';
+    }
+    dfList.push(catTotalData);
+
+    // 整体年度总计行
+    const annualIncomeTotal = Object.values(categoryTotals).reduce((s, d) => s + d.income, 0);
+    const annualExpenseTotal = Object.values(categoryTotals).reduce((s, d) => s + d.expense, 0);
+    const annualBalanceTotal = annualIncomeTotal - annualExpenseTotal;
+    const overallName = multiYearMode ? `${selectedYears.length}年合并总计` : `${years[0]}年总计`;
+    const overallData = { '月份': overallName };
+    for (const cat of allCategories) overallData[cat] = '';
+    overallData['月度收入'] = annualIncomeTotal.toFixed(2);
+    overallData['月度支出'] = annualExpenseTotal.toFixed(2);
+    overallData['月度结余'] = annualBalanceTotal.toFixed(2);
+    if (isSingleYear) {
+      overallData['收入同比'] = ''; overallData['支出同比'] = '';
+    }
+    dfList.push(overallData);
+
+    // 排序列
+    let columnOrder = ['月份', ...allCategories, '月度收入', '月度支出', '月度结余'];
+    if (isSingleYear) columnOrder = columnOrder.concat(['收入同比', '支出同比']);
+
+    const ws = XLSX.utils.json_to_sheet(dfList, { header: columnOrder });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    const exportName = multiYearMode ? `年度统计_${selectedYears.length}年合并` : `年度统计_${years[0]}年`;
+    XLSX.writeFile(wb, exportName + '.xlsx');
+    showToast('年度统计数据已导出', 'success');
+  } catch (e) {
+    showToast('导出失败: ' + e.message, 'error');
+  }
+}
+
+// ============================================================
+//  搜索记录（高级查询）
+// ============================================================
+function openSearchRecords() {
+  const today = new Date();
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  const bodyHTML = `
+    <div class="search-controls">
+      <div class="form-field">
+        <label>开始日期</label>
+        <input type="date" id="srStartDate" value="${firstDay.toISOString().slice(0,10)}">
+      </div>
+      <div class="form-field">
+        <label>结束日期</label>
+        <input type="date" id="srEndDate" value="${today.toISOString().slice(0,10)}">
+      </div>
+      <div class="form-field">
+        <label>类型</label>
+        <select id="srType" onchange="updateSearchCategoryOptions()">
+          <option value="">全部</option>
+          <option value="收入">收入</option>
+          <option value="支出">支出</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>分类</label>
+        <select id="srCategory">
+          <option value="">全部</option>
+          ${ALL_CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-field">
+        <label>关键词（描述）</label>
+        <input type="text" id="srKeyword" placeholder="搜索描述内容">
+      </div>
+      <div class="form-field">
+        <label>金额筛选</label>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <input type="number" id="srMinAmount" placeholder="最小" step="0.01" style="width:50%;">
+          <span>-</span>
+          <input type="number" id="srMaxAmount" placeholder="最大" step="0.01" style="width:50%;">
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
+      <button class="btn btn-primary btn-sm" onclick="performSearch()">查询记录</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportSearchResults()">导出查询记录</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportSelectedRecords()">导出选中记录</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteSelectedRecords()">删除选中记录</button>
+    </div>
+    <div id="srTotalInfo" style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;"></div>
+    <div class="table-wrapper" style="max-height:360px">
+      <table class="data-table" id="srTable">
+        <thead><tr>
+          <th class="sortable" data-sort="amount" onclick="sortSearchBy('amount')">金额</th>
+          <th class="sortable" data-sort="type" onclick="sortSearchBy('type')">类型</th>
+          <th class="sortable" data-sort="category" onclick="sortSearchBy('category')">分类</th>
+          <th class="sortable" data-sort="date" onclick="sortSearchBy('date')">日期</th>
+          <th class="sortable" data-sort="description" onclick="sortSearchBy('description')">描述</th>
+        </tr></thead>
+        <tbody id="srTableBody"></tbody>
+      </table>
+    </div>
+    <div class="pagination-bar">
+      <label>每页显示：</label>
+      <select id="srPageSize" onchange="updatePageSize()">
+        <option value="10">10</option>
+        <option value="20" selected>20</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+      <button class="btn btn-secondary btn-sm" id="srPrevBtn" onclick="changePage(-1)">上一页</button>
+      <span id="srPageLabel">第1页</span>
+      <button class="btn btn-secondary btn-sm" id="srNextBtn" onclick="changePage(1)">下一页</button>
+      <label>跳转到：</label>
+      <input type="number" id="srPageJump" min="1" style="width:60px">
+      <button class="btn btn-secondary btn-sm" onclick="jumpToPage()">跳转</button>
+    </div>
+    <p style="color:gray;font-size:0.85rem;margin-top:8px;">提示：按住Ctrl点击可多选，按住Shift可范围选择，双击行可编辑</p>
+  `;
+  openModal('高级查询', bodyHTML);
+  // 初始化
+  currentPage = 1;
+  pageSize = 20;
+  document.getElementById('srPageSize').value = '20';
+  performSearch();
+}
+
+function updateSearchCategoryOptions() {
+  const type = document.getElementById('srType').value;
+  const sel = document.getElementById('srCategory');
+  if (type === '收入') {
+    sel.innerHTML = '<option value="">全部</option>' + INCOME_CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+  } else if (type === '支出') {
+    sel.innerHTML = '<option value="">全部</option>' + EXPENSE_CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+  } else {
+    sel.innerHTML = '<option value="">全部</option>' + ALL_CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+  }
+}
+
+function changePage(delta) {
+  const newPage = currentPage + delta;
+  if (newPage < 1) return;
+  currentPage = newPage;
+  performSearch();
+}
+
+function updatePageSize() {
+  const newSize = parseInt(document.getElementById('srPageSize').value);
+  if (newSize > 0) {
+    pageSize = newSize;
+    currentPage = 1;
+    performSearch();
+  }
+}
+
+function jumpToPage() {
+  const pageNum = parseInt(document.getElementById('srPageJump').value);
+  if (isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
+    showToast(`页码需在1到${totalPages}之间`, 'error');
+    return;
+  }
+  currentPage = pageNum;
+  performSearch();
+}
+
+async function performSearch() {
+  const startDate = document.getElementById('srStartDate').value;
+  const endDate = document.getElementById('srEndDate').value;
+  const selType = document.getElementById('srType').value;
+  const selCategory = document.getElementById('srCategory').value;
+  const keyword = document.getElementById('srKeyword').value.trim().toLowerCase();
+  const minAmount = parseFloat(document.getElementById('srMinAmount').value);
+  const maxAmount = parseFloat(document.getElementById('srMaxAmount').value);
+
+  if (startDate && endDate && startDate > endDate) {
+    showToast('结束日期不能早于开始日期', 'error');
+    return;
+  }
+
+  try {
+    const transactions = await getUserTransactions(currentUser.id);
+    let filtered = transactions;
+    if (startDate && endDate) {
+      filtered = filtered.filter(t => t.date >= startDate && t.date <= endDate);
+    }
+    if (selType) {
+      filtered = filtered.filter(t => t.type === selType);
+    }
+    if (selCategory) {
+      filtered = filtered.filter(t => t.category === selCategory);
+    }
+    if (keyword) {
+      filtered = filtered.filter(t => (t.description || '').toLowerCase().includes(keyword));
+    }
+    if (!isNaN(minAmount)) {
+      filtered = filtered.filter(t => t.amount >= minAmount);
+    }
+    if (!isNaN(maxAmount)) {
+      filtered = filtered.filter(t => t.amount <= maxAmount);
+    }
+    
+    allFilteredResults = filtered;
+    applySortAndRender();
+  } catch (e) {
+    showToast('查询错误: ' + e.message, 'error');
+  }
+}
+
+function applySortAndRender() {
+  let filtered = [...allFilteredResults];
+  
+  // 排序
+  const field = searchSortField;
+  const asc = searchSortAsc;
+  filtered.sort((a, b) => {
+    let va = a[field], vb = b[field];
+    if (field === 'amount') {
+      va = parseFloat(va); vb = parseFloat(vb);
+    } else {
+      va = String(va || ''); vb = String(vb || '');
+    }
+    if (va < vb) return asc ? -1 : 1;
+    if (va > vb) return asc ? 1 : -1;
+    return 0;
+  });
+
+  // 更新列头排序标记
+  document.querySelectorAll('#srTable thead th.sortable').forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (th.dataset.sort === searchSortField) {
+      th.classList.add(searchSortAsc ? 'sort-asc' : 'sort-desc');
+    }
+  });
+
+  totalRecords = filtered.length;
+  totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
+  if (currentPage > totalPages) currentPage = totalPages;
+
+  // 显示总记录数
+  const totalInfo = document.getElementById('srTotalInfo');
+  if (totalRecords > 0) {
+    totalInfo.textContent = `共 ${totalRecords} 条记录，当前第 ${currentPage}/${totalPages} 页`;
+  } else {
+    totalInfo.textContent = '';
+  }
+
+  // 更新分页控件
+  document.getElementById('srPageLabel').textContent = `第${currentPage}页/共${totalPages}页`;
+  document.getElementById('srPrevBtn').disabled = currentPage <= 1;
+  document.getElementById('srNextBtn').disabled = currentPage >= totalPages;
+
+  // 分页
+  const offset = (currentPage - 1) * pageSize;
+  const pageData = filtered.slice(offset, offset + pageSize);
+  searchResults = pageData;
+
+  const body = document.getElementById('srTableBody');
+  body.innerHTML = '';
+  if (pageData.length === 0) {
+    body.innerHTML = '<tr><td colspan="5" style="color:gray;padding:20px;">没有找到匹配的记录</td></tr>';
+    return;
+  }
+  for (const r of pageData) {
+    body.insertAdjacentHTML('beforeend', `<tr data-id="${r.id}" oncontextmenu="showContextMenu(event, ${r.id})">
+      <td>${r.amount.toFixed(2)}</td>
+      <td>${r.type}</td>
+      <td>${r.category}</td>
+      <td>${r.date}</td>
+      <td>${r.description || ''}</td>
+    </tr>`);
+  }
+  // 行选中事件（支持Ctrl多选、Shift范围选择）
+  document.querySelectorAll('#srTableBody tr').forEach((tr, idx) => {
+    tr.addEventListener('click', (e) => {
+      const rows = [...document.querySelectorAll('#srTableBody tr')];
+      if (e.shiftKey && shiftSelectStart !== null) {
+        // Shift范围选择
+        const startIdx = shiftSelectStart;
+        const endIdx = idx;
+        const lo = Math.min(startIdx, endIdx);
+        const hi = Math.max(startIdx, endIdx);
+        rows.forEach((r, i) => {
+          if (i >= lo && i <= hi) r.classList.add('row-selected');
+        });
+        return;
+      }
+      if (!e.ctrlKey && !e.metaKey) {
+        rows.forEach(r => r.classList.remove('row-selected'));
+      }
+      tr.classList.add('row-selected');
+      shiftSelectStart = idx;
+    });
+    // 双击编辑
+    tr.addEventListener('dblclick', () => {
+      const rid = parseInt(tr.dataset.id);
+      document.querySelectorAll('#srTableBody tr').forEach(r => r.classList.remove('row-selected'));
+      tr.classList.add('row-selected');
+      editSelectedRecord();
+    });
+  });
+}
+
+function sortSearchBy(field) {
+  if (searchSortField === field) {
+    searchSortAsc = !searchSortAsc;
+  } else {
+    searchSortField = field;
+    searchSortAsc = true;
+  }
+  applySortAndRender();
+}
+
+function showContextMenu(event, recordId) {
+  event.preventDefault();
+  // 选中当前行
+  const tr = event.currentTarget;
+  if (!tr.classList.contains('row-selected')) {
+    document.querySelectorAll('#srTableBody tr').forEach(r => r.classList.remove('row-selected'));
+    tr.classList.add('row-selected');
+  }
+  const menu = document.getElementById('contextMenu');
+  menu.style.display = 'block';
+  menu.style.left = event.clientX + 'px';
+  menu.style.top = event.clientY + 'px';
+}
+
+// 关闭右键菜单
+document.addEventListener('click', () => {
+  document.getElementById('contextMenu').style.display = 'none';
+});
+
+function getSelectedRecordIds() {
+  return [...document.querySelectorAll('#srTableBody tr.row-selected')].map(tr => parseInt(tr.dataset.id));
+}
+
+function editSelectedRecord() {
+  const ids = getSelectedRecordIds();
+  if (ids.length === 0) {
+    showToast('请先选择要编辑的记录', 'error');
+    return;
+  }
+  const recordId = ids[0];
+  dbGetByKey('transactions', recordId).then(record => {
+    if (!record) {
+      showToast('记录不存在', 'error');
+      return;
+    }
+    editingRecordId = recordId;
+    const bodyHTML = `
+      <div class="form-grid">
+        <div class="form-field">
+          <label>金额</label>
+          <input type="number" id="editAmount" step="0.01" value="${record.amount}">
+        </div>
+        <div class="form-field">
+          <label>类型</label>
+          <select id="editType" onchange="updateEditCategoryOptions()">
+            <option value="收入" ${record.type === '收入' ? 'selected' : ''}>收入</option>
+            <option value="支出" ${record.type === '支出' ? 'selected' : ''}>支出</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>分类</label>
+          <select id="editCategory"></select>
+        </div>
+        <div class="form-field">
+          <label>日期</label>
+          <input type="date" id="editDate" value="${record.date}">
+        </div>
+        <div class="form-field" style="grid-column: span 2">
+          <label>描述</label>
+          <input type="text" id="editDescription" value="${record.description || ''}">
+        </div>
+      </div>
+    `;
+    document.getElementById('editModalBody').innerHTML = bodyHTML;
+    document.getElementById('editModalOverlay').classList.add('active');
+    updateEditCategoryOptions();
+    // 设置选中分类
+    const editCat = document.getElementById('editCategory');
+    if ([...editCat.options].some(o => o.value === record.category)) {
+      editCat.value = record.category;
+    }
+    // 监听编辑弹窗输入变化，设置脏标记
+    editModalDirty = false;
+    ['editAmount', 'editType', 'editCategory', 'editDate', 'editDescription'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', () => { editModalDirty = true; });
+        el.addEventListener('change', () => { editModalDirty = true; });
+      }
+    });
+  });
+}
+
+function updateEditCategoryOptions() {
+  const type = document.getElementById('editType').value;
+  const sel = document.getElementById('editCategory');
+  const cats = type === '收入' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  sel.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+async function saveEditedRecord() {
+  if (!editingRecordId) return;
+  try {
+    const amount = parseFloat(document.getElementById('editAmount').value);
+    if (isNaN(amount) || amount <= 0) {
+      showToast('金额必须为正数', 'error');
+      return;
+    }
+    const type = document.getElementById('editType').value;
+    const category = document.getElementById('editCategory').value;
+    // 校验分类-类型匹配
+    const validCats = type === '收入' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+    if (!validCats.includes(category)) {
+      showToast('分类与类型不匹配', 'error');
+      return;
+    }
+    const date = document.getElementById('editDate').value;
+    const description = document.getElementById('editDescription').value.trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      showToast('日期格式无效', 'error');
+      return;
+    }
+
+    const record = await dbGetByKey('transactions', editingRecordId);
+    record.amount = amount;
+    record.type = type;
+    record.category = category;
+    record.date = date;
+    record.description = description;
+    await dbUpdate('transactions', record);
+    showToast('记录已更新', 'success');
+    closeEditModal();
+    performSearch();
+    renderOverview();
+  } catch (e) {
+    showToast('更新失败: ' + e.message, 'error');
+  }
+}
+
+async function deleteSelectedRecords() {
+  const ids = getSelectedRecordIds();
+  if (ids.length === 0) {
+    showToast('请先选择要删除的记录', 'error');
+    return;
+  }
+  showConfirm('确认删除', `确定要删除选中的 ${ids.length} 条记录吗？此操作不可撤销。`, async () => {
+    try {
+      for (const id of ids) {
+        await dbDelete('transactions', id);
+      }
+      showToast(`${ids.length}条记录已删除`, 'success');
+      renderOverview();
+      performSearch();
+    } catch (e) {
+      showToast('删除失败: ' + e.message, 'error');
+    }
+  });
+}
+
+function exportSearchResults() {
+  if (!searchResults || searchResults.length === 0) {
+    showToast('请先执行查询操作', 'error');
+    return;
+  }
+  try {
+    const data = searchResults.map(r => ({
+      amount: r.amount.toFixed(2),
+      type: r.type,
+      category: r.category,
+      date: r.date,
+      description: r.description || ''
+    }));
+    const ws = XLSX.utils.json_to_sheet(data, { header: ['amount', 'type', 'category', 'date', 'description'] });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    XLSX.writeFile(wb, '搜索结果导出.xlsx');
+    showToast(`成功导出${searchResults.length}条记录`, 'success');
+  } catch (e) {
+    showToast('导出失败: ' + e.message, 'error');
+  }
+}
+
+async function exportSelectedRecords() {
+  const ids = getSelectedRecordIds();
+  if (ids.length === 0) {
+    showToast('请先选择要导出的记录', 'error');
+    return;
+  }
+  try {
+    const allTx = await getUserTransactions(currentUser.id);
+    const selected = allTx.filter(t => ids.includes(t.id));
+    const data = selected.map(r => ({
+      amount: r.amount.toFixed(2),
+      type: r.type,
+      category: r.category,
+      date: r.date,
+      description: r.description || ''
+    }));
+    const ws = XLSX.utils.json_to_sheet(data, { header: ['amount', 'type', 'category', 'date', 'description'] });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    XLSX.writeFile(wb, '选中记录导出.xlsx');
+    showToast(`成功导出${selected.length}条选中记录`, 'success');
+  } catch (e) {
+    showToast('导出失败: ' + e.message, 'error');
+  }
+}
+
+// ============================================================
+//  键盘快捷键 + 回车登录
+// ============================================================
+document.addEventListener('keydown', (e) => {
+  // 登录页回车
+  if (document.getElementById('loginPage').style.display !== 'none') {
+    if (e.key === 'Enter') {
+      const active = document.activeElement;
+      if (active && active.id === 'loginPassword') {
+        handleLogin(document.getElementById('loginBtn'));
+      } else if (active && active.id === 'loginUsername') {
+        document.getElementById('loginPassword').focus();
+      }
+    }
+  }
+  // 主应用回车提交新增记录
+  if (document.getElementById('appPage').classList.contains('active') &&
+      !document.getElementById('modalOverlay').classList.contains('active') &&
+      !document.getElementById('editModalOverlay').classList.contains('active')) {
+    if (e.key === 'Enter') {
+      const active = document.activeElement;
+      if (active && ['inpAmount', 'inpDescription', 'inpDate'].includes(active.id)) {
+        e.preventDefault();
+        addTransaction(document.getElementById('addRecordBtn'));
+      }
+    }
+  }
+  // Ctrl+A 全选查询结果
+  if (e.ctrlKey && (e.key === 'a' || e.key === 'A')) {
+    const srTable = document.getElementById('srTableBody');
+    if (srTable && document.getElementById('modalOverlay').classList.contains('active')) {
+      e.preventDefault();
+      document.querySelectorAll('#srTableBody tr').forEach(tr => tr.classList.add('row-selected'));
+    }
+  }
+  // ESC 关闭弹窗
+  if (e.key === 'Escape') {
+    if (document.getElementById('confirmOverlay').classList.contains('active')) {
+      closeConfirmModal();
+    } else if (document.getElementById('subModalOverlay').classList.contains('active')) {
+      closeSubModal();
+    } else if (document.getElementById('editModalOverlay').classList.contains('active')) {
+      closeEditModal();
+    } else if (document.getElementById('modalOverlay').classList.contains('active')) {
+      closeModal();
+    }
+  }
+});
+
+// ============================================================
+//  启动
+// ============================================================
+init();
+</script>
+</body>
+</html>
