@@ -1,0 +1,220 @@
+/* ==================== 个人中心 ==================== */
+.profile-header {
+  text-align: center;
+  padding: 30px 0 24px;
+}
+
+.profile-avatar {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--gold));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.profile-avatar::before {
+  content: '\263D';
+  font-size: 2rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.profile-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.profile-days {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* 统计卡片 */
+.profile-stats {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  padding: 0 0;
+}
+
+.profile-stats .stat-card {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 10px;
+  text-align: center;
+}
+
+.profile-stats .stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent-light);
+}
+
+.profile-stats .stat-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* 菜单列表 */
+.profile-menus {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-menu-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.profile-menu-item:active {
+  background: var(--bg-card-hover);
+  transform: scale(0.98);
+}
+
+.profile-menu-item::after {
+  content: '\203A';
+  font-size: 1.1rem;
+  color: var(--text-muted);
+}
+
+.profile-menu-item.danger {
+  color: var(--danger);
+}
+
+/* 关于弹窗 */
+.about-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.about-modal.hidden {
+  display: none;
+}
+
+.about-content {
+  background: var(--bg-page);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 24px;
+  max-width: 320px;
+  width: calc(100% - 48px);
+  text-align: center;
+}
+
+.about-content h3 {
+  font-size: 1.1rem;
+  margin-bottom: 14px;
+  background: linear-gradient(135deg, var(--accent-light), var(--gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.about-content p {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 10px;
+}
+
+.about-content .about-version {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 16px;
+}
+
+.about-close {
+  margin-top: 18px;
+  padding: 10px 32px;
+  background: linear-gradient(135deg, var(--accent), #5b3fd6);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* 确认弹窗 */
+.confirm-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 160;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-modal.hidden {
+  display: none;
+}
+
+.confirm-content {
+  background: var(--bg-page);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 300px;
+  width: calc(100% - 48px);
+  text-align: center;
+}
+
+.confirm-content p {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.confirm-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.confirm-buttons button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: none;
+  transition: var(--transition);
+}
+
+.btn-cancel {
+  background: var(--bg-card);
+  color: var(--text-secondary);
+}
+
+.btn-confirm {
+  background: var(--danger);
+  color: #fff;
+}

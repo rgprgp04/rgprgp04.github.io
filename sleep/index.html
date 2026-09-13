@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
+  <title>一念好眠 · 睡前助手</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/breathing.css">
+  <link rel="stylesheet" href="css/diary.css">
+  <link rel="stylesheet" href="css/science.css">
+  <link rel="stylesheet" href="css/profile.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 首页 -->
+    <div class="page" id="page-home">
+      <header class="app-header">
+        <div class="header-moon"></div>
+        <h1 class="app-title">一念好眠</h1>
+        <p class="app-subtitle">睡前30分钟，让心静下来</p>
+      </header>
+      <nav class="nav-grid">
+        <div class="nav-item" data-page="audio">
+          <div class="nav-icon nav-icon-audio"></div>
+          <span>助眠音库</span>
+        </div>
+        <div class="nav-item" data-page="breathing">
+          <div class="nav-icon nav-icon-breath"></div>
+          <span>呼吸引导</span>
+        </div>
+        <div class="nav-item" data-page="diary">
+          <div class="nav-icon nav-icon-diary"></div>
+          <span>睡眠日记</span>
+        </div>
+        <div class="nav-item" data-page="science">
+          <div class="nav-icon nav-icon-science"></div>
+          <span>睡眠科普</span>
+        </div>
+      </nav>
+      <section class="home-card">
+        <h2 class="card-title">今晚想怎么入睡？</h2>
+        <div class="quick-actions">
+          <button class="quick-btn" data-audio="rain">听雨入睡</button>
+          <button class="quick-btn" data-audio="forest">森林白噪音</button>
+          <button class="quick-btn" data-page="breathing">478呼吸法</button>
+        </div>
+      </section>
+      <section class="home-card">
+        <h2 class="card-title">今日睡眠小贴士</h2>
+        <div class="tip-content" id="daily-tip">加载中...</div>
+      </section>
+      <div class="bg-wave"></div>
+    </div>
+
+    <!-- 助眠音库 -->
+    <div class="page hidden" id="page-audio">
+      <header class="page-header">
+        <span class="back-btn" data-page="home">返回</span>
+        <h1>助眠音库</h1>
+      </header>
+      <div class="audio-tabs">
+        <button class="tab-btn active" data-tab="all">全部</button>
+        <button class="tab-btn" data-tab="nature">自然</button>
+        <button class="tab-btn" data-tab="white">白噪音</button>
+        <button class="tab-btn" data-tab="guide">冥想引导</button>
+      </div>
+      <div class="audio-list" id="audio-list"></div>
+      <div class="audio-player-bar hidden" id="audio-player-bar">
+        <div class="player-info">
+          <span class="player-title" id="player-title">未播放</span>
+          <span class="player-time" id="player-time">00:00</span>
+        </div>
+        <div class="player-controls">
+          <button class="player-prev" id="player-prev"></button>
+          <button class="player-play" id="player-play"></button>
+          <button class="player-next" id="player-next"></button>
+          <button class="player-timer" id="player-timer" title="定时关闭">定时</button>
+        </div>
+        <div class="player-progress">
+          <div class="player-progress-fill" id="player-progress-fill"></div>
+        </div>
+      </div>
+      <div class="timer-popup hidden" id="timer-popup">
+        <div class="timer-options">
+          <button data-min="15">15分钟</button>
+          <button data-min="30">30分钟</button>
+          <button data-min="45">45分钟</button>
+          <button data-min="60">60分钟</button>
+          <button data-min="0">关闭定时</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 478呼吸法 -->
+    <div class="page hidden" id="page-breathing">
+      <header class="page-header">
+        <span class="back-btn" data-page="home">返回</span>
+        <h1>478呼吸法</h1>
+      </header>
+      <div class="breathing-intro">
+        <p>哈佛医生安德鲁·韦尔推荐</p>
+        <p>4秒吸气 · 7秒屏息 · 8秒呼气</p>
+        <p>重复4次，1分钟入睡</p>
+      </div>
+      <div class="breathing-stage" id="breathing-stage">
+        <div class="breath-circle" id="breath-circle">
+          <span class="breath-text" id="breath-text">准备</span>
+          <span class="breath-count" id="breath-count"></span>
+        </div>
+      </div>
+      <div class="breathing-info">
+        <span class="breath-round">第 <b id="breath-round">0</b> / 4 轮</span>
+        <span class="breath-phase" id="breath-phase">点击开始</span>
+      </div>
+      <button class="breath-start-btn" id="breath-start-btn">开始呼吸</button>
+    </div>
+
+    <!-- 睡眠日记 -->
+    <div class="page hidden" id="page-diary">
+      <header class="page-header">
+        <span class="back-btn" data-page="home">返回</span>
+        <h1>睡眠日记</h1>
+      </header>
+      <div class="diary-form">
+        <h3 class="form-title">记录今晚的睡眠</h3>
+        <div class="form-group">
+          <label>入睡时间</label>
+          <input type="time" id="diary-bedtime" placeholder="--:--">
+        </div>
+        <div class="form-group">
+          <label>醒来时间</label>
+          <input type="time" id="diary-waketime" placeholder="--:--">
+        </div>
+        <div class="form-group">
+          <label>睡眠质量</label>
+          <div class="rating-stars" id="diary-rating">
+            <span class="star" data-score="1">☆</span>
+            <span class="star" data-score="2">☆</span>
+            <span class="star" data-score="3">☆</span>
+            <span class="star" data-score="4">☆</span>
+            <span class="star" data-score="5">☆</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>备注</label>
+          <textarea id="diary-note" placeholder="今晚的状态...（可选）" maxlength="200"></textarea>
+        </div>
+        <button class="diary-save-btn" id="diary-save-btn">保存记录</button>
+      </div>
+      <div class="diary-records">
+        <h3 class="form-title">历史记录</h3>
+        <div class="diary-stats" id="diary-stats"></div>
+        <div class="diary-list" id="diary-list"></div>
+      </div>
+    </div>
+
+    <!-- 睡眠科普 -->
+    <div class="page hidden" id="page-science">
+      <header class="page-header">
+        <span class="back-btn" data-page="home">返回</span>
+        <h1>睡眠科普</h1>
+      </header>
+      <div class="science-list" id="science-list"></div>
+    </div>
+
+    <!-- 个人中心 -->
+    <div class="page hidden" id="page-profile">
+      <header class="page-header">
+        <span class="back-btn" data-page="home">返回</span>
+        <h1>我的</h1>
+      </header>
+      <div class="profile-header">
+        <div class="profile-avatar"></div>
+        <p class="profile-name">好眠旅人</p>
+        <p class="profile-days" id="profile-days">已使用 0 天</p>
+      </div>
+      <div class="profile-stats" id="profile-stats"></div>
+      <div class="profile-menus">
+        <div class="profile-menu-item" id="profile-clear">清除所有数据</div>
+        <div class="profile-menu-item" id="profile-about">关于一念好眠</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部导航 -->
+  <nav class="tabbar">
+    <div class="tabbar-item active" data-page="home">
+      <div class="tabbar-icon tabbar-home"></div>
+      <span>首页</span>
+    </div>
+    <div class="tabbar-item" data-page="audio">
+      <div class="tabbar-icon tabbar-audio"></div>
+      <span>音库</span>
+    </div>
+    <div class="tabbar-item" data-page="breathing">
+      <div class="tabbar-icon tabbar-breath"></div>
+      <span>呼吸</span>
+    </div>
+    <div class="tabbar-item" data-page="diary">
+      <div class="tabbar-icon tabbar-diary"></div>
+      <span>日记</span>
+    </div>
+    <div class="tabbar-item" data-page="profile">
+      <div class="tabbar-icon tabbar-profile"></div>
+      <span>我的</span>
+    </div>
+  </nav>
+
+  <!-- Toast -->
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="js/app.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/breathing.js"></script>
+  <script src="js/diary.js"></script>
+  <script src="js/science.js"></script>
+  <script src="js/profile.js"></script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+/* ==================== 睡眠日记 ==================== */
+.diary-form {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 16px;
+  margin-bottom: 20px;
+}
+
+.form-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.form-group input[type="time"],
+.form-group textarea {
+  width: 100%;
+  background: var(--bg-page);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  transition: var(--transition);
+}
+
+.form-group input[type="time"]:focus,
+.form-group textarea:focus {
+  border-color: var(--accent);
+}
+
+.form-group textarea {
+  resize: none;
+  min-height: 72px;
+  line-height: 1.6;
+}
+
+/* 评分星星 */
+.rating-stars {
+  display: flex;
+  gap: 10px;
+}
+
+.rating-stars .star {
+  font-size: 1.8rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.rating-stars .star.active {
+  color: var(--gold);
+  text-shadow: 0 0 8px rgba(240, 199, 94, 0.4);
+}
+
+.diary-save-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--accent), #5b3fd6);
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-top: 4px;
+}
+
+.diary-save-btn:active {
+  transform: scale(0.97);
+}
+
+/* 统计区 */
+.diary-stats {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 10px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent-light);
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* 历史记录列表 */
+.diary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.diary-item {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  transition: var(--transition);
+}
+
+.diary-item:active {
+  background: var(--bg-card-hover);
+}
+
+.diary-date {
+  text-align: center;
+  flex-shrink: 0;
+  width: 50px;
+  margin-right: 14px;
+}
+
+.diary-date-day {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent-light);
+}
+
+.diary-date-month {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.diary-detail {
+  flex: 1;
+  min-width: 0;
+}
+
+.diary-time-row {
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+.diary-time-row .arrow {
+  color: var(--text-muted);
+  margin: 0 6px;
+}
+
+.diary-duration {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.diary-quality {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  color: var(--gold);
+  margin-left: 8px;
+}
+
+.diary-note {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diary-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 30px 0;
+}
+
+.diary-item .diary-delete {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(232, 80, 94, 0.1);
+  border: none;
+  color: var(--danger);
+  font-size: 0.8rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: 10px;
+  transition: var(--transition);
+}
+
+.diary-item .diary-delete:active {
+  background: rgba(232, 80, 94, 0.25);
+}
