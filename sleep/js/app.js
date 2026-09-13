@@ -71,6 +71,45 @@ const App = {
     return d.getFullYear() * 1000 + d.getMonth() * 50 + d.getDate();
   },
 
+  // 分享功能
+  share() {
+    const url = window.location.href;
+    const shareModal = document.getElementById('share-modal');
+    const linkInput = document.getElementById('share-link-input');
+    if (shareModal && linkInput) {
+      linkInput.value = url;
+      shareModal.classList.remove('hidden');
+    }
+  },
+
+  copyLink() {
+    const input = document.getElementById('share-link-input');
+    const tip = document.getElementById('share-modal-tip');
+    if (!input) return;
+    input.select();
+    input.setSelectionRange(0, 99999);
+    let ok = false;
+    try {
+      ok = document.execCommand('copy');
+    } catch (e) {
+      ok = false;
+    }
+    if (ok && tip) {
+      tip.textContent = '链接已复制，快去分享吧！';
+      tip.style.color = 'var(--green)';
+    } else if (tip) {
+      tip.textContent = '复制失败，请手动长按选中链接复制';
+      tip.style.color = 'var(--danger)';
+    }
+  },
+
+  closeShare() {
+    const shareModal = document.getElementById('share-modal');
+    const tip = document.getElementById('share-modal-tip');
+    if (shareModal) shareModal.classList.add('hidden');
+    if (tip) tip.textContent = '';
+  },
+
   // 记录首次使用
   initFirstUse() {
     const first = this.store.get('ynhm_first_use', null);
@@ -151,4 +190,44 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   });
+
+  // 分享按钮
+  const shareBtn = document.getElementById('share-btn');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', () => App.share());
+  }
+  const copyBtn = document.getElementById('copy-link-btn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', () => App.copyLink());
+  }
+  const shareCloseBtn = document.getElementById('share-close-btn');
+  if (shareCloseBtn) {
+    shareCloseBtn.addEventListener('click', () => App.closeShare());
+  }
+  const shareMask = document.getElementById('share-modal-mask');
+  if (shareMask) {
+    shareMask.addEventListener('click', () => App.closeShare());
+  }
+
+  // 微信环境下的分享引导
+  if (typeof wx !== 'undefined' && wx.config) {
+    wx.config({
+      debug: false,
+      appId: '',
+      timestamp: 0,
+      nonceStr: '',
+      signature: '',
+      jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData']
+    });
+    wx.ready(function () {
+      const shareData = {
+        title: '一念好眠 · 睡前助手',
+        desc: '睡前30分钟，让心静下来',
+        link: window.location.href,
+        imgUrl: ''
+      };
+      wx.updateAppMessageShareData(shareData);
+      wx.updateTimelineShareData(shareData);
+    });
+  }
 });

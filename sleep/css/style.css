@@ -615,3 +615,148 @@ html, body {
   background: var(--accent);
   color: #fff;
 }
+
+/* ==================== 分享卡片 ==================== */
+.share-card {
+  text-align: center;
+}
+
+.share-card .card-title {
+  margin-bottom: 10px;
+}
+
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 24px;
+  border: 1px solid var(--accent);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(124, 92, 252, 0.15), rgba(124, 92, 252, 0.05));
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.share-btn:active {
+  background: rgba(124, 92, 252, 0.3);
+  transform: scale(0.97);
+}
+
+.share-icon {
+  font-size: 1rem;
+}
+
+.share-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+/* ==================== 分享弹窗 ==================== */
+.share-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.share-modal.hidden {
+  display: none;
+}
+
+.share-modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.share-modal-content {
+  position: relative;
+  width: calc(100% - 48px);
+  max-width: 360px;
+  background: var(--bg-page);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 28px 24px;
+  text-align: center;
+  z-index: 1;
+}
+
+.share-modal-content h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.share-modal-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 18px;
+}
+
+.share-link-box {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.share-link-box input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-deep);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  outline: none;
+}
+
+.copy-btn {
+  flex-shrink: 0;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), #5b3fd6);
+  color: #fff;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.copy-btn:active {
+  transform: scale(0.95);
+}
+
+.share-modal-tip {
+  font-size: 0.78rem;
+  min-height: 18px;
+  margin-bottom: 16px;
+}
+
+.share-close-btn {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.share-close-btn:active {
+  background: var(--bg-card-hover);
+}

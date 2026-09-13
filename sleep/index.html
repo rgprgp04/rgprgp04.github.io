@@ -52,6 +52,14 @@
         <h2 class="card-title">今日睡眠小贴士</h2>
         <div class="tip-content" id="daily-tip">加载中...</div>
       </section>
+      <section class="home-card share-card">
+        <h2 class="card-title">觉得好用？分享给需要的人</h2>
+        <button class="share-btn" id="share-btn">
+          <span class="share-icon">&#128279;</span>
+          <span>分享给朋友</span>
+        </button>
+        <p class="share-hint">好的睡眠，值得传递</p>
+      </section>
       <div class="bg-wave"></div>
     </div>
 
@@ -211,6 +219,21 @@
 
   <!-- Toast -->
   <div class="toast hidden" id="toast"></div>
+
+  <!-- 分享弹窗 -->
+  <div class="share-modal hidden" id="share-modal">
+    <div class="share-modal-mask" id="share-modal-mask"></div>
+    <div class="share-modal-content">
+      <h3>分享「一念好眠」</h3>
+      <p class="share-modal-desc">复制链接发给需要好眠的朋友</p>
+      <div class="share-link-box">
+        <input type="text" id="share-link-input" readonly>
+        <button class="copy-btn" id="copy-link-btn">复制</button>
+      </div>
+      <p class="share-modal-tip" id="share-modal-tip"></p>
+      <button class="share-close-btn" id="share-close-btn">关闭</button>
+    </div>
+  </div>
 
   <script src="js/app.js"></script>
   <script src="js/audio.js"></script>
