@@ -1,0 +1,1628 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>站点搜索解析 · 批量下载 · 边下边播</title>
+<script src="https://cdn.jsdelivr.net/npm/mux.js@6.0.0/dist/mux.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,'Segoe UI',sans-serif;}
+body{padding:16px;background:#0f1420;color:#e8e8e8;min-height:100vh;}
+.card{background:#1a2130;border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 4px 16px rgba(0,0,0,.3);}
+h2{font-size:17px;margin-bottom:12px;}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
+label{font-size:13px;color:#9aa7bd;min-width:60px;}
+input[type=text]{flex:1;min-width:200px;padding:10px 12px;border-radius:8px;border:1px solid #2c3a52;background:#0f1420;color:#fff;font-size:14px;}
+button{padding:9px 14px;border:none;border-radius:8px;background:#2a6df4;color:#fff;font-size:13px;cursor:pointer;white-space:nowrap;}
+button:hover{filter:brightness(1.15);}
+button:disabled{opacity:.4;cursor:not-allowed;}
+.btn-green{background:#12a150;}
+.btn-orange{background:#e8860c;}
+.btn-red{background:#e03a3a;}
+.btn-purple{background:#8b5cf6;}
+.btn-gray{background:#5a6a85;}
+#status-banner{padding:8px 12px;border-radius:8px;font-size:13px;margin-bottom:14px;}
+.ok{background:#12301f;color:#3ddc84;border:1px solid #1e5a3a;}
+.bad{background:#33151a;color:#ff7a7a;border:1px solid #6b2b33;}
+#result-list{max-height:340px;overflow:auto;margin-top:8px;border:1px solid #232f45;border-radius:8px;}
+.item{display:flex;gap:8px;align-items:flex-start;padding:9px 8px;border-bottom:1px solid #232f45;font-size:13px;}
+.item:last-child{border-bottom:none;}
+.item:hover{background:#1c2740;}
+.item input[type=checkbox]{margin-top:2px;accent-color:#2a6df4;}
+.item .t{flex:1;}
+.item .name{color:#e8e8e8;}
+.item .url{color:#7a8aa3;font-size:11px;word-break:break-all;}
+.item .tag{background:#12a150;border-radius:5px;padding:1px 7px;font-size:11px;color:#fff;margin-top:2px;}
+.item .tag.no{background:#5a6a85;}
+.item .tag.done{background:#0d7a3f;}
+.item.skipped{opacity:.45;}
+.item .skip-btn{padding:2px 8px;font-size:11px;background:#5a6a85;flex:none;border-radius:5px;}
+.pager{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding:8px;font-size:12px;align-items:center;border-top:1px solid #232f45;}
+.pager button{padding:4px 10px;font-size:12px;background:#2c3a52;}
+.pager button.on{background:#2a6df4;}
+.pager button:disabled{opacity:.4;cursor:not-allowed;}
+.pager .pg-info{color:#9aa7bd;}
+input#page-size{width:60px;min-width:60px;flex:none;padding:6px 8px;}
+#progress-wrap{margin-top:10px;display:none;}
+.pbar{height:16px;background:#0f1420;border-radius:8px;overflow:hidden;margin:6px 0;}
+.pfill{height:100%;width:0%;background:linear-gradient(90deg,#2a6df4,#22d3ee);transition:width .2s;}
+#video-wrap{display:none;margin-top:10px;background:#000;border-radius:10px;overflow:hidden;}
+video{width:100%;max-height:380px;display:block;}
+#log{margin-top:12px;white-space:pre-wrap;font-size:12px;max-height:300px;overflow:auto;background:#0a0d14;color:#3ddc84;padding:10px;border-radius:8px;}
+.muted{color:#7a8aa3;font-size:12px;}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h2>站点搜索解析 · 批量下载 · 边下边播</h2>
+  <div id="status-banner" class="bad">正在检测本地转发服务...</div>
+  <div class="row">
+    <label>站点地址</label>
+    <input type="text" id="host" value="https://hsck60.25img.com/" placeholder="如 https://hsck60.25img.com/">
+    <button id="findalive-btn" class="btn-green">轮询可用节点</button>
+  </div>
+  <div class="row">
+    <label>搜索关键字</label>
+    <input type="text" id="kw" value="辛尤里" list="kw-list" autocomplete="off">
+    <datalist id="kw-list"></datalist>
+    <button id="parse-btn">开始解析</button>
+    <label style="min-width:0;display:flex;align-items:center;gap:4px;cursor:pointer;color:#9aa7bd;">
+      <input type="checkbox" id="force-refresh" style="accent-color:#2a6df4;">强制刷新
+    </label>
+    <label style="min-width:0;display:flex;align-items:center;gap:4px;cursor:pointer;color:#9aa7bd;">
+      <input type="checkbox" id="use-pagination" checked style="accent-color:#2a6df4;">分页
+    </label>
+    <label style="min-width:0;display:flex;align-items:center;gap:4px;cursor:pointer;color:#9aa7bd;">
+      <input type="checkbox" id="remember-check" style="accent-color:#2a6df4;">跨页勾选
+    </label>
+    <label style="min-width:0;color:#9aa7bd;">每页</label>
+    <input type="text" id="page-size" value="20">
+  </div>
+</div>
+
+<div class="card">
+  <div class="row">
+    <button id="selall-btn" class="btn-purple">全选/取消</button>
+    <button id="select-unsaved-btn" class="btn-purple">选未存/取消</button>
+    <button id="select-todo-btn" class="btn-purple">选待下载/取消</button>
+    <button id="tag-mgmt-btn" class="btn-purple">标记管理</button>
+    <button id="copy-btn" class="btn-purple">复制链接</button>
+    <button id="batch-btn" class="btn-green">批量下载选中</button>
+    <button id="retry-btn" class="btn-purple" disabled>重试失败</button>
+    <button id="skip-btn" class="btn-orange" disabled>跳过当前</button>
+    <button id="play-btn" class="btn-purple" disabled>播放缓存</button>
+    <button id="stream-btn" class="btn-orange">边下边播选中</button>
+    <button id="skip-stream-btn" class="btn-orange">跳过播放</button>
+    <button id="stop-btn" class="btn-red" disabled>停止</button>
+    <button id="save-btn" disabled>保存已缓存TS</button>
+    <button id="clearcache-btn" class="btn-red">清空缓存</button>
+    <span class="muted" id="sel-info">未解析</span>
+  </div>
+  <div id="tag-panel" style="display:none;margin-top:10px;padding:10px;background:#161d2e;border-radius:8px;font-size:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <b>标记管理</b>
+      <button id="close-tag-panel" class="btn-purple" style="padding:2px 8px;font-size:11px;">关闭</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:6px 0;">
+      <span style="color:#4ade80;">✓ 已存 <span id="saved-count">0</span></span>
+      <button id="clear-saved-btn" class="btn-purple" style="padding:2px 8px;font-size:11px;">清空已存</button>
+    </div>
+    <div id="saved-tag-list" style="max-height:150px;overflow:auto;"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0 6px;">
+      <span style="color:#9aa7bd;">⊘ 跳过 <span id="skipped-count">0</span></span>
+      <button id="clear-skipped-btn" class="btn-purple" style="padding:2px 8px;font-size:11px;">清空跳过</button>
+    </div>
+    <div id="skipped-tag-list" style="max-height:150px;overflow:auto;"></div>
+  </div>
+  <div id="result-list"><div class="muted" style="padding:10px;">点击「开始解析」获取结果列表</div></div>
+  <div id="progress-wrap">
+    <div class="pbar"><div class="pfill" id="pfill"></div></div>
+    <div class="muted" id="ptext"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div id="video-wrap"><video id="video" controls playsinline webkit-playsinline muted></video></div>
+  <div class="muted" id="lib-status">正在加载 mux.js ...</div>
+</div>
+
+<div id="log"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// 本地转发服务（需先运行 node server.js / 双击 启动.bat）
+// ══════════════════════════════════════════════════════════
+const LOCAL_SERVER = 'http://127.0.0.1:8787';
+const logEl = document.getElementById('log');
+const hostInput = document.getElementById('host');
+const kwInput = document.getElementById('kw');
+// 刷新后自动填入上次的搜索关键字和站点地址
+let kwHistory = [];
+try{ kwHistory = JSON.parse(localStorage.getItem('kwHistory') || '[]'); }catch(e){ kwHistory = []; }
+function renderKwHistory(){
+    const dl = document.getElementById('kw-list');
+    if(!dl) return;
+    dl.innerHTML = '';
+    kwHistory.forEach(k => {
+        const o = document.createElement('option');
+        o.value = k;
+        dl.appendChild(o);
+    });
+}
+try{
+    const lastKw = localStorage.getItem('lastKw');
+    if(lastKw) kwInput.value = lastKw;
+    const lastHost = localStorage.getItem('lastHost');
+    if(lastHost) hostInput.value = lastHost;
+}catch(e){}
+renderKwHistory();
+const forceRefresh = document.getElementById('force-refresh');
+const rememberCheck = document.getElementById('remember-check');
+const listEl = document.getElementById('result-list');
+const pfill = document.getElementById('pfill');
+const ptext = document.getElementById('ptext');
+const pwrap = document.getElementById('progress-wrap');
+const videoEl = document.getElementById('video');
+const vwrap = document.getElementById('video-wrap');
+const libStatus = document.getElementById('lib-status');
+const selInfo = document.getElementById('sel-info');
+const saveBtn = document.getElementById('save-btn');
+const stopBtn = document.getElementById('stop-btn');
+const skipBtn = document.getElementById('skip-btn');
+const batchBtn = document.getElementById('batch-btn');
+const retryBtn = document.getElementById('retry-btn');
+const copyBtn = document.getElementById('copy-btn');
+const playBtn = document.getElementById('play-btn');
+const streamBtn = document.getElementById('stream-btn');
+const skipStreamBtn = document.getElementById('skip-stream-btn');
+
+let items = [];        // 解析结果 {id, title, m3u8}
+let curItem = null;    // 当前播放/缓存的条目
+let curCtx = null;     // 当前条目的 M3U8 解析结果
+let curDownloaded = [];// 当前条目已缓存分片 [{index, arrayBuffer}]
+let curPoolM3u8 = null;// curDownloaded 对应的 m3u8（用于跨功能复用）
+let batchActive = false;    // 批量下载是否进行中
+let currentBatchItem = null;// 批量下载当前正在处理的条目
+let batchFailedItems = [];  // 批量下载失败的条目（供一键重试）
+let batchCancel = false;    // 批量下载取消标志（点「停止」时置位）
+
+function log(t){ logEl.textContent += t + '\n'; logEl.scrollTop = logEl.scrollHeight; }
+function setProgress(pct, txt){ pwrap.style.display = 'block'; pfill.style.width = pct + '%'; ptext.textContent = txt || ''; }
+function fmt(sec){ if(isNaN(sec)||!isFinite(sec)) return '--:--'; const m=Math.floor(sec/60), s=Math.floor(sec%60); return `${m}:${s<10?'0':''}${s}`; }
+function fmtEta(sec){ if(!isFinite(sec)||sec<1) return '<1秒'; const m=Math.floor(sec/60), s=Math.round(sec%60); return m ? `${m}分${s}秒` : `${s}秒`; }
+// ── 下载速度 / 剩余时间（参考原下载器速度条）──
+let dlBytes = 0, dlLastBytes = 0, dlLastTime = 0;
+function resetDlSpeed(){ dlBytes = 0; dlLastBytes = 0; dlLastTime = 0; }
+function calcSpeed(done, total){
+    const now = Date.now();
+    if(dlLastTime){
+        const dt = (now - dlLastTime) / 1000;
+        if(dt >= 0.5){ // 至少 0.5 秒窗口，瞬时速度更准
+            const spd = (dlBytes - dlLastBytes) / dt; // bytes/s
+            dlLastBytes = dlBytes; dlLastTime = now;
+            if(spd > 0 && done > 0){
+                const avgSeg = dlBytes / done;          // 平均分片大小
+                const eta = ((total - done) * avgSeg) / spd; // 剩余字节 / 速度
+                return `速度 ${(spd/1024/1024).toFixed(2)} MB/s ｜ 剩余约 ${fmtEta(eta)}`;
+            }
+        }
+    }else{ dlLastTime = now; dlLastBytes = dlBytes; }
+    return '';
+}
+function safeName(name){
+    let n = name.replace(/[\\/:*?"<>|]/g, '_');
+    n = n.replace(/\.(mp4|mkv|avi|mov)$/i, '.ts');
+    if(!n.toLowerCase().endsWith('.ts')) n += '.ts';
+    return n;
+}
+
+// ── API（全部走本地服务）──
+async function apiText(url){
+    const resp = await fetch(`${LOCAL_SERVER}/fetch?url=${encodeURIComponent(url)}`);
+    if(!resp.ok){ let m = `HTTP ${resp.status}`; try{ const j = await resp.json(); m = j.error || m; }catch(e){} throw new Error(m); }
+    return await resp.text();
+}
+async function apiBin(url){
+    const resp = await fetch(`${LOCAL_SERVER}/fetchbin?url=${encodeURIComponent(url)}`);
+    if(!resp.ok){ let m = `HTTP ${resp.status}`; try{ const j = await resp.json(); m = j.error || m; }catch(e){} throw new Error(m); }
+    return await resp.arrayBuffer();
+}
+function serverDown(e){ return e instanceof TypeError || /fetch failed|ECONNREFUSED|Failed to fetch/i.test(String(e && e.message)); }
+
+// ══════════════════════════════════════════════════════════
+// IndexedDB 分片永久化（参考原下载器实现）
+// 分片数据按视频 m3u8 隔离存储，跨会话/刷新恢复，实现缓存永久化
+// ══════════════════════════════════════════════════════════
+let idbDb = null;
+let idbWarned = false; // 只提示一次 IndexedDB 不可用
+const IDB_NAME = 'm3u8-cache', IDB_STORE = 'segs', IDB_VERSION = 1;
+function idbOpen(){
+    return new Promise((resolve) => {
+        if(idbDb){ resolve(idbDb); return; }
+        if(typeof indexedDB === 'undefined'){
+            if(!idbWarned){ idbWarned = true; log('⚠️ 当前浏览器不支持 IndexedDB，分片缓存永久化不可用'); }
+            resolve(null); return;
+        }
+        try{
+            // 不指定版本打开：兼容已存在但版本不同的库（如参考代码建的 version 2 库），避免 VersionError
+            const req = indexedDB.open(IDB_NAME);
+            req.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if(!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
+            };
+            req.onsuccess = (e) => {
+                const db = e.target.result;
+                if(db.objectStoreNames.contains(IDB_STORE)){ idbDb = db; resolve(db); return; }
+                // 库存在但缺少 segs store（旧版/其他工具建的库）→ 升级一版补建
+                const v = db.version;
+                db.close();
+                const up = indexedDB.open(IDB_NAME, v + 1);
+                up.onupgradeneeded = (e2) => {
+                    const db2 = e2.target.result;
+                    if(!db2.objectStoreNames.contains(IDB_STORE)) db2.createObjectStore(IDB_STORE);
+                };
+                up.onsuccess = (e2) => { idbDb = e2.target.result; resolve(idbDb); };
+                up.onerror = () => {
+                    idbDb = null;
+                    if(!idbWarned){ idbWarned = true; log('⚠️ IndexedDB 升级失败，分片缓存无法保存'); }
+                    resolve(null);
+                };
+            };
+            req.onerror = () => {
+                idbDb = null;
+                if(!idbWarned){ idbWarned = true; log('⚠️ IndexedDB 打开失败，分片缓存无法保存（可能是隐私模式或浏览器限制）'); }
+                resolve(null);
+            };
+        }catch(e){ resolve(null); }
+    });
+}
+function idbSegKey(cacheKey, index){ return cacheKey + '::' + index; }
+async function idbPut(cacheKey, index, arrayBuffer){
+    const db = await idbOpen();
+    if(!db) return;
+    try{
+        return new Promise((resolve) => {
+            const tx = db.transaction(IDB_STORE, 'readwrite');
+            tx.objectStore(IDB_STORE).put({ index, arrayBuffer }, idbSegKey(cacheKey, index));
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => resolve();
+        });
+    }catch(e){}
+}
+async function idbGetAll(cacheKey){
+    const db = await idbOpen();
+    if(!db) return [];
+    try{
+        return new Promise((resolve) => {
+            const tx = db.transaction(IDB_STORE, 'readonly');
+            const store = tx.objectStore(IDB_STORE);
+            const range = IDBKeyRange.bound(`${cacheKey}::`, `${cacheKey}::\uffff`);
+            const req = store.getAll(range);
+            req.onsuccess = () => resolve(req.result || []);
+            req.onerror = () => resolve([]);
+        });
+    }catch(e){ return []; }
+}
+async function idbClear(cacheKey){
+    const db = await idbOpen();
+    if(!db) return;
+    try{
+        return new Promise((resolve) => {
+            const tx = db.transaction(IDB_STORE, 'readwrite');
+            const store = tx.objectStore(IDB_STORE);
+            store.delete(IDBKeyRange.bound(`${cacheKey}::`, `${cacheKey}::\uffff`));
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => resolve();
+        });
+    }catch(e){}
+}
+async function idbClearAll(){
+    const db = await idbOpen();
+    if(!db) return;
+    try{
+        return new Promise((resolve) => {
+            const tx = db.transaction(IDB_STORE, 'readwrite');
+            tx.objectStore(IDB_STORE).clear();
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => resolve();
+        });
+    }catch(e){}
+}
+function cacheKeyOf(m3u8){ return 'seg_' + m3u8; }
+
+// ── localStorage 断点索引（参考原下载器：失败分片优先补齐）──
+// 只记录「下载失败/跳过的分片」，下载成功即移除；已下载分片以 IndexedDB 数据为权威
+function loadSkipIdx(cacheKey){
+    try{
+        const d = JSON.parse(localStorage.getItem('skip_' + cacheKey) || 'null');
+        return d && Array.isArray(d.skipped) ? new Set(d.skipped) : new Set();
+    }catch(e){ return new Set(); }
+}
+function saveSkipIdx(cacheKey, set){
+    try{ localStorage.setItem('skip_' + cacheKey, JSON.stringify({ skipped: [...set] })); }catch(e){}
+}
+// 内存占用检查（参考原下载器 10GB 上限，这里放宽到 8GB 提前警示）
+const MEMORY_LIMIT_BYTES = 8 * 1024 * 1024 * 1024;
+function checkMemoryUsage(){
+    let total = 0;
+    for(const s of curDownloaded){ if(s.arrayBuffer) total += s.arrayBuffer.byteLength; }
+    if(total > MEMORY_LIMIT_BYTES){
+        log('⚠️ 缓存超过 8GB，建议先保存视频，然后点「清空缓存」');
+        return false;
+    }
+    return true;
+}
+
+async function checkHealth(){
+    const banner = document.getElementById('status-banner');
+    try{
+        const r = await fetch(`${LOCAL_SERVER}/health`);
+        const j = await r.json();
+        if(j.ok){ banner.className = 'ok'; banner.textContent = '✅ 本地转发服务已连接'; }
+        else { banner.className = 'bad'; banner.textContent = '❌ 本地服务异常'; }
+    }catch(e){
+        banner.className = 'bad';
+        banner.textContent = '❌ 本地转发服务未启动：请先双击「启动.bat」，然后刷新本页';
+    }
+}
+
+// ── 轮询可用节点（服务端检测，无跨域问题）──
+document.getElementById('findalive-btn').onclick = async () => {
+    log('正在轮询 hsck1~hsck123.25img.com（服务端检测）...');
+    try{
+        const r = await fetch(`${LOCAL_SERVER}/findalive`);
+        const j = await r.json();
+        if(j.host){ hostInput.value = `https://${j.host}/`; log(`✅ 找到可用节点: ${j.host}，已填入地址框`); }
+        else log(`❌ ${j.error || '未找到可用节点'}`);
+    }catch(e){
+        if(serverDown(e)) log('❌ 无法连接本地服务，请先双击「启动.bat」启动服务');
+        else log('❌ 轮询失败: ' + e.message);
+    }
+};
+
+// ── 搜索 + 解析详情 ──
+document.getElementById('parse-btn').onclick = async () => {
+    logEl.textContent = '';
+    const host = hostInput.value.trim().replace(/\/+$/, '');
+    const kw = kwInput.value.trim();
+    if(!host){ log('❌ 请填写站点地址'); return; }
+    // 记住本次搜索关键字和站点地址，刷新后自动填入
+    try{
+        localStorage.setItem('lastKw', kw);
+        localStorage.setItem('lastHost', host + '/');
+        // 关键字历史：去重、最近在前、上限 30 条，供输入框下拉联想
+        kwHistory = [kw, ...kwHistory.filter(k => k !== kw)].slice(0, 30);
+        localStorage.setItem('kwHistory', JSON.stringify(kwHistory));
+        renderKwHistory();
+    }catch(e){}
+    const cacheKey = `search_${host}_${kw}`;
+    // 命中缓存：同一站点+关键字、未勾选「强制刷新」→ 直接用缓存结果（无时间限制，手动控制刷新）
+    if(!forceRefresh.checked){
+        try{
+            const c = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+            if(c && c.items && c.items.length){
+                items = c.items;
+                currentPage = 1;
+                checkedSet.clear();
+                renderList();
+                const mins = Math.round((Date.now() - c.t) / 60000);
+                log(`📦 命中搜索缓存（${items.length} 条${mins >= 1 ? '，' + mins + ' 分钟前抓取' : ''}）。如需最新结果，勾选「强制刷新」后重新解析`);
+                return;
+            }
+        }catch(e){}
+    }
+    try{
+        const searchUrl = `${host}/?search2=ndafeoafa&search=${encodeURIComponent(kw)}`;
+        log(`[1/2] 搜索: ${searchUrl}`);
+        // 解析单页搜索 HTML，把结果合并进 seen（按 id 去重）；返回该页声明的总页数 totalPages
+        const seen = new Map();
+        const parseSearchPage = (html) => {
+            const anchors = html.match(/<a[^>]+href="\/view\/\?id=[^"]+"[^>]*>/g) || [];
+            for(const a of anchors){
+                const idm = a.match(/href="(\/view\/\?id=[^"]+)"/);
+                if(!idm) continue;
+                const id = idm[1];
+                if(seen.has(id)) continue;
+                const tm = a.match(/title="([^"]*)"/);
+                // 封面图：兼容 data-original 在 a 属性或内部 <img> 上的两种模板
+                let img = '';
+                const pm = a.match(/data-original="([^"]+)"/);
+                if(pm) img = pm[1];
+                else{
+                    const im = a.match(/<img[^>]+data-original="([^"]+)"/);
+                    if(im) img = im[1];
+                }
+                if(img && !/^https?:\/\//i.test(img)) img = host + (img.startsWith('/') ? '' : '/') + img;
+                seen.set(id, { path: id, title: (tm ? tm[1] : '') || id, img });
+            }
+            const tm = html.match(/totalPages\s*:\s*"?(\d+)"?/);
+            return tm ? parseInt(tm[1]) : 1;
+        };
+        log(`[1/2] 搜索: ${searchUrl}`);
+        const html = await apiText(searchUrl);
+        const totalPages = parseSearchPage(html);
+        if(totalPages > 1){
+            log(`📄 检测到共 ${totalPages} 页结果，继续抓取第 2~${totalPages} 页...`);
+            for(let p = 2; p <= totalPages; p++){
+                const pageUrl = `${host}/?p=${p}&search2=ndafeoafa&search=${encodeURIComponent(kw)}`;
+                log(`  第 ${p}/${totalPages} 页: ${pageUrl}`);
+                try{
+                    parseSearchPage(await apiText(pageUrl));
+                }catch(e){
+                    log(`  ⚠️ 第 ${p} 页抓取失败: ${e.message}，继续下一页`);
+                }
+            }
+        }
+        const list = [...seen.values()];
+        log(`搜索到 ${list.length} 个结果，开始解析详情...`);
+        if(list.length === 0){
+            log('⚠️ 未解析到任何内容：');
+            log('  · 若刚才出现连接失败提示 → 请先双击「启动.bat」启动本地转发服务');
+            log('  · 若无连接失败 → 可能是该关键字无结果或站点结构变化');
+            return;
+        }
+        items = [];
+        currentPage = 1; // 新解析结果回到第 1 页
+        checkedSet.clear(); // 新结果索引变了，清空旧勾选
+        const seenM3u8 = new Set(); // 同一 m3u8 只保留一条
+        // 2 路并发抓取详情：任务队列 + 双 worker，整页解析速度约提升 2 倍
+        const total = list.length;
+        let cursor = 0;    // 任务队列游标
+        let finished = 0;  // 已解析条数
+        const nextTask = () => { const i = cursor++; return i < total ? list[i] : null; };
+        const worker = async () => {
+            while(true){
+                const it = nextTask();
+                if(!it) return;
+                let m3u8 = '';
+                const fetchDetail = async () => {
+                    const vh = await apiText(`${host}${it.path}`);
+                    // 兼容 index.m3u8 / a.m3u8 等任意 .m3u8 结尾地址，双引号/单引号均可
+                    const mm = vh.match(/src=["']([^"']+\.m3u8)["']/);
+                    return mm ? mm[1] : '';
+                };
+                try{
+                    m3u8 = await fetchDetail();
+                }catch(e){
+                    log(`  ⚠️ 详情页失败，自动重试...`);
+                    try{ m3u8 = await fetchDetail(); }
+                    catch(e2){ log(`  ⚠️ 详情页再次失败: ${e2.message}`); }
+                }
+                if(m3u8 && seenM3u8.has(m3u8)){
+                    log(`  ↳ m3u8 与前面条目相同，去重跳过`);
+                }else{
+                    if(m3u8) seenM3u8.add(m3u8);
+                    items.push({ id: it.path, title: it.title, m3u8, img: it.img || '' });
+                }
+                finished++;
+                log(`[2/2] ${finished}/${total}: ${it.title}${m3u8 ? '' : '（无 m3u8）'}`);
+                renderList(); // 边解析边显示：完成一条就刷新列表（分页模式下先显示第 1 页）
+            }
+        };
+        await Promise.all([worker(), worker()]);
+        renderList();
+        const valid = items.filter(i => i.m3u8).length;
+        log(`✅ 解析完成：${valid} 个有效，${items.length - valid} 个无 m3u8`);
+        // 缓存搜索结果（含 m3u8 地址与封面图地址，localStorage，6 小时有效）
+        try{ localStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), items })); }catch(e){}
+    }catch(e){
+        if(serverDown(e)) log('❌ 无法连接本地转发服务（127.0.0.1:8787）：请先双击「启动.bat」启动服务后重试');
+        else log('❌ 解析失败: ' + e.message);
+    }
+};
+
+let currentPage = 1;
+let checkedSet = new Set(); // 跨页勾选记忆（存 items 索引，翻页/刷新不丢）
+// 已保存标记（localStorage 持久化，按 m3u8 URL 去重）
+let savedSet = new Set();
+try{ savedSet = new Set(JSON.parse(localStorage.getItem('savedItems') || '[]')); }catch(e){}
+// 跳过标记（不想下载的视频，同 savedSet 按 m3u8 URL 持久化）
+let skippedSet = new Set();
+try{ skippedSet = new Set(JSON.parse(localStorage.getItem('skippedItems') || '[]')); }catch(e){}
+function markSkipped(m3u8){
+    if(!m3u8) return;
+    if(skippedSet.has(m3u8)) skippedSet.delete(m3u8);
+    else skippedSet.add(m3u8);
+    try{ localStorage.setItem('skippedItems', JSON.stringify([...skippedSet])); }catch(e){}
+    renderList();
+}
+function markSaved(m3u8){
+    if(!m3u8 || savedSet.has(m3u8)) return;
+    savedSet.add(m3u8);
+    try{ localStorage.setItem('savedItems', JSON.stringify([...savedSet])); }catch(e){}
+    renderList();
+}
+// 当前页范围（不跨页时，按钮操作只限当前页）
+function currentRange(){
+    const usePg = document.getElementById('use-pagination').checked;
+    const pageSize = parseInt(document.getElementById('page-size').value) || 20;
+    const start = usePg ? (currentPage - 1) * pageSize : 0;
+    const end = usePg ? Math.min(items.length, start + pageSize) : items.length;
+    return [start, end];
+}
+// 页码按钮序列：首尾固定 + 当前页附近 + 省略号
+function pageBtns(cur, total){
+    if(total <= 7) return Array.from({length:total}, (_,i)=>i+1);
+    const s = new Set([1,2,cur-1,cur,cur+1,total-1,total].filter(p=>p>=1&&p<=total));
+    const arr = [...s].sort((a,b)=>a-b);
+    const out = [];
+    for(let i=0;i<arr.length;i++){
+        out.push(arr[i]);
+        if(i < arr.length-1 && arr[i+1] - arr[i] > 1) out.push('…');
+    }
+    return out;
+}
+
+function renderList(){
+    listEl.innerHTML = '';
+    if(!items.length){ listEl.innerHTML = '<div class="muted" style="padding:10px;">无结果</div>'; selInfo.textContent = '无结果'; return; }
+    const valid = items.filter(i => i.m3u8).length;
+    const usePg = document.getElementById('use-pagination').checked;
+    const pageSize = parseInt(document.getElementById('page-size').value) || 20;
+    const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+    if(currentPage > totalPages) currentPage = totalPages;
+    const start = usePg ? (currentPage - 1) * pageSize : 0;
+    const end   = usePg ? Math.min(items.length, start + pageSize) : items.length;
+    selInfo.textContent = usePg
+        ? `共 ${items.length} 条，第 ${currentPage}/${totalPages} 页，可下载/播放 ${valid} 条`
+        : `共 ${items.length} 条，可下载/播放 ${valid} 条`;
+    for(let i = start; i < end; i++){
+        const it = items[i];
+        const d = document.createElement('div');
+        d.className = 'item';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox'; cb.value = i;
+        cb.checked = checkedSet.has(i); // 跨页勾选记忆
+        cb.onchange = () => { if(cb.checked) checkedSet.add(i); else checkedSet.delete(i); invalidateSelMode(); };
+        d.appendChild(cb);
+        if(it.img){
+            const thumb = document.createElement('img');
+            thumb.src = `${LOCAL_SERVER}/fetchbin?url=${encodeURIComponent(it.img)}`;
+            thumb.loading = 'lazy';
+            thumb.alt = '';
+            thumb.style.cssText = 'width:46px;height:62px;object-fit:cover;border-radius:6px;flex:none;background:#0f1420;';
+            thumb.onerror = () => { thumb.style.display = 'none'; };
+            d.appendChild(thumb);
+        }
+        const t = document.createElement('div');
+        t.className = 't';
+        const name = document.createElement('div');
+        name.className = 'name';
+        name.textContent = `${i+1}. ${it.title || it.id}`;
+        const url = document.createElement('div');
+        url.className = 'url';
+        url.textContent = it.m3u8 || '（未解析到 m3u8）';
+        t.appendChild(name); t.appendChild(url);
+        d.appendChild(t);
+        const tag = document.createElement('span');
+        tag.className = 'tag' + (it.m3u8 ? '' : ' no');
+        tag.textContent = it.m3u8 ? '可播' : '无源';
+        d.appendChild(tag);
+        if(it.m3u8 && savedSet.has(it.m3u8)){
+            const doneTag = document.createElement('span');
+            doneTag.className = 'tag done';
+            doneTag.textContent = '✓ 已存';
+            d.appendChild(doneTag);
+        }
+        if(it.m3u8 && skippedSet.has(it.m3u8)){
+            d.style.opacity = '.45';
+            const sb = document.createElement('button');
+            sb.className = 'skip-btn';
+            sb.textContent = '取消跳过';
+            sb.onclick = () => markSkipped(it.m3u8); // 撤销自动标记
+            d.appendChild(sb);
+        }
+        listEl.appendChild(d);
+    }
+    // 分页导航
+    if(usePg && totalPages > 1){
+        const pg = document.createElement('div');
+        pg.className = 'pager';
+        const mkBtn = (txt, page, disabled) => {
+            const b = document.createElement('button');
+            b.textContent = txt;
+            if(disabled){ b.disabled = true; }
+            else if(typeof page === 'number'){
+                if(page === currentPage) b.className = 'on';
+                b.onclick = () => {
+                    currentPage = page;
+                    if(!rememberCheck.checked) checkedSet.clear(); // 不跨页：翻页清空旧勾选
+                    renderList();
+                };
+            }else{ b.disabled = true; } // 省略号
+            return b;
+        };
+        pg.appendChild(mkBtn('« 上一页', currentPage - 1, currentPage <= 1));
+        for(const p of pageBtns(currentPage, totalPages)) pg.appendChild(mkBtn(String(p), p, false));
+        pg.appendChild(mkBtn('下一页 »', currentPage + 1, currentPage >= totalPages));
+        listEl.appendChild(pg);
+    }
+}
+function selectedItems(){
+    return [...checkedSet].map(i => items[i]).filter(i => i && i.m3u8);
+}
+document.getElementById('selall-btn').onclick = () => {
+    if(!items.length) return;
+    // 当前页范围内：全勾或全不勾
+    const usePg = document.getElementById('use-pagination').checked;
+    const pageSize = parseInt(document.getElementById('page-size').value) || 20;
+    const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+    const start = usePg ? (currentPage - 1) * pageSize : 0;
+    const end = usePg ? Math.min(items.length, start + pageSize) : items.length;
+    const pageIdxs = [];
+    for(let i = start; i < end; i++) pageIdxs.push(i);
+    const allChecked = pageIdxs.length > 0 && pageIdxs.every(i => checkedSet.has(i));
+    if(allChecked){ pageIdxs.forEach(i => checkedSet.delete(i)); log(`已取消当前页 ${pageIdxs.length} 条勾选`); }
+    else{ pageIdxs.forEach(i => checkedSet.add(i)); log(`已勾选当前页 ${pageIdxs.length} 条`); }
+    invalidateSelMode();
+    renderList();
+};
+// 切换式选择：记录当前激活的选择模式，重复点同一按钮=取消，点另一按钮=重选
+let activeSelMode = null; // 'unsaved' | 'todo' | null
+function toggleSelect(mode, filterFn, label){
+    const [s, e] = currentRange();
+    const lo = rememberCheck.checked ? 0 : s;
+    const hi = rememberCheck.checked ? items.length : e;
+    const range = rememberCheck.checked ? '' : '（仅当前页）';
+    if(activeSelMode === mode){
+        // 同一按钮再点 → 取消目标集
+        let n = 0;
+        for(let i = lo; i < hi; i++){
+            if(filterFn(items[i], i)){ checkedSet.delete(i); n++; }
+        }
+        activeSelMode = null;
+        log(`已取消 ${n} 条${label}${range}`);
+    }else{
+        // 切换到新模式 → 先清空全部，再只勾目标集
+        checkedSet.clear();
+        let n = 0;
+        for(let i = lo; i < hi; i++){
+            if(filterFn(items[i], i)){ checkedSet.add(i); n++; }
+        }
+        activeSelMode = mode;
+        log(`已清空并勾选 ${n} 条${label}${range}`);
+    }
+    renderList();
+}
+// 手动勾选/全选后，选择模式失效（避免下次点按钮误判）
+function invalidateSelMode(){ activeSelMode = null; }
+// 一键勾选所有未保存的条目（带 m3u8 且无「✓已存」标记）
+document.getElementById('select-unsaved-btn').onclick = () => {
+    if(!items.length){ log('❌ 无结果'); return; }
+    toggleSelect('unsaved', it => it.m3u8 && !savedSet.has(it.m3u8), '未保存的条目');
+};
+// 一键勾选待下载条目（带 m3u8、未存、未跳过）
+document.getElementById('select-todo-btn').onclick = () => {
+    if(!items.length){ log('❌ 无结果'); return; }
+    toggleSelect('todo', it => it.m3u8 && !savedSet.has(it.m3u8) && !skippedSet.has(it.m3u8), '待下载（未存且未跳过）');
+};
+
+// ══════════════════════════════════════════════════════════
+// 标记管理面板：查看/取消/清空 已存与跳过标记
+// ══════════════════════════════════════════════════════════
+function renderTagPanel(){
+    const sl = document.getElementById('saved-tag-list');
+    const skl = document.getElementById('skipped-tag-list');
+    document.getElementById('saved-count').textContent = savedSet.size;
+    document.getElementById('skipped-count').textContent = skippedSet.size;
+    sl.innerHTML = '';
+    [...savedSet].forEach(m3u8 => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid #232d44;';
+        const span = document.createElement('span');
+        span.style.cssText = 'flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:8px;';
+        span.textContent = m3u8;
+        const b = document.createElement('button');
+        b.className = 'btn-purple'; b.style.cssText = 'padding:2px 8px;font-size:11px;flex:none;';
+        b.textContent = '取消';
+        b.onclick = () => { savedSet.delete(m3u8); try{ localStorage.setItem('savedItems', JSON.stringify([...savedSet])); }catch(e){} renderTagPanel(); renderList(); };
+        row.appendChild(span); row.appendChild(b); sl.appendChild(row);
+    });
+    skl.innerHTML = '';
+    [...skippedSet].forEach(m3u8 => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid #232d44;';
+        const span = document.createElement('span');
+        span.style.cssText = 'flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:8px;';
+        span.textContent = m3u8;
+        const b = document.createElement('button');
+        b.className = 'btn-purple'; b.style.cssText = 'padding:2px 8px;font-size:11px;flex:none;';
+        b.textContent = '取消';
+        b.onclick = () => { skippedSet.delete(m3u8); try{ localStorage.setItem('skippedItems', JSON.stringify([...skippedSet])); }catch(e){} renderTagPanel(); renderList(); };
+        row.appendChild(span); row.appendChild(b); skl.appendChild(row);
+    });
+}
+document.getElementById('tag-mgmt-btn').onclick = () => {
+    const p = document.getElementById('tag-panel');
+    p.style.display = p.style.display === 'none' ? 'block' : 'none';
+    if(p.style.display === 'block') renderTagPanel();
+};
+document.getElementById('close-tag-panel').onclick = () => { document.getElementById('tag-panel').style.display = 'none'; };
+document.getElementById('clear-saved-btn').onclick = () => {
+    if(!savedSet.size) return;
+    if(!confirm(`确定清空 ${savedSet.size} 条已存标记？`)) return;
+    savedSet.clear(); try{ localStorage.setItem('savedItems', '[]'); }catch(e){}
+    renderTagPanel(); renderList(); log('已清空全部已存标记');
+};
+document.getElementById('clear-skipped-btn').onclick = () => {
+    if(!skippedSet.size) return;
+    if(!confirm(`确定清空 ${skippedSet.size} 条跳过标记？`)) return;
+    skippedSet.clear(); try{ localStorage.setItem('skippedItems', '[]'); }catch(e){}
+    renderTagPanel(); renderList(); log('已清空全部跳过标记');
+};
+
+// ══════════════════════════════════════════════════════════
+// 键盘快捷键：回车搜索、方向键翻页
+// ══════════════════════════════════════════════════════════
+kwInput.addEventListener('keydown', e => { if(e.key === 'Enter') start(); });
+hostInput.addEventListener('keydown', e => { if(e.key === 'Enter') start(); });
+document.addEventListener('keydown', e => {
+    if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if(!items.length) return;
+    const usePg = document.getElementById('use-pagination').checked;
+    if(!usePg) return;
+    const pageSize = parseInt(document.getElementById('page-size').value) || 20;
+    const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+    if(e.key === 'ArrowLeft' && currentPage > 1){ currentPage--; if(!rememberCheck.checked) checkedSet.clear(); renderList(); }
+    else if(e.key === 'ArrowRight' && currentPage < totalPages){ currentPage++; if(!rememberCheck.checked) checkedSet.clear(); renderList(); }
+});
+
+// ══════════════════════════════════════════════════════════
+// M3U8 解析（多码率 / AES-128 加密）
+// ══════════════════════════════════════════════════════════
+function parseAttrs(str){ const attrs = {}; const re = /([A-Z0-9-]+)=("[^"]*"|[^,]+)/g; let m; while((m = re.exec(str)) !== null) attrs[m[1]] = m[2].replace(/^"|"$/g, ''); return attrs; }
+function hexToBuf(hex){ hex = hex.replace(/^0x/i, ''); if(hex.length % 2) hex = '0' + hex; const b = new ArrayBuffer(hex.length / 2); const v = new Uint8Array(b); for(let i = 0; i < hex.length; i += 2) v[i/2] = parseInt(hex.substr(i, 2), 16); return b; }
+
+async function parseM3U8(txt, base){
+    const lines = txt.split('\n');
+    const basePath = base.substring(0, base.lastIndexOf('/') + 1);
+    // 多码率主列表：选最高带宽
+    let streamInf = -1;
+    for(let i = 0; i < lines.length; i++){ if(lines[i].trim().startsWith('#EXT-X-STREAM-INF:')){ streamInf = i; break; } }
+    if(streamInf >= 0){
+        let bestUrl = null, bestBw = 0;
+        for(let i = streamInf; i < lines.length; i++){
+            const line = lines[i].trim();
+            if(line.startsWith('#EXT-X-STREAM-INF:')){
+                const bw = parseInt(parseAttrs(line.substring(17)).BANDWIDTH) || 0;
+                if(bw > bestBw){
+                    bestBw = bw;
+                    for(let j = i + 1; j < lines.length; j++){
+                        const s = lines[j].trim();
+                        if(s && !s.startsWith('#')){ bestUrl = s.startsWith('http') ? s : basePath + s; break; }
+                    }
+                }
+            }
+        }
+        if(bestUrl){
+            log(`多码率列表，选择最高清晰度 (BANDWIDTH=${bestBw})`);
+            const sub = await apiText(bestUrl);
+            return await parseM3U8(sub, bestUrl);
+        }
+    }
+    // 加密信息
+    let enc = null;
+    for(const raw of lines){
+        const line = raw.trim();
+        if(line.startsWith('#EXT-X-KEY:')){
+            const a = parseAttrs(line.substring('#EXT-X-KEY:'.length));
+            if(a.METHOD === 'NONE'){ enc = null; break; }
+            if(a.URI){
+                const keyUrl = a.URI.startsWith('http') ? a.URI : basePath + a.URI;
+                try{
+                    const key = await apiBin(keyUrl);
+                    enc = { method: a.METHOD || 'AES-128', key, iv: a.IV ? hexToBuf(a.IV) : null };
+                }catch(e){ log(`⚠️ 密钥获取失败: ${e.message}`); enc = null; }
+            }
+        }
+    }
+    const segs = [], durs = [];
+    let total = 0;
+    lines.forEach(raw => {
+        const line = raw.trim();
+        if(line.startsWith('#EXTINF:')){ const d = parseFloat(line.replace('#EXTINF:', '').split(',')[0]); durs.push(d); total += d; }
+        if(line && !line.startsWith('#') && (line.includes('.ts') || line.includes('.m4s'))){ segs.push(line.startsWith('http') ? line : basePath + line); }
+    });
+    while(durs.length < segs.length) durs.push(total > 0 ? total / segs.length : 5);
+    const timestamps = []; let acc = 0;
+    durs.forEach(d => { timestamps.push(acc); acc += d; });
+    return { m3u8: base, segs, durs, timestamps, total, enc };
+}
+
+async function decryptSegment(buf, index, enc){
+    if(!enc || !enc.key) return buf;
+    try{
+        let iv = enc.iv;
+        if(!iv){ iv = new ArrayBuffer(16); const v = new DataView(iv); v.setUint32(12, index); }
+        const key = await crypto.subtle.importKey('raw', enc.key, { name: 'AES-CBC' }, false, ['decrypt']);
+        return await crypto.subtle.decrypt({ name: 'AES-CBC', iv: new Uint8Array(iv) }, key, buf);
+    }catch(e){ log(`分片 ${index+1} 解密失败: ${e.message}`); return buf; }
+}
+
+async function fetchSeg(url, index, ctx, retries = 3){
+    for(let a = 1; a <= retries; a++){
+        try{
+            let buf = await apiBin(url);
+            if(ctx.enc) buf = await decryptSegment(buf, index, ctx.enc);
+            return buf;
+        }catch(e){
+            if(a < retries){ log(`分片 ${index+1} 失败(${a}/${retries})，重试...`); await new Promise(r => setTimeout(r, 800)); }
+            else throw e;
+        }
+    }
+}
+
+function triggerDownload(blob, name){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+}
+
+// ══════════════════════════════════════════════════════════
+// 批量下载：解析 → 逐分片下载 → 合并保存 .ts（支持跳过当前）
+// ══════════════════════════════════════════════════════════
+let batchSkipCurrent = false;
+let batchSkipped = 0;
+
+// 检测分片完整性，返回缺失的索引数组
+function checkCompleteness(ctx, downloaded){
+    const have = new Set(downloaded.map(s => s.index));
+    const missing = [];
+    for(let i = 0; i < ctx.segs.length; i++){
+        if(!have.has(i)) missing.push(i);
+    }
+    return missing;
+}
+
+async function downloadOne(item, onProg){
+    log(`[${item.title}] 获取M3U8...`);
+    const txt = await apiText(item.m3u8);
+    const ctx = await parseM3U8(txt, item.m3u8);
+    log(`[${item.title}] 共 ${ctx.segs.length} 个分片，时长 ${fmt(ctx.total)}${ctx.enc ? ' [加密]' : ''}`);
+    curCtx = ctx;
+    curItem = item; // 同步当前条目，保证批量后「播放缓存/保存/自动保存」都指向正确视频
+    curPoolM3u8 = ctx.m3u8; // 以解析后的实际列表为准（master 多码率时是子列表）
+    // 从 IndexedDB 恢复该视频的永久缓存（分片复用 + 缓存永久化）
+    curDownloaded = [];
+    const key = cacheKeyOf(ctx.m3u8);
+    const cached = await idbGetAll(key);
+    for(const s of cached){
+        if(s.index < ctx.segs.length) curDownloaded.push({ index: s.index, arrayBuffer: s.arrayBuffer });
+    }
+    if(cached.length){
+        log(`↳ 从缓存恢复 ${curDownloaded.length}/${ctx.segs.length} 个分片`);
+    }else{
+        log(`ℹ️ 该视频无缓存分片（首次下载，或缓存被清空），将全新下载`);
+    }
+    // 恢复上次失败分片索引（断点续传：优先补齐）
+    const skipIdx = loadSkipIdx(key);
+    if(skipIdx.size) log(`⚠️ 上次有 ${skipIdx.size} 个分片下载失败，优先补齐`);
+    // 第一轮下载顺序 = 上次失败的分片优先 + 其余缺失分片
+    const have = new Set(curDownloaded.map(s => s.index));
+    const order = [];
+    for(const idx of skipIdx) if(idx < ctx.segs.length && !have.has(idx) && !order.includes(idx)) order.push(idx);
+    for(let i = 0; i < ctx.segs.length; i++) if(!have.has(i) && !order.includes(i)) order.push(i);
+    let newCount = 0;
+    for(const i of order){
+        if(batchSkipCurrent) return { skipped: true, name: null, incomplete: false };
+        try{
+            const buf = await fetchSeg(ctx.segs[i], i, ctx);
+            curDownloaded.push({ index: i, arrayBuffer: buf });
+            await idbPut(key, i, buf); // 写入 IndexedDB 永久化（等待落盘完成）
+            dlBytes += buf.byteLength; // 累计已下载字节（速度计算）
+            skipIdx.delete(i); // 下载成功，移除失败标记
+            newCount++;
+            checkMemoryUsage();
+            updateActionButtons();
+            if(onProg) onProg(curDownloaded.length, ctx.segs.length);
+        }catch(e){
+            log(`分片 ${i+1} 下载失败: ${e.message}`);
+            skipIdx.add(i); // 记录失败分片，下次优先补齐
+        }
+    }
+    saveSkipIdx(key, skipIdx);
+    if(newCount === 0 && curDownloaded.length === ctx.segs.length){
+        log(`✅ 全部分片已在缓存中（${curDownloaded.length}/${ctx.segs.length}），无需重新下载，直接复用保存`);
+    }
+    // 第二轮：检测缺失并自动补齐（下载失败/被跳过的分片）
+    let missing = checkCompleteness(ctx, curDownloaded);
+    if(missing.length){
+        log(`⚠️ 检测到 ${missing.length} 个分片缺失，自动补齐中...`);
+        for(const idx of missing){
+            if(batchSkipCurrent) return { skipped: true, name: null, incomplete: false };
+            try{
+                const buf = await fetchSeg(ctx.segs[idx], idx, ctx);
+                dlBytes += buf.byteLength; // 累计已下载字节（速度计算）
+                if(!curDownloaded.some(s => s.index === idx)){
+                    curDownloaded.push({ index: idx, arrayBuffer: buf });
+                    await idbPut(key, idx, buf);
+                }
+                skipIdx.delete(idx);
+                updateActionButtons();
+                if(onProg) onProg(curDownloaded.length, ctx.segs.length);
+            }catch(e){
+                log(`分片 ${idx+1} 补齐失败: ${e.message}`);
+                skipIdx.add(idx);
+            }
+        }
+        saveSkipIdx(key, skipIdx);
+        missing = checkCompleteness(ctx, curDownloaded);
+    }
+    if(missing.length){
+        log(`⚠️ 仍有 ${missing.length} 个分片无法补齐，跳过保存`);
+        return { skipped: false, name: null, incomplete: true };
+    }
+    // 完整性通过，合并保存；IndexedDB 缓存保留不清理，重新下载可直接复用（需释放空间可点「清空缓存」）
+    const sorted = curDownloaded.slice().sort((a, b) => a.index - b.index);
+    const blob = new Blob(sorted.map(s => new Uint8Array(s.arrayBuffer)), { type: 'video/mp2t' });
+    const name = safeName(item.title);
+    triggerDownload(blob, name);
+    markSaved(item.m3u8); // 列表条目打「已存」标记（持久化，跨刷新保留）
+    return { skipped: false, name, incomplete: false };
+}
+
+async function runBatchList(sel, isRetry){
+    log(`runBatchList 进入: sel=${sel.length}, isRetry=${isRetry}`);
+    if(!sel.length){ log('❌ 没有可下载的条目'); return; }
+    if(stream.active) stopStream(); // 点批量=明确要下载，先停掉边下边播，避免并行抢带宽
+    batchSkipped = 0;
+    batchFailedItems = []; // 本次失败列表（重试时重新收集）
+    batchCancel = false;   // 重置取消标志
+    skipBtn.disabled = false;
+    stopBtn.disabled = false; // 「停止」按钮只服务批量下载（取消整个任务）
+    batchBtn.disabled = true;
+    retryBtn.disabled = true;
+    streamBtn.disabled = true; // 批量下载期间禁边下边播，避免抢带宽
+    skipStreamBtn.disabled = true; // 批量下载期间禁「跳过播放」：跳过当前视频请用「跳过当前」按钮
+    batchActive = true;
+    currentBatchItem = null;
+    log(`${isRetry ? '↻ 重新下载上次失败的视频' : '开始批量下载'} ${sel.length} 个视频...`);
+    let ok = 0, fail = 0;
+    for(let i = 0; i < sel.length; i++){
+        if(batchCancel){ log('⏹️ 批量下载已取消'); break; }
+        batchSkipCurrent = false;
+        log(`\n===== ${i+1}/${sel.length}: ${sel[i].title} =====`);
+        resetDlSpeed(); // 每个视频重置速度统计
+        setProgress(0, `${i+1}/${sel.length} 解析中...（跳过 ${batchSkipped}）`);
+        currentBatchItem = sel[i]; // 记录当前正在处理的视频，供边下边播直接播放
+        try{
+            const r = await downloadOne(sel[i], (done, total) => {
+                if(batchSkipCurrent) return;
+                const spd = calcSpeed(done, total);
+                setProgress(done / total * 100, `${i+1}/${sel.length} 下载分片 ${done}/${total}（跳过 ${batchSkipped}）${spd ? ' ｜ ' + spd : ''}`);
+            });
+            if(r.skipped){ log(`⏭️ 已跳过: ${sel[i].title}`); batchSkipped++; markSkipped(sel[i].m3u8); }
+            else if(r.incomplete){ log(`❌ 分片不完整未保存: ${sel[i].title}`); fail++; batchFailedItems.push(sel[i]); }
+            else { log(`✅ 已保存: ${r.name}`); ok++; }
+        }catch(e){
+            if(batchSkipCurrent){ log(`⏭️ 已跳过: ${sel[i].title}`); batchSkipped++; markSkipped(sel[i].m3u8); }
+            else { log(`❌ 下载失败: ${sel[i].title} — ${e.message}`); fail++; batchFailedItems.push(sel[i]); }
+        }
+    }
+    skipBtn.disabled = true;
+    batchBtn.disabled = false;
+    retryBtn.disabled = batchFailedItems.length === 0;
+    retryBtn.textContent = batchFailedItems.length ? `重试失败 ${batchFailedItems.length}` : '重试失败';
+    streamBtn.disabled = false; // 批量结束，恢复边下边播
+    skipStreamBtn.disabled = false; // 批量结束，恢复「跳过播放」
+    stopBtn.disabled = true; // 批量结束，停止按钮恢复禁用
+    batchActive = false;
+    currentBatchItem = null;
+    batchCancel = false;
+    setProgress(0, '');
+    log(`\n✅ 批量完成：成功 ${ok}，跳过 ${batchSkipped}，失败 ${fail}${batchFailedItems.length ? '（可点「重试失败」重新下载）' : ''}`);
+}
+// 复制勾选条目的 m3u8 链接（剪贴板 API 不可用时回退 textarea 方式）
+copyBtn.onclick = async () => {
+    const sel = selectedItems();
+    if(!sel.length){ log('❌ 请先勾选要复制的条目（无 m3u8 的会被过滤）'); return; }
+    const text = sel.map(i => i.m3u8).join('\n');
+    try{
+        await navigator.clipboard.writeText(text);
+        log(`✅ 已复制 ${sel.length} 个 m3u8 链接到剪贴板`);
+    }catch(e){
+        try{
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.cssText = 'position:fixed;opacity:0;';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            log(`✅ 已复制 ${sel.length} 个 m3u8 链接到剪贴板`);
+        }catch(e2){
+            log('❌ 复制失败，请勾选后手动复制列表中的地址');
+        }
+    }
+};
+
+batchBtn.onclick = () => {
+    const checkedCount = listEl.querySelectorAll('input[type=checkbox]:checked').length;
+    log(`▶ 批量点击诊断: 勾选数=${checkedCount}, checkedSet=${checkedSet.size}, items=${items.length}`);
+    const sel = selectedItems(); // 无 m3u8 的条目会被自动过滤
+    log(`▶ 有效可下载条目: ${sel.length}`);
+    const skippedNoSrc = checkedCount - sel.length;
+    if(skippedNoSrc > 0) log(`⚠️ 有 ${skippedNoSrc} 个勾选条目未解析到 m3u8，已自动跳过（列表中标灰色「无源」）`);
+    if(!sel.length){ log('❌ 没有可下载的条目（勾选的都是无源条目）'); return; }
+    runBatchList(sel, false);
+};
+retryBtn.onclick = () => { runBatchList(batchFailedItems.slice(), true); };
+skipBtn.onclick = () => {
+    if(batchBtn.disabled){
+        batchSkipCurrent = true;
+        log('⏭️ 已标记跳过当前视频，下载完当前分片即停止并跳到下一个');
+    }
+};
+
+// ══════════════════════════════════════════════════════════
+// 边下边播（MSE + mux.js，无 MSE 时渐进式 Blob 回退）
+// 参考原下载器实现并修复卡顿：写入失败有上限、waiting 兜底补缓冲、
+// seek 等待带超时、复用已缓存分片
+// ══════════════════════════════════════════════════════════
+const stream = {
+    active: false, abort: false, allDone: false, needMore: false,
+    mediaSource: null, sourceBuffer: null, transmuxer: null,
+    queue: [], updating: false, processed: new Set(), resolver: null,
+    flushFail: 0,
+    ctx: null, downloaded: [],
+    fallback: false, fbBlobUrl: null, fbTime: 0, fbSegs: [], fbRebuilding: false, fbFirstPlayed: false, fbLastRebuild: 0,
+    seekTimer: null, seekTarget: -1, handlers: {}
+};
+// 边下边播播放队列：勾选多个时按顺序播，支持跳过
+let streamPlaylist = [];
+let streamPlIdx = 0;
+
+function codecDetect(){
+    const cands = [
+        'video/mp4; codecs="avc1.42E01E, mp4a.40.2"',
+        'video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
+        'video/mp4; codecs="avc1.640028, mp4a.40.2"',
+        'video/mp4; codecs="avc1.42E01E, mp4a.40.5"',
+        'video/mp4; codecs="avc1.640028, mp4a.40.5"',
+        'video/mp4'
+    ];
+    if(!window.MediaSource) return null;
+    for(const c of cands){ if(MediaSource.isTypeSupported(c)) return c; }
+    return null;
+}
+function bufferedEnd(){ if(!videoEl.buffered || !videoEl.buffered.length) return 0; return videoEl.buffered.end(videoEl.buffered.length - 1); }
+function indexByTime(t){
+    const ts = stream.ctx.timestamps;
+    for(let i = 0; i < ts.length; i++){ if(t >= ts[i] && t < ts[i] + (stream.ctx.durs[i] || 0)) return i; }
+    return ts.length - 1;
+}
+async function waitUpdating(timeout){
+    const t0 = Date.now();
+    while(stream.updating && Date.now() - t0 < (timeout || 5000)) await new Promise(r => setTimeout(r, 20));
+}
+
+function streamProcessSegment(tsBytes, index){
+    return new Promise((resolve) => {
+        if(!stream.transmuxer){
+            stream.transmuxer = new muxjs.mp4.Transmuxer({ keepOriginalTimestamps: true });
+            stream.transmuxer.on('data', seg => {
+                if(seg.initSegment) stream.queue.push({ data: new Uint8Array(seg.initSegment) });
+                if(seg.data) stream.queue.push({ data: new Uint8Array(seg.data) });
+            });
+            stream.transmuxer.on('done', () => {
+                const drain = () => {
+                    if(stream.abort){ const cb = stream.resolver; stream.resolver = null; if(cb) cb(); return; }
+                    if(!stream.updating) flushBuffer();
+                    if(stream.queue.length === 0 && !stream.updating){ const cb = stream.resolver; stream.resolver = null; if(cb) cb(); }
+                    else setTimeout(drain, 30);
+                };
+                drain();
+            });
+        }
+        let resolved = false;
+        const guard = setTimeout(() => {
+            if(!resolved){
+                resolved = true;
+                log(`分片 ${index+1} 转码超时，继续`);
+                const cb = stream.resolver; stream.resolver = null; if(cb) cb();
+            }
+        }, 8000);
+        stream.resolver = () => { if(resolved) return; resolved = true; clearTimeout(guard); resolve(); };
+        stream.transmuxer.push(tsBytes);
+        stream.transmuxer.flush();
+    });
+}
+function flushBuffer(){
+    if(!stream.sourceBuffer || stream.updating || !stream.queue.length) return;
+    const item = stream.queue.shift();
+    try{
+        stream.updating = true;
+        stream.sourceBuffer.appendBuffer(item.data);
+        stream.flushFail = 0;
+    }catch(e){
+        stream.updating = false;
+        stream.flushFail = (stream.flushFail || 0) + 1;
+        if(e.name === 'QuotaExceededError' && stream.flushFail <= 5){
+            // 容量不足：清理播放头前方 60 秒以外的旧数据后重试
+            const ct = videoEl.currentTime;
+            const cleanBefore = ct - 60;
+            if(cleanBefore > 0 && videoEl.buffered.length){
+                for(let r = 0; r < videoEl.buffered.length; r++){
+                    const rs = videoEl.buffered.start(r), re = videoEl.buffered.end(r);
+                    if(re < cleanBefore){
+                        try{
+                            stream.updating = true;
+                            stream.sourceBuffer.remove(rs, re);
+                            stream.queue.unshift(item);
+                            return; // updateend 后自动重新 flush
+                        }catch(e2){ stream.updating = false; }
+                    }
+                }
+            }
+            stream.queue.unshift(item);
+            setTimeout(() => flushBuffer(), 500);
+        } else if(stream.flushFail <= 3){
+            stream.queue.unshift(item);
+            setTimeout(() => flushBuffer(), 500);
+        } else {
+            // 连续写入失败，丢弃该数据块避免卡死
+            log('⚠️ SourceBuffer 连续写入失败，已跳过该数据块');
+            stream.flushFail = 0;
+        }
+    }
+}
+
+async function streamFetch(index){
+    if(index < 0 || index >= stream.ctx.segs.length || stream.abort) return false;
+    try{
+        // 优先复用已下载的分片（seek 重缓冲时避免重复下载）
+        let buf = null;
+        const cached = stream.downloaded.find(s => s.index === index);
+        if(cached) buf = cached.arrayBuffer;
+        else{
+            buf = await apiBin(stream.ctx.segs[index]);
+            if(stream.ctx.enc) buf = await decryptSegment(buf, index, stream.ctx.enc);
+            stream.downloaded.push({ index, arrayBuffer: buf });
+            await idbPut(cacheKeyOf(stream.ctx.m3u8), index, buf); // 边下边播下载的分片同样永久化
+            checkMemoryUsage();
+            updateActionButtons();
+        }
+        await streamProcessSegment(new Uint8Array(buf), index);
+        stream.processed.add(index);
+        return true;
+    }catch(e){ log(`分片 ${index+1} 下载失败: ${e.message}`); return false; }
+}
+
+async function transmuxToMp4(segs){
+    const sorted = segs.slice().sort((a, b) => a.index - b.index);
+    const tx = new muxjs.mp4.Transmuxer();
+    const out = [];
+    let first = true;
+    tx.on('data', seg => {
+        if(first && seg.initSegment){
+            const c = new Uint8Array(seg.initSegment.byteLength + seg.data.byteLength);
+            c.set(new Uint8Array(seg.initSegment), 0);
+            c.set(new Uint8Array(seg.data), seg.initSegment.byteLength);
+            out.push(c); first = false;
+        } else if(seg.data){
+            out.push(new Uint8Array(seg.data));
+        }
+    });
+    for(let i = 0; i < sorted.length; i++){
+        tx.push(new Uint8Array(sorted[i].arrayBuffer));
+        tx.flush();
+        if(i % 10 === 0 && i > 0) await new Promise(r => setTimeout(r, 0));
+    }
+    try{ tx.dispose(); }catch(e){}
+    return out;
+}
+
+// ── MSE 模式 ──
+async function startMsePlay(codec){
+    stream.mediaSource = new MediaSource();
+    const mseUrl = URL.createObjectURL(stream.mediaSource);
+    videoEl.src = mseUrl;
+    stream.handlers.seeking = () => {
+        if(!stream.active) return;
+        clearTimeout(stream.seekTimer);
+        stream.seekTimer = setTimeout(() => {
+            if(!stream.active) return;
+            const t = videoEl.currentTime;
+            if(t < bufferedEnd() - 0.5) return; // 目标已在缓冲内
+            stream.seekTarget = indexByTime(t);
+            log(`跳转到 ${fmt(t)}（分片 ${stream.seekTarget + 1}）重新缓冲...`);
+        }, 300);
+    };
+    stream.handlers.timeupdate = () => {
+        if(!stream.active || stream.abort) return;
+        const be = bufferedEnd(), total = stream.ctx.total || videoEl.duration || 0, cur = videoEl.currentTime;
+        const avg = total / stream.ctx.segs.length;
+        if(be > 0 && total > 0 && be - cur < avg * 2) stream.needMore = true;
+    };
+    // 播放缓冲不足(waiting)时强制补缓冲，防止 timeupdate 停止导致永久卡住
+    stream.handlers.waiting = () => { if(stream.active && !stream.abort) stream.needMore = true; };
+    videoEl.addEventListener('seeking', stream.handlers.seeking);
+    videoEl.addEventListener('timeupdate', stream.handlers.timeupdate);
+    videoEl.addEventListener('waiting', stream.handlers.waiting);
+    // 本集播完：自动保存（补齐缺失+打已存标记），再切播放队列下一个（轮询为主，ended 兜底）
+    stream.handlers.end = async () => {
+        if(!stream.active || stream.savedDone) return;
+        if(stream.fallback && stream.fbSegs.length < stream.downloaded.length) return;
+        stream.savedDone = true;
+        log('🎬 本集播完，自动保存中...');
+        await autoSaveCurrent();
+        await playNextInPlaylist();
+    };
+    videoEl.addEventListener('ended', stream.handlers.end);
+
+    stream.mediaSource.addEventListener('sourceopen', async () => {
+        try{
+            stream.sourceBuffer = stream.mediaSource.addSourceBuffer(codec);
+            if(stream.ctx.total > 0) try{ stream.mediaSource.duration = stream.ctx.total; }catch(e){}
+            stream.sourceBuffer.addEventListener('updateend', () => { stream.updating = false; if(stream.queue.length) flushBuffer(); });
+            log('播放器就绪');
+            const total = stream.ctx.segs.length, AHEAD = 8;
+            for(let i = 0; i < Math.min(AHEAD, total) && !stream.abort; i++) await streamFetch(i);
+            videoEl.play().catch(() => log('请手动点击播放'));
+            waitEndThenSave(); // 启动轮询：播到末尾就触发自动保存（保存时自动补齐缺失分片）
+            while(stream.active && !stream.abort){
+                if(stream.seekTarget >= 0){
+                    const target = stream.seekTarget;
+                    stream.seekTarget = -1;
+                    await waitUpdating(5000); // 带超时，避免无限等待
+                    stream.queue = [];
+                    stream.processed = new Set();
+                    try{
+                        if(stream.sourceBuffer.buffered.length){
+                            stream.updating = true;
+                            stream.sourceBuffer.remove(0, Infinity);
+                            await waitUpdating(5000);
+                        }
+                    }catch(e){}
+                    if(stream.transmuxer){ try{ stream.transmuxer.reset(); stream.transmuxer = null; }catch(e){} }
+                    for(let i = target; i < Math.min(target + AHEAD, total) && !stream.abort; i++) await streamFetch(i);
+                    continue;
+                }
+                if(stream.needMore){
+                    stream.needMore = false;
+                    const curIdx = indexByTime(videoEl.currentTime);
+                    let written = 0;
+                    for(let i = curIdx; i < total && written < AHEAD && !stream.abort; i++){
+                        if(stream.processed.has(i)) continue;
+                        if(await streamFetch(i)) written++;
+                    }
+                    continue;
+                }
+                if(stream.downloaded.length >= total && !stream.allDone){
+                    stream.allDone = true;
+                    log(`✅ 分片全部就绪 (${stream.downloaded.length}/${total})`);
+                }
+                await new Promise(r => setTimeout(r, 200));
+            }
+        }catch(e){
+            log('边下边播出错: ' + e.message);
+        }
+    });
+    videoEl.load();
+}
+
+// ── 回退模式（无 MSE 的浏览器）──
+async function startFallbackPlay(){
+    const FALLBACK_AHEAD = 8, REBUILD_AHEAD = 8;
+    stream.fbSegs = []; stream.fbTime = 0; stream.fbFirstPlayed = false; stream.fbRebuilding = false; stream.fbLastRebuild = 0;
+    stream.handlers.fbTime = () => {
+        if(!stream.active) return;
+        stream.fbTime = videoEl.currentTime;
+        if(!stream.fbRebuilding && stream.fbFirstPlayed && videoEl.duration > 0){
+            const remain = videoEl.duration - videoEl.currentTime;
+            const avg = videoEl.duration / (stream.fbSegs.length || 1);
+            if(remain < avg * 2 && stream.fbSegs.length < stream.downloaded.length && stream.fbSegs.length > stream.fbLastRebuild) rebuildFallback();
+        }
+    };
+    stream.handlers.fbEnd = () => { if(stream.active && !stream.fbRebuilding && stream.fbSegs.length < stream.downloaded.length && stream.fbSegs.length > stream.fbLastRebuild) rebuildFallback(); };
+    stream.handlers.fbErr = () => { if(stream.active && !stream.fbRebuilding) rebuildFallback(); };
+    videoEl.addEventListener('timeupdate', stream.handlers.fbTime);
+    videoEl.addEventListener('ended', stream.handlers.fbEnd);
+    videoEl.addEventListener('error', stream.handlers.fbErr);
+
+    async function rebuildFallback(){
+        if(stream.fbRebuilding) return;
+        stream.fbRebuilding = true;
+        stream.fbLastRebuild = stream.fbSegs.length;
+        const segs = stream.fbSegs.map(idx => stream.downloaded.find(s => s.index === idx)).filter(s => s && s.arrayBuffer).sort((a, b) => a.index - b.index);
+        if(!segs.length){ stream.fbRebuilding = false; return; }
+        log(`转码 ${segs.length}/${stream.ctx.segs.length} 个分片...`);
+        try{
+            const mp4 = await transmuxToMp4(segs);
+            if(stream.abort){ stream.fbRebuilding = false; return; }
+            const blob = new Blob(mp4, { type: 'video/mp4' });
+            if(stream.fbBlobUrl) URL.revokeObjectURL(stream.fbBlobUrl);
+            stream.fbBlobUrl = URL.createObjectURL(blob);
+            const wasPlaying = !videoEl.paused;
+            videoEl.src = stream.fbBlobUrl;
+            videoEl.load();
+            const onCan = () => {
+                videoEl.removeEventListener('canplay', onCan);
+                if(stream.abort){ stream.fbRebuilding = false; return; }
+                if(stream.fbTime > 0 && stream.fbTime < videoEl.duration) try{ videoEl.currentTime = stream.fbTime; }catch(e){}
+                stream.fbFirstPlayed = true;
+                if(wasPlaying) videoEl.play().catch(() => {});
+                stream.fbRebuilding = false;
+            };
+            videoEl.addEventListener('canplay', onCan);
+        }catch(e){
+            log('转码失败: ' + e.message);
+            stream.fbRebuilding = false;
+        }
+    }
+
+    log('下载初始分片...');
+    for(let i = 0; i < Math.min(FALLBACK_AHEAD, stream.ctx.segs.length) && !stream.abort; i++){
+        if(await streamFetch(i)) stream.fbSegs.push(i);
+    }
+    if(stream.fbSegs.length && !stream.abort){
+        await rebuildFallback();
+        videoEl.play().catch(() => log('请手动点击播放'));
+    }
+    for(let i = stream.fbSegs.length; i < stream.ctx.segs.length && !stream.abort; i++){
+        if(await streamFetch(i)){
+            stream.fbSegs.push(i);
+            if(stream.fbFirstPlayed && !stream.fbRebuilding && stream.fbSegs.length - stream.fbLastRebuild >= REBUILD_AHEAD) rebuildFallback();
+        }
+    }
+    if(!stream.abort && stream.fbSegs.length){ await rebuildFallback(); log('✅ 全部下载完成'); }
+    if(stream.active && !stream.abort) waitEndThenSave(); // fallback 模式也启动播完自动保存（未下载完不触发）
+}
+
+async function startStreamingPlay(item){
+    if(stream.active) stopStream();
+    if(typeof muxjs === 'undefined'){ log('❌ mux.js 未加载，边下边播不可用（批量下载不受影响）'); return; }
+    log(`[${item.title}] 获取M3U8...`);
+    const txt = await apiText(item.m3u8);
+    const ctx = await parseM3U8(txt, item.m3u8);
+    log(`共 ${ctx.segs.length} 个分片，时长 ${fmt(ctx.total)}${ctx.enc ? ' [加密]' : ''}`);
+    stream.active = true; stream.abort = false; stream.allDone = false; stream.needMore = false; stream.savedDone = false;
+    // 批量按钮保持可用：点批量时 runBatchList 会先 stopStream 停播放再开始下载，不会并行抢带宽
+    stream.seekTarget = -1; stream.processed = new Set(); stream.queue = []; stream.updating = false; stream.flushFail = 0;
+    // 分片池复用：若正是批量下载当前视频，直接复用其已下载分片；否则重建并从 IndexedDB 恢复永久缓存
+    let pool = (curPoolM3u8 === ctx.m3u8 && curDownloaded.length) ? curDownloaded : [];
+    const key = cacheKeyOf(ctx.m3u8);
+    try{
+        const cached = await idbGetAll(key);
+        for(const s of cached){
+            if(s.index < ctx.segs.length && !pool.some(x => x.index === s.index)) pool.push({ index: s.index, arrayBuffer: s.arrayBuffer });
+        }
+        if(cached.length) log(`↳ 从缓存恢复 ${pool.length}/${ctx.segs.length} 个分片`);
+    }catch(e){}
+    stream.ctx = ctx; stream.downloaded = pool;
+    curItem = item; curCtx = ctx; curDownloaded = stream.downloaded; curPoolM3u8 = ctx.m3u8;
+    if(playBlobUrl){ try{ URL.revokeObjectURL(playBlobUrl); }catch(e){} playBlobUrl = null; }
+    videoEl.pause(); videoEl.src = '';
+    vwrap.style.display = 'block';
+    saveBtn.disabled = false;
+    playBtn.disabled = false;
+    const codec = codecDetect();
+    if(!codec){ stream.fallback = true; log('当前浏览器不支持 MSE，使用渐进式播放模式'); startFallbackPlay(); return; }
+    stream.fallback = false;
+    log(`使用编码: ${codec.split('codecs=')[1] || codec}`);
+    startMsePlay(codec);
+}
+
+function stopStream(){
+    if(!stream.active && !stream.handlers.seeking && !stream.handlers.fbTime) return;
+    stream.abort = true; stream.active = false;
+    if(!batchActive){ batchBtn.disabled = false; retryBtn.disabled = batchFailedItems.length === 0; } // 停止播放后恢复批量按钮（批量进行中不动）
+    if(stream.handlers.seeking) videoEl.removeEventListener('seeking', stream.handlers.seeking);
+    if(stream.handlers.timeupdate) videoEl.removeEventListener('timeupdate', stream.handlers.timeupdate);
+    if(stream.handlers.waiting) videoEl.removeEventListener('waiting', stream.handlers.waiting);
+    if(stream.handlers.fbTime) videoEl.removeEventListener('timeupdate', stream.handlers.fbTime);
+    if(stream.handlers.fbEnd) videoEl.removeEventListener('ended', stream.handlers.fbEnd);
+    if(stream.handlers.end) videoEl.removeEventListener('ended', stream.handlers.end);
+    if(stream.handlers.fbErr) videoEl.removeEventListener('error', stream.handlers.fbErr);
+    stream.handlers = {};
+    if(stream.mediaSource && stream.sourceBuffer){
+        try{ if(stream.mediaSource.readyState === 'open') stream.mediaSource.removeSourceBuffer(stream.sourceBuffer); }catch(e){}
+    }
+    const oldSrc = videoEl.src;
+    videoEl.pause();
+    videoEl.src = '';
+    if(oldSrc && oldSrc.startsWith('blob:')) try{ URL.revokeObjectURL(oldSrc); }catch(e){}
+    if(stream.transmuxer){ try{ stream.transmuxer.reset(); }catch(e){} stream.transmuxer = null; }
+    if(stream.fbBlobUrl){ try{ URL.revokeObjectURL(stream.fbBlobUrl); }catch(e){} stream.fbBlobUrl = null; }
+    stream.queue = []; stream.updating = false;
+    log('已停止');
+}
+
+document.getElementById('stream-btn').onclick = async () => {
+    // 目标选择：批量下载进行中 → 直接播放当前正在下载的视频；否则 → 按勾选顺序播放列表
+    if(batchActive && currentBatchItem){
+        const target = currentBatchItem;
+        streamPlaylist = [target]; streamPlIdx = 0;
+        log(`🎯 批量下载进行中，边下边播播放当前视频: ${target.title}`);
+        if(stream.active) stopStream();
+        await startStreamingPlay(target);
+        return;
+    }
+    const sel = selectedItems();
+    if(!sel.length){ log('❌ 请先勾选要播放的条目'); return; }
+    streamPlaylist = sel; streamPlIdx = 0;
+    if(sel.length > 1) log(`🎬 播放队列 ${sel.length} 个，按顺序播放，可点「跳过当前」切下一个`);
+    if(stream.active) stopStream();
+    await startStreamingPlay(sel[0]);
+};
+// 等视频播到接近末尾（MSE 下 ended 事件不可靠，用轮询），再自动保存+切下一个
+async function waitEndThenSave(){
+    log(`等待播完：duration=${videoEl.duration} currentTime=${videoEl.currentTime}`);
+    while(stream.active && !stream.abort && !stream.savedDone){
+        const d = videoEl.duration || 0;
+        // fallback 渐进播放：当前 Blob 可能只是部分分片，未全部下载完时不触发保存（避免误存半成品）
+        if(stream.fallback && stream.downloaded.length < stream.ctx.segs.length){
+            await new Promise(r => setTimeout(r, 500));
+            continue;
+        }
+        if(d > 1 && videoEl.currentTime >= d - 1){
+            stream.savedDone = true;
+            log(`🎬 播到末尾 (${videoEl.currentTime.toFixed(1)}/${d.toFixed(1)})，自动保存中...`);
+            try{ await autoSaveCurrent(); }catch(e){ log(`❌ 自动保存失败: ${e.message}`); }
+            await playNextInPlaylist();
+            return;
+        }
+        await new Promise(r => setTimeout(r, 500));
+    }
+}
+// 本集播完自动保存（不弹窗，自动补齐缺失分片），再切下一个
+async function autoSaveCurrent(){
+    if(!curCtx || !curDownloaded.length){ log(`⚠ autoSaveCurrent 跳过：curCtx=${!!curCtx} 分片=${(curDownloaded||[]).length}`); return; }
+    log(`自动保存：共 ${curCtx.segs.length} 片，已有 ${curDownloaded.length} 片`);
+    let missing = checkCompleteness(curCtx, curDownloaded);
+    if(missing.length) log(`补齐 ${missing.length} 个缺失分片中...`);
+    for(const idx of missing){
+        try{
+            const buf = await fetchSeg(curCtx.segs[idx], idx, curCtx);
+            if(!curDownloaded.some(s => s.index === idx)){
+                curDownloaded.push({ index: idx, arrayBuffer: buf });
+                if(curCtx.m3u8) idbPut(cacheKeyOf(curCtx.m3u8), idx, buf);
+            }
+        }catch(e){
+            log(`分片 ${idx+1} 补齐失败: ${e.message}`);
+        }
+    }
+    missing = checkCompleteness(curCtx, curDownloaded);
+    if(missing.length) log(`⚠ 自动保存：仍缺 ${missing.length} 片`);
+    const sorted = curDownloaded.slice().sort((a, b) => a.index - b.index);
+    const parts = sorted.map(s => new Uint8Array(s.arrayBuffer));
+    const blob = new Blob(parts, { type: 'video/mp2t' });
+    triggerDownload(blob, safeName(curItem ? curItem.title : 'video'));
+    if(curItem && curItem.m3u8) markSaved(curItem.m3u8);
+    log(`✅ 自动保存 ${sorted.length} 片${missing.length ? `（缺 ${missing.length}）` : '（完整）'}`);
+}
+// 播放队列：播下一个；没有下一个就停止
+async function playNextInPlaylist(){
+    streamPlIdx++;
+    if(streamPlIdx >= streamPlaylist.length){
+        log('🎬 播放队列已播完');
+        if(stream.active) stopStream(); // 播完恢复按钮（批量/边下边播解锁），否则批量按钮卡在禁用
+        return false;
+    }
+    const next = streamPlaylist[streamPlIdx];
+    log(`⏭ 自动播下一个 (${streamPlIdx+1}/${streamPlaylist.length}): ${next.title}`);
+    if(stream.active) stopStream();
+    await startStreamingPlay(next);
+    return true;
+}
+// 「跳过播放」按钮：边下边播时跳到队列下一个（跳过=不想看，打跳过标记，不保存）
+document.getElementById('skip-stream-btn').onclick = async () => {
+    if(!stream.active){ log('❌ 没有正在播放的视频'); return; }
+    const hasNext = streamPlaylist.length > 1 && streamPlIdx < streamPlaylist.length - 1;
+    if(!hasNext){
+        // 最后一个视频跳过：打标记并停止播放，恢复按钮
+        if(curItem && curItem.m3u8){ markSkipped(curItem.m3u8); log(`⊘ 已跳过（打标记）: ${curItem.title}`); }
+        stream.savedDone = true;
+        if(stream.active) stopStream();
+        return;
+    }
+    if(curItem && curItem.m3u8){ markSkipped(curItem.m3u8); log(`⊘ 跳过当前（已打跳过标记）: ${curItem.title}`); }
+    stream.savedDone = true; // 跳过：阻止 waitEndThenSave 自动保存
+    await playNextInPlaylist();
+};
+// 「停止」按钮：只服务批量下载（取消整个批量任务）。
+// 播放缓存/边下边播由播放器自带暂停控制，切换视频时也会自动停止重播。
+stopBtn.onclick = () => {
+    if(!batchActive) return;
+    batchCancel = true;
+    batchSkipCurrent = true;
+    log('⏹️ 已请求取消批量下载，当前分片结束后停止');
+};
+
+// 根据是否有缓存分片，启停「播放缓存 / 保存」按钮
+function updateActionButtons(){
+    const has = (curDownloaded || []).length > 0;
+    playBtn.disabled = !has;
+    saveBtn.disabled = !has;
+}
+
+// ── 播放缓存：把已下载分片转码为 MP4 直接播放（不联网），参考原下载器 playVideo ──
+let playBlobUrl = null; // 播放缓存生成的 Blob URL，停止/切换时释放
+async function playCached(){
+    const segs = curDownloaded || [];
+    if(!segs.length){ log('❌ 没有已缓存分片，请先批量下载或边下边播'); return; }
+    if(stream.active) stopStream();
+    if(typeof muxjs === 'undefined'){ log('❌ mux.js 未加载，无法转码播放'); return; }
+    log(`转码 ${segs.length} 个分片为 MP4 并播放...`);
+    vwrap.style.display = 'block';
+    try{
+        const mp4 = await transmuxToMp4(segs);
+        if(stream.active){ // 转码期间用户开始了边下边播/新播放，放弃覆盖
+            if(playBlobUrl){ try{ URL.revokeObjectURL(playBlobUrl); }catch(e){} playBlobUrl = null; }
+            return;
+        }
+        if(playBlobUrl) URL.revokeObjectURL(playBlobUrl);
+        playBlobUrl = URL.createObjectURL(new Blob(mp4, { type: 'video/mp4' }));
+        videoEl.src = playBlobUrl;
+        videoEl.load();
+        videoEl.addEventListener('canplay', () => { videoEl.play().catch(() => log('请手动点击播放')); }, { once: true });
+        log(`✅ 播放缓存（${segs.length} 片，已转码 MP4）`);
+    }catch(e){
+        log('❌ 播放缓存失败: ' + e.message);
+    }
+}
+playBtn.onclick = playCached;
+
+// 清空全部缓存（IndexedDB 永久缓存 + 内存分片）
+document.getElementById('clearcache-btn').onclick = async () => {
+    if(stream.active) stopStream();
+    try{ await idbClearAll(); }catch(e){}
+    curDownloaded = []; curPoolM3u8 = null; curItem = null; curCtx = null;
+    updateActionButtons();
+    log('✅ 已清空全部缓存（IndexedDB + 内存）');
+};
+
+// 分页/每页条数：切换时即时刷新列表（不改抓取逻辑，只改展示）
+document.getElementById('use-pagination').onchange = () => { currentPage = 1; if(!rememberCheck.checked) checkedSet.clear(); renderList(); };
+document.getElementById('page-size').onchange = () => { currentPage = 1; if(!rememberCheck.checked) checkedSet.clear(); renderList(); };
+document.getElementById('remember-check').onchange = () => { if(!rememberCheck.checked) checkedSet.clear(); renderList(); };
+
+// 保存已缓存分片为 .ts（保存前检测完整性，可自动补齐）
+saveBtn.onclick = async () => {
+    const segs = curDownloaded || [];
+    if(!segs.length){ log('❌ 没有已缓存分片，请先下载或边下边播'); return; }
+    if(stream.active) stopStream();
+    let missing = [];
+    if(curCtx && curCtx.segs.length) missing = checkCompleteness(curCtx, curDownloaded);
+    // 检测到缺失：询问补齐
+    if(missing.length){
+        const doFill = confirm(`检测到缓存不完整，缺少 ${missing.length} 个分片（共 ${curCtx.segs.length} 片）。\n\n点击「确定」= 先补齐缺失分片再保存\n点击「取消」= 跳过缺失部分直接保存`);
+        if(doFill){
+            log(`补齐 ${missing.length} 个缺失分片中...`);
+            for(const idx of missing){
+                try{
+                    const buf = await fetchSeg(curCtx.segs[idx], idx, curCtx);
+                    if(!curDownloaded.some(s => s.index === idx)){
+                        curDownloaded.push({ index: idx, arrayBuffer: buf });
+                        if(curCtx.m3u8) idbPut(cacheKeyOf(curCtx.m3u8), idx, buf);
+                    }
+                    log(`补齐分片 ${idx+1}/${curCtx.segs.length}`);
+                }catch(e){
+                    log(`分片 ${idx+1} 补齐失败: ${e.message}`);
+                }
+            }
+            missing = checkCompleteness(curCtx, curDownloaded);
+            if(missing.length){
+                const still = confirm(`仍有 ${missing.length} 个分片无法补齐，是否仍保存不完整版本？\n\n「确定」= 仍保存\n「取消」= 放弃保存`);
+                if(!still){ log('已放弃保存'); return; }
+            }
+        }
+    }
+    const sorted = curDownloaded.slice().sort((a, b) => a.index - b.index);
+    const parts = sorted.map(s => new Uint8Array(s.arrayBuffer));
+    const blob = new Blob(parts, { type: 'video/mp2t' });
+    triggerDownload(blob, safeName(curItem ? curItem.title : 'video'));
+    if(curItem && curItem.m3u8) markSaved(curItem.m3u8);
+    log(`✅ 已保存 ${sorted.length} 个分片${missing.length ? `（不完整，缺 ${missing.length} 片）` : '（完整）'}`);
+};
+
+// ── 初始化 ──
+checkHealth();
+if(typeof muxjs !== 'undefined') libStatus.textContent = 'mux.js 已加载，边下边播可用';
+else libStatus.textContent = 'mux.js 加载失败，边下边播不可用（批量下载不受影响）';
+</script>
+</body>
+</html>
