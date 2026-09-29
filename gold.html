@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>百分位仓位布局计算器</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4 max-w-xl mx-auto">
+<div class="bg-white rounded-xl shadow p-5">
+  <h2 class="text-xl font-bold mb-4">百分位仓位布局计算器</h2>
+  <p class="text-sm text-gray-500 mb-2">逻辑：价格=最低 →满仓；价格=最高 →空仓；线性插值计算建议投入金额</p>
+  <p class="text-xs text-orange-600 mb-4">⚠️默认高低价格取自K线区间：2024‑10‑01 ~ 2026‑10‑01，可切换自定义修改</p>
+
+  <div class="mb-4">
+    <label class="block font-medium mb-1">选择品种</label>
+    <select id="selAsset" class="w-full border rounded p-2">
+      <option value="gold">黄金(美元/盎司)｜低:2600 高:5600 【2024‑10‑01~2026‑10‑01】</option>
+      <option value="silver">白银(美元/盎司)｜低:30 高:120 【2024‑10‑01~2026‑10‑01】</option>
+      <option value="oil">WTI石油(美元/桶)｜低:55 高:120 【2024‑10‑01~2026‑10‑01】</option>
+      <option value="sox">费城半导体SOX(指数点)｜低:5100 高:14600 【2024‑10‑01~2026‑10‑01】</option>
+      <option value="custom">自定义（手动填写高低）</option>
+    </select>
+  </div>
+
+  <div class="grid grid-cols-2 gap-3 mb-4">
+    <div>
+      <label class="block text-sm">历史最低价</label>
+      <input type="number" step="0.01" id="lowPrice" class="w-full border rounded p-2"/>
+    </div>
+    <div>
+      <label class="block text-sm">历史最高价</label>
+      <input type="number" step="0.01" id="highPrice" class="w-full border rounded p-2"/>
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <label class="block text-sm">当前价格</label>
+    <input type="number" step="0.01" id="curPrice" placeholder="输入现价" class="w-full border rounded p-2"/>
+  </div>
+
+  <div class="mb-4">
+    <label class="block text-sm">分配给该品种总仓位金额(元)</label>
+    <input type="number" step="0.01" id="totalMoney" value="30000" class="w-full border rounded p-2"/>
+  </div>
+
+  <button id="calcBtn" class="bg-blue-600 text-white w-full py-2 rounded-lg">计算建议仓位</button>
+
+  <div class="mt-5 border-t pt-4">
+    <div class="mb-2">价格位置百分位：<span id="pctPos" class="font-semibold">--</span></div>
+    <div class="mb-2">建议仓位比例：<span id="posRate" class="font-semibold">--</span></div>
+    <div class="mb-2 text-lg font-bold">建议投入金额：<span id="investAmt">--</span></div>
+    <div class="text-xs text-gray-400 mt-3">
+      公式：位置百分位=(现价‑最低)/(最高‑最低)；建议仓位比例 = 1 − 位置百分位<br/>
+      现价＜最低取100%满仓；现价＞最高取0%空仓。工具仅供数学测算，不构成投资建议。
+    </div>
+  </div>
+</div>
+
+<script>
+const selAsset = document.getElementById('selAsset');
+const lowEl = document.getElementById('lowPrice');
+const highEl = document.getElementById('highPrice');
+const curEl = document.getElementById('curPrice');
+const totalEl = document.getElementById('totalMoney');
+const calcBtn = document.getElementById('calcBtn');
+const pctPosEl = document.getElementById('pctPos');
+const posRateEl = document.getElementById('posRate');
+const investAmtEl = document.getElementById('investAmt');
+
+//区间：2024‑10‑01 ~ 2026‑10‑01
+const preset = {
+  gold:  { low:2600, high:5600 },
+  silver:{ low:30,   high:120 },
+  oil:   { low:55,   high:120 },
+  sox:   { low:5100, high:14600 }
+};
+
+function applyPreset(){
+  const v = selAsset.value;
+  if(preset[v]){
+    lowEl.value = preset[v].low;
+    highEl.value = preset[v].high;
+  }
+}
+selAsset.addEventListener('change', applyPreset);
+applyPreset();
+
+calcBtn.onclick = ()=>{
+  const low  = Number(lowEl.value);
+  const high = Number(highEl.value);
+  const cur  = Number(curEl.value);
+  const total= Number(totalEl.value);
+
+  if(isNaN(low)||isNaN(high)||isNaN(cur)||isNaN(total) || high<=low){
+    alert("请正确填写高低价格、现价、总仓位，最高价必须大于最低价");
+    return;
+  }
+
+  let posPct;
+  if(cur <= low){
+    posPct = 0;
+  }else if(cur >= high){
+    posPct = 1;
+  }else{
+    posPct = (cur - low)/(high - low);
+  }
+
+  const rate = 1 - posPct;
+  const invest = total * rate;
+
+  pctPosEl.innerText = (posPct*100).toFixed(2)+" %";
+  posRateEl.innerText = (rate*100).toFixed(2)+" %";
+  investAmtEl.innerText = invest.toFixed(2) + " 元";
+}
+</script>
+</body>
+</html>
