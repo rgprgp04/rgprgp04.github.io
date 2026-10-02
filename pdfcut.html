@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>两栏PDF拆分｜修复黑色页面</title>
+<style>
+*{box-sizing:border-box;font-family:system-ui}
+body{max-width:700px;margin:2rem auto;padding:0 1rem}
+.box{border:2px dashed #2b7cd3;padding:2rem;border-radius:12px;background:#f3f8ff}
+button{background:#2b7cd3;color:white;border:none;padding:12px 20px;border-radius:8px;font-size:16px;margin-top:1rem;cursor:pointer}
+button:disabled{background:#bbbbbb;cursor:not-allowed}
+.info{margin-top:1rem;color:#444;font-size:14px;white-space:pre-wrap}
+.note{background:#fff8dc;padding:12px;border-radius:8px;margin:1rem 0;font-size:13px}
+canvas{display:none;}
+</style>
+<script src="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.min.js"></script>
+<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+</head>
+<body>
+<h2>两栏试卷拆分｜图片模式生成标准A4</h2>
+<div class="note">
+✅修复偶数页面黑色块。使用 drawImage 裁切画布，不再使用putImageData。<br>
+原PDF每页拆为2张A4，左栏、右栏分别铺满完整A4。<br>
+全部浏览器本地运算，不上传文件。⚠️不要微信内置浏览器！
+</div>
+<div class="box">
+<input type="file" id="fileInput" accept=".pdf"/>
+<div class="info" id="debugInfo">请选择你的两栏试卷PDF</div>
+<button id="runBtn" disabled>开始拆分生成A4‑PDF</button>
+<div id="status" class="info"></div>
+</div>
+<canvas id="renderCanvas"></canvas>
+
+<script>
+const { jsPDF } = window.jspdf;
+const fileInput = document.getElementById("fileInput");
+const runBtn = document.getElementById("runBtn");
+const statusDom = document.getElementById("status");
+const debugInfo = document.getElementById("debugInfo");
+const renderCanvas = document.getElementById("renderCanvas");
+const ctx = renderCanvas.getContext("2d");
+let sourceFile = null;
+
+fileInput.addEventListener('input', function(e){
+    const files = e.target.files;
+    if(files && files.length>0){
+        sourceFile = files[0];
+        runBtn.disabled = false;
+        debugInfo.innerText = `✅已选中文件：${sourceFile.name}`;
+    }else{
+        sourceFile = null;
+        runBtn.disabled = true;
+        debugInfo.innerText = `❌未选中任何PDF文件`;
+    }
+});
+
+runBtn.onclick = async ()=>{
+    if(!sourceFile) return;
+    runBtn.disabled = true;
+    statusDom.innerText = "正在加载PDF...";
+    try{
+        const arrayBuf = await sourceFile.arrayBuffer();
+        const pdfDoc = await pdfjsLib.getDocument({data:arrayBuf}).promise;
+        const totalPages = pdfDoc.numPages;
+        const outPdf = new jsPDF({orientation:"portrait",unit:"pt",format:"a4"});
+        outPdf.deletePage(1);
+
+        for(let pageIdx=1;pageIdx<=totalPages;pageIdx++){
+            statusDom.innerText=`处理页面 ${pageIdx}/${totalPages}`;
+            const page = await pdfDoc.getPage(pageIdx);
+            const scale = 2;
+            const viewport = page.getViewport({scale});
+            renderCanvas.width = viewport.width;
+            renderCanvas.height = viewport.height;
+            await page.render({canvasContext:ctx,viewport:viewport}).promise;
+
+            const halfW = Math.floor(viewport.width * 0.50);
+
+            // =========【左半栏】使用drawImage裁切，无黑块 =========
+            const leftCanvas = document.createElement("canvas");
+            leftCanvas.width = halfW;
+            leftCanvas.height = viewport.height;
+            const leftCtx = leftCanvas.getContext("2d");
+            // drawImage(源画布，源x，源y，源宽，源高，目标x，目标y，目标宽，目标高)
+            leftCtx.drawImage(renderCanvas,
+                0, 0, halfW, viewport.height,
+                0, 0, halfW, viewport.height
+            );
+            const leftImgUrl = leftCanvas.toDataURL("image/jpeg",0.92);
+            outPdf.addPage("a4","portrait");
+            outPdf.addImage(leftImgUrl,"JPEG",0,0,595.28,841.89);
+
+            // =========【右半栏】使用drawImage裁切，无黑块 =========
+            const rightCanvas = document.createElement("canvas");
+            const rightW = viewport.width - halfW;
+            rightCanvas.width = rightW;
+            rightCanvas.height = viewport.height;
+            const rightCtx = rightCanvas.getContext("2d");
+            rightCtx.drawImage(renderCanvas,
+                halfW, 0, rightW, viewport.height,
+                0, 0, rightW, viewport.height
+            );
+            const rightImgUrl = rightCanvas.toDataURL("image/jpeg",0.92);
+            outPdf.addPage("a4","portrait");
+            outPdf.addImage(rightImgUrl,"JPEG",0,0,595.28,841.89);
+        }
+
+        statusDom.innerText="✅生成完毕，开始下载";
+        outPdf.save(sourceFile.name.replace(".pdf","_拆分A4版.pdf"));
+    }catch(err){
+        statusDom.innerText="❌异常："+err.message;
+        console.error(err);
+    }finally{
+        runBtn.disabled=false;
+    }
+};
+</script>
+</body>
+</html>
+<!-- （注：内容由AI生成） -->
